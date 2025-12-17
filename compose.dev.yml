@@ -1,0 +1,10 @@
+services:
+  web:
+    build:
+      context: "web"
+      target: "development"
+    volumes:
+      - "./web:/app"
+      - "./web/node_modules/:/app/node_modules/"
+      - "./web/.next:/app/.next"
+      - "./:/workspace" # Workspace for devcontainer

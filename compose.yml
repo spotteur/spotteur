@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      context: "web"
+      target: "production"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "db-psql"
+    env_file: [".env"]
+  db-psql:
+    image: "postgres:18.1-alpine"
+    environment:
+      POSTGRES_USER: "${DB_USER:-}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-}"
+      POSTGRES_DB: "${DB_NAME:-}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-} -d ${DB_NAME:-}"]
+    volumes:
+      - "db-psql:/var/lib/postgresql/18/docker"
+
+volumes:
+  db-psql:
