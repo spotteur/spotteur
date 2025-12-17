@@ -1,0 +1,14 @@
+version: "3"
+dotenv:
+  - .env
+silent: true
+tasks:
+  migrate:
+    cmds:
+      - "npx -y drizzle-kit migrate"
+  migration:generate:
+    cmds:
+      - "npx -y drizzle-kit generate"
+  auth:schema:generate:
+    cmds:
+      - "npx -y @better-auth/cli generate --output=./db/schema/auth.ts"

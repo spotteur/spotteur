@@ -17,6 +17,9 @@ tasks:
   stop:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
+  status:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} ps --format 'table {{\"{{.Name}}\"}}\t{{\"{{.Image}}\"}}\t{{\"{{.Status}}\"}}' --all"
   logs:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100"
