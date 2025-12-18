@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import { MockMenu } from "@/lib/data/mock/menu";
 import Link from "next/link";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
   return (
@@ -38,4 +42,12 @@ export function AppSidebar() {
       <SidebarFooter />
     </Sidebar>
   );
+}
+
+export function AppSidebarTrigger() {
+  const sidebar = useSidebar();
+
+  if (!sidebar) return null;
+
+  return <SidebarTrigger className="border cursor-pointer" />;
 }
