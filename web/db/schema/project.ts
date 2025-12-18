@@ -39,7 +39,7 @@ export const builds = pgTable("builds", {
     .references(() => projects.id)
     .notNull(),
   baseUrl: varchar("base_url").notNull(),
-  compareToBuildId: uuid("compare_to_build_id"),
+  baselineBuildId: uuid("baseline_build_id"),
   identifier: varchar("identifier"),
   pagePaths: text("page_paths")
     .array()
@@ -68,7 +68,7 @@ export const snapshots = pgTable("snapshots", {
   screenshotMediaId: uuid("screenshot_media_id")
     .references(() => media.id)
     .notNull(),
-  compareToScreenshotMediaId: uuid("compare_to_screenshot_media_id").references(
+  baselineScreenshotMediaId: uuid("baseline_screenshot_media_id").references(
     () => media.id
   ),
   diffScreenshotMediaId: uuid("diff_screenshot_media_id").references(
@@ -86,8 +86,8 @@ export const projectsRelations = relations(projects, ({ many }) => ({
 
 export const buildsRelations = relations(builds, ({ one }) => ({
   project: one(projects),
-  compareToBuild: one(builds, {
-    fields: [builds.compareToBuildId],
+  baselineBuild: one(builds, {
+    fields: [builds.baselineBuildId],
     references: [builds.id],
   }),
 }));
@@ -98,11 +98,11 @@ export const snapshotsRelations = relations(snapshots, ({ one }) => ({
     fields: [snapshots.screenshotMediaId],
     references: [media.id],
   }),
-  compareToScreenshot: one(media, {
-    fields: [snapshots.compareToScreenshotMediaId],
+  baselineScreenshotMedia: one(media, {
+    fields: [snapshots.baselineScreenshotMediaId],
     references: [media.id],
   }),
-  diffScreenshot: one(media, {
+  diffScreenshotMedia: one(media, {
     fields: [snapshots.diffScreenshotMediaId],
     references: [media.id],
   }),
