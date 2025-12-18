@@ -1,0 +1,16 @@
+{
+  "name": "spotteur",
+  "dockerComposeFile": ["../compose.yml", "../compose.dev.yml"],
+  "service": "web",
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-containers",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

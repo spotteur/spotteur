@@ -1,0 +1,28 @@
+version: "3"
+dotenv:
+  - .env
+silent: true
+vars:
+  DOCKER_COMPOSE_SCRIPT:
+    sh: |
+      if [ "{{.APP_ENV}}" = "development" ]; then
+        echo "docker compose -f compose.yml -f compose.dev.yml"
+      else
+        echo "docker compose -f compose.yml"
+      fi
+tasks:
+  up:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} up --detach --build --remove-orphans"
+  stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} down"
+  status:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} ps --format 'table {{\"{{.Name}}\"}}\t{{\"{{.Image}}\"}}\t{{\"{{.Status}}\"}}' --all"
+  logs:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100"
+  db:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec db-psql psql -U {{.DB_USER}} -d {{.DB_NAME}}"
