@@ -20,11 +20,11 @@ Provide clear, repeatable steps.
 If the issue is intermittent, note that.
 -->
 
-## Expected Behavior
+## Expected behavior
 
 <!-- Describe what you expected to happen. -->
 
-## Actual Behavior
+## Actual behavior
 
 <!-- Describe what actually happened. -->
 

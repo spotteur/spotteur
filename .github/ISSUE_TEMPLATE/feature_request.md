@@ -6,7 +6,7 @@ labels: enhancement
 assignees: ""
 ---
 
-## Feature Description
+## Feature description
 
 <!--
 Explain the feature and the problem it addresses.
@@ -22,7 +22,7 @@ Break into small, actionable steps where possible.
 
 - [ ] ...
 
-## Done Criteria
+## Done criteria
 
 <!--
 The feature is considered complete when ALL of the following are true.
