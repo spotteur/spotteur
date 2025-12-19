@@ -15,7 +15,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.41.0",
-    "knex": "^3.1.0",
     "lucide-react": "^0.561.0",
     "next": "^16.0.10",
     "pg": "^8.16.3",

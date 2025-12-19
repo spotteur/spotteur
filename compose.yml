@@ -1,19 +1,19 @@
 services:
-  web:
+  webapp:
     build:
       context: "web"
       target: "production"
     ports:
       - "18000:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000 || exit 1"]
     env_file: [".env"]
     depends_on:
-      db-psql:
+      postgres-webapp:
         condition: "service_healthy"
       temporal:
         condition: "service_healthy"
-  db-psql:
+  postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
       POSTGRES_USER: "${DB_USER:-}"
@@ -21,9 +21,12 @@ services:
       POSTGRES_DB: "${DB_NAME:-}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-} -d ${DB_NAME:-}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
     volumes:
-      - "db-psql:/var/lib/postgresql/18/docker"
-  temporal-db:
+      - "postgres-webapp_data:/var/lib/postgresql"
+  postgres-temporal:
     image: "postgres:18.1-alpine"
     environment:
       POSTGRES_USER: "temporal"
@@ -31,8 +34,11 @@ services:
       POSTGRES_DB: "temporal"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
     volumes:
-      - "temporal-db-data:/var/lib/postgresql/18/docker"
+      - "postgres-temporal_data:/var/lib/postgresql"
   temporal:
     image: "temporalio/auto-setup:1.29"
     environment:
@@ -40,13 +46,16 @@ services:
       DB_PORT: "5432"
       POSTGRES_USER: "temporal"
       POSTGRES_PWD: "temporal"
-      POSTGRES_SEEDS: "temporal-db"
+      POSTGRES_SEEDS: "postgres-temporal"
       TEMPORAL_ADDRESS: "temporal:7233"
       TEMPORAL_CLI_ADDRESS: "temporal:7233"
     healthcheck:
       test: ["CMD-SHELL", "temporal operator cluster health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
     depends_on:
-      temporal-db:
+      postgres-temporal:
         condition: "service_healthy"
   temporal-ui:
     image: "temporalio/ui:2.43.0"
@@ -84,8 +93,8 @@ services:
       RUSTFS_OBJECT_CACHE_ENABLE: true
       RUSTFS_OBJECT_CACHE_TTL_SECS: 300
     volumes:
-      - "rustfs-data:/data/rustfs"
-      - "rustfs-logs:/app/logs"
+      - "rustfs_data:/data/rustfs"
+      - "rustfs_logs:/app/logs"
     healthcheck:
       test:
         [
@@ -100,8 +109,8 @@ services:
   rustfs-volume-permission-helper:
     image: "alpine"
     volumes:
-      - "rustfs-data:/data"
-      - "rustfs-logs:/logs"
+      - "rustfs_data:/data"
+      - "rustfs_logs:/logs"
     command: >
       sh -c "
         chown -R 10001:10001 /data /logs &&
@@ -109,8 +118,14 @@ services:
         exit 0
       "
     restart: "no"
+  selenium:
+    image: "selenium/standalone-docker:4.39.0"
+    volumes:
+      - "./selenium/config.toml:/opt/bin/config.toml"
+      - "./selenium/assets:/opt/selenium/assets"
+      - "/var/run/docker.sock:/var/run/docker.sock"
 volumes:
-  db-psql:
-  rustfs-data:
-  rustfs-logs:
-  temporal-db-data:
+  postgres-temporal_data:
+  postgres-webapp_data:
+  rustfs_data:
+  rustfs_logs:
