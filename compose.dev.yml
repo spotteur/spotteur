@@ -3,6 +3,8 @@ services:
     build:
       context: "web"
       target: "development"
+    ports:
+      - "18005:3001"
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"

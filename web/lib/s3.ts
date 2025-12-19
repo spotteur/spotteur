@@ -1,3 +1,5 @@
+'use server'
+
 import { S3Client } from '@aws-sdk/client-s3'
 import { NodeHttpHandler } from '@smithy/node-http-handler'
 
