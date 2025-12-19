@@ -1,5 +1,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ThemeTrigger from "@/components/theme/theme-trigger";
+import { UserPopupComponent } from "@/components/user/UserPopupComponent";
+import { UserButton } from "@daveyplate/better-auth-ui";
 
 export default function AppHeader() {
   return (
@@ -8,8 +10,9 @@ export default function AppHeader() {
         <div className="sidebar-trigger flex gap-2">
           <SidebarTrigger className="border cursor-pointer" />
         </div>
-        <div className="header-right">
+        <div className="header-right flex gap-2">
           <ThemeTrigger />
+          <UserButton size="icon" />
         </div>
       </div>
     </div>

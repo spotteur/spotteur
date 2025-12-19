@@ -6,6 +6,7 @@ import {
   timestamp,
   boolean,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
 import { projects } from "@/db/schema/project";
 
@@ -17,6 +18,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  itemPerPage: integer("item_per_page").default(25).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

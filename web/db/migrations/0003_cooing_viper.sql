@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "item_per_page" integer DEFAULT 25 NOT NULL;

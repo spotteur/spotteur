@@ -7,6 +7,6 @@ export const MockMenu: MockMenuType[] = [
   },
   {
     label: "Users",
-    url: "/",
+    url: "/account/settings",
   },
 ];
