@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm"
 import {
   pgTable,
   text,
@@ -6,8 +6,9 @@ import {
   timestamp,
   boolean,
   index,
-} from "drizzle-orm/pg-core";
-import { projects } from "@/db/schema/project";
+} from "drizzle-orm/pg-core"
+
+import { projects } from "@/db/schema/project"
 
 export const users = pgTable("users", {
   id: uuid("id")
@@ -22,7 +23,7 @@ export const users = pgTable("users", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+})
 
 export const sessions = pgTable(
   "sessions",
@@ -43,7 +44,7 @@ export const sessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
   },
   (table) => [index("sessions_userId_idx").on(table.userId)]
-);
+)
 
 export const accounts = pgTable(
   "accounts",
@@ -69,7 +70,7 @@ export const accounts = pgTable(
       .notNull(),
   },
   (table) => [index("accounts_userId_idx").on(table.userId)]
-);
+)
 
 export const verifications = pgTable(
   "verifications",
@@ -87,24 +88,24 @@ export const verifications = pgTable(
       .notNull(),
   },
   (table) => [index("verifications_identifier_idx").on(table.identifier)]
-);
+)
 
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   accounts: many(accounts),
   projects: many(projects),
-}));
+}))
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   users: one(users, {
     fields: [sessions.userId],
     references: [users.id],
   }),
-}));
+}))
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   users: one(users, {
     fields: [accounts.userId],
     references: [users.id],
   }),
-}));
+}))
