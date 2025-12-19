@@ -3,7 +3,7 @@ import ThemeTrigger from "@/components/theme/theme-trigger";
 
 export default function AppHeader() {
   return (
-    <div className="header w-full py-3 border border-b">
+    <div className="header w-full py-3 border-b">
       <div className="header-content flex justify-between items-center px-5">
         <div className="sidebar-trigger flex gap-2">
           <SidebarTrigger className="border cursor-pointer" />
