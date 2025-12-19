@@ -1,12 +1,13 @@
-"use client";
+"use client"
 
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
-import { THEME_DARK, THEME_LIGHT } from "@/constants/app";
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
+
+import { Button } from "@/components/ui/button"
+import { THEME_DARK, THEME_LIGHT } from "@/constants/app"
 
 export default function ThemeTrigger() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <Button
@@ -21,5 +22,5 @@ export default function ThemeTrigger() {
         <Sun className="h-[1.2rem] w-[1.2rem]" />
       )}
     </Button>
-  );
+  )
 }

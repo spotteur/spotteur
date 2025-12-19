@@ -1,5 +1,5 @@
-import ThemeTrigger from "@/components/theme/theme-trigger";
-import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider"
+import ThemeTrigger from "@/components/theme/theme-trigger"
 
 export default function AuthLayout({
   children,
@@ -25,5 +25,5 @@ export default function AuthLayout({
         </div>
       </div>
     </ThemeProvider>
-  );
+  )
 }

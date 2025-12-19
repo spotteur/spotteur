@@ -1,7 +1,7 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import ThemeTrigger from "@/components/theme/theme-trigger";
-import { UserPopupComponent } from "@/components/user/UserPopupComponent";
-import { UserButton } from "@daveyplate/better-auth-ui";
+import { UserButton } from '@daveyplate/better-auth-ui'
+
+import ThemeTrigger from '@/components/theme/theme-trigger'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 export default function AppHeader() {
   return (
@@ -16,5 +16,5 @@ export default function AppHeader() {
         </div>
       </div>
     </div>
-  );
+  )
 }

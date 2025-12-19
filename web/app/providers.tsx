@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { AuthUIProvider } from "@daveyplate/better-auth-ui";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { AuthUIProvider } from "@daveyplate/better-auth-ui"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import type { ReactNode } from "react"
 
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client"
 
 export function Providers({ children }: { children: ReactNode }) {
-  const router = useRouter();
+  const router = useRouter()
 
   return (
     <AuthUIProvider
@@ -17,7 +17,7 @@ export function Providers({ children }: { children: ReactNode }) {
       replace={router.replace}
       onSessionChange={() => {
         // Clear router cache (protected routes)
-        router.refresh();
+        router.refresh()
       }}
       Link={Link}
       additionalFields={{
@@ -35,5 +35,5 @@ export function Providers({ children }: { children: ReactNode }) {
     >
       {children}
     </AuthUIProvider>
-  );
+  )
 }

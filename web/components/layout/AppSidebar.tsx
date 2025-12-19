@@ -1,4 +1,6 @@
-"use client";
+"use client"
+
+import Link from "next/link"
 
 import {
   Sidebar,
@@ -11,11 +13,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { MockMenu } from "@/lib/data/mock/menu";
-import Link from "next/link";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useSidebar } from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import { useSidebar } from "@/components/ui/sidebar"
+import { MockMenu } from "@/lib/data/mock/menu"
 
 export function AppSidebar() {
   return (
@@ -41,13 +42,13 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter />
     </Sidebar>
-  );
+  )
 }
 
 export function AppSidebarTrigger() {
-  const sidebar = useSidebar();
+  const sidebar = useSidebar()
 
-  if (!sidebar) return null;
+  if (!sidebar) return null
 
-  return <SidebarTrigger className="border cursor-pointer" />;
+  return <SidebarTrigger className="border cursor-pointer" />
 }

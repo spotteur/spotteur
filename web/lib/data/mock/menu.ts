@@ -1,4 +1,4 @@
-import { MockMenuType } from "@/lib/types/menu";
+import { MockMenuType } from "@/lib/types/menu"
 
 export const MockMenu: MockMenuType[] = [
   {
@@ -9,4 +9,4 @@ export const MockMenu: MockMenuType[] = [
     label: "Users",
     url: "/account/settings",
   },
-];
+]

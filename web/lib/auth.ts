@@ -4,7 +4,6 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { BETTER_AUTH_SECRET } from '@/constants/env'
 import db from '@/db/drizzle'
 import { accounts, sessions, users, verifications } from '@/db/schema'
-import { authClient } from '@/lib/auth-client'
 
 export const auth = betterAuth({
   secret: BETTER_AUTH_SECRET,

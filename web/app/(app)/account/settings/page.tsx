@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import {
   ChangeEmailCard,
@@ -8,7 +8,7 @@ import {
   UpdateAvatarCard,
   UpdateFieldCard,
   UpdateNameCard,
-} from "@daveyplate/better-auth-ui";
+} from "@daveyplate/better-auth-ui"
 export default function page() {
   return (
     <div className="flex flex-col gap-6">
@@ -24,5 +24,5 @@ export default function page() {
       />
       <DeleteAccountCard />
     </div>
-  );
+  )
 }

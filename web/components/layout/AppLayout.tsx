@@ -1,9 +1,9 @@
-"use client";
+"use client"
 
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import AppHeader from "@/components/layout/AppHeader";
-import { ThemeProvider } from "@/components/theme/theme-provider";
+import AppHeader from "@/components/layout/AppHeader"
+import { AppSidebar } from "@/components/layout/AppSidebar"
+import { ThemeProvider } from "@/components/theme/theme-provider"
+import { SidebarProvider } from "@/components/ui/sidebar"
 
 export default function AppLayout({
   children,
@@ -25,5 +25,5 @@ export default function AppLayout({
         </main>
       </SidebarProvider>
     </ThemeProvider>
-  );
+  )
 }
