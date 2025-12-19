@@ -1,37 +1,46 @@
 ---
 name: Bug report
-about: Create a report to fix an issue on the website
-title: ''
+about: Create a report to fix an issue
+title: "bug: "
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
-## Bug Description
-A clear and concise description of what the bug is.
+## Bug description
 
-### Steps To Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+<!--
+Clearly describe what the bug is.
+Include where it occurs and what is broken.
+-->
 
-### Expected Behaviour
-A clear and concise description of what you expected to happen.
+### Steps to reproduce
 
-### Screenshots 
-If applicable, add screenshots to help explain your problem.
+<!--
+Provide clear, repeatable steps.
+If the issue is intermittent, note that.
+-->
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Expected Behavior
 
-**Mobile (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+<!-- Describe what you expected to happen. -->
 
-**Additional Context**
-Add any other context about the problem here.
+## Actual Behavior
+
+<!-- Describe what actually happened. -->
+
+## Environment
+
+<!--
+Provide relevant environment details.
+Remove fields that are not applicable.
+-->
+
+- Version / Commit:
+- OS / Browser (if relevant):
+
+## Screenshots / Logs
+
+<!--
+Attach screenshots, videos, or logs if available.
+Redact any sensitive information.
+-->

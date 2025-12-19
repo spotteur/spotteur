@@ -1,20 +1,31 @@
-## Pull Request for Issue #<issue-number>
+## Fixes #<issue-number>
 
-### Summary
-A brief summary of the changes made in this pull request.
+## Summary
 
-### Changes
-- Description of change 1
-- Description of change 2
-- Description of change 3
+<!--
+Briefly explain what this PR does and why.
+-->
 
-### Testing instructions
-Explain how to test the feature/fix. Include any setup instructions if necessary.
+## Changes
 
-### Screenshots
+<!--
+List the main changes introduced by this PR.
+Keep it concise and high-level.
+-->
 
-### What post-deploy tasks are required?
+- ...
+- ...
+- ...
 
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
+## Testing
+
+<!--
+Explain how this change was tested.
+Include commands, environments, or steps if relevant.
+-->
+
+## Screenshots
+
+<!--
+Attach screenshots or recordings if this change affects UI.
+-->
