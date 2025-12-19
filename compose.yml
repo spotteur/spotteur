@@ -13,8 +13,6 @@ services:
         condition: "service_healthy"
       temporal:
         condition: "service_healthy"
-      inbucket:
-        condition: "service_healthy"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
