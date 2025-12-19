@@ -1,10 +1,16 @@
 services:
-  web:
+  webapp:
     build:
       context: "web"
       target: "development"
     volumes:
       - "./web:/app"
-      - "./web/node_modules/:/app/node_modules/"
-      - "./web/.next:/app/.next"
+      - "webapp_deps:/app/node_modules/"
+      - "webapp_next:/app/.next/"
       - "./:/workspace" # Workspace for devcontainer
+      - "webapp_deps:/workspace/web/node_modules/"
+      - "webapp_next:/workspace/web/.next/"
+
+volumes:
+  webapp_deps:
+  webapp_next:
