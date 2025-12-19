@@ -1,11 +1,11 @@
-import { sql } from "drizzle-orm";
+import { sql } from "drizzle-orm"
 import {
   pgTable,
   uuid,
   timestamp,
   integer,
   varchar,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/pg-core"
 
 export const media = pgTable("media", {
   id: uuid("id")
@@ -21,4 +21,4 @@ export const media = pgTable("media", {
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+})

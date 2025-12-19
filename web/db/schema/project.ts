@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm"
 import {
   pgTable,
   uuid,
@@ -6,8 +6,9 @@ import {
   integer,
   text,
   varchar,
-} from "drizzle-orm/pg-core";
-import { media } from "./media";
+} from "drizzle-orm/pg-core"
+
+import { media } from "./media"
 
 export const projects = pgTable("projects", {
   id: uuid("id")
@@ -29,7 +30,7 @@ export const projects = pgTable("projects", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+})
 
 export const builds = pgTable("builds", {
   id: uuid("id")
@@ -51,7 +52,7 @@ export const builds = pgTable("builds", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+})
 
 export const snapshots = pgTable("snapshots", {
   id: uuid("id")
@@ -78,11 +79,11 @@ export const snapshots = pgTable("snapshots", {
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-});
+})
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   builds: many(builds),
-}));
+}))
 
 export const buildsRelations = relations(builds, ({ one }) => ({
   project: one(projects),
@@ -90,7 +91,7 @@ export const buildsRelations = relations(builds, ({ one }) => ({
     fields: [builds.baselineBuildId],
     references: [builds.id],
   }),
-}));
+}))
 
 export const snapshotsRelations = relations(snapshots, ({ one }) => ({
   build: one(builds),
@@ -106,4 +107,4 @@ export const snapshotsRelations = relations(snapshots, ({ one }) => ({
     fields: [snapshots.diffScreenshotMediaId],
     references: [media.id],
   }),
-}));
+}))

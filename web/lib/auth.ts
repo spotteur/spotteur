@@ -1,8 +1,9 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import db from "@/db/drizzle";
-import { BETTER_AUTH_SECRET } from "@/constants/env";
-import { accounts, sessions, users, verifications } from "@/db/schema";
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+
+import { BETTER_AUTH_SECRET } from '@/constants/env'
+import db from '@/db/drizzle'
+import { accounts, sessions, users, verifications } from '@/db/schema'
 
 export const auth = betterAuth({
   secret: BETTER_AUTH_SECRET,
@@ -13,7 +14,7 @@ export const auth = betterAuth({
       accounts,
       sessions,
     },
-    provider: "pg",
+    provider: 'pg',
     usePlural: true,
   }),
   emailAndPassword: {
@@ -25,4 +26,4 @@ export const auth = betterAuth({
       generateId: false,
     },
   },
-});
+})
