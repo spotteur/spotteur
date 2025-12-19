@@ -120,17 +120,6 @@ services:
         exit 0
       "
     restart: "no"
-  inbucket:
-    image: "inbucket/inbucket:latest"
-    environment:
-      INBUCKET_MAILBOXNAMING: "full"
-      INBUCKET_SMTP_ADDR: "0.0.0.0:25"
-      INBUCKET_POP3_ADDR: "0.0.0.0:110"
-    ports:
-      - "18004:9000"
-    healthcheck:
-      test:
-        ["CMD-SHELL", "wget --spider http://localhost:9000/status || exit 1"]
   selenium:
     image: "selenium/standalone-docker:4.39.0"
     volumes:
