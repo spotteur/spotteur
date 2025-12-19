@@ -1,1 +1,1 @@
-npx lint-staged --relative
+cd ./web && npx lint-staged --relative
