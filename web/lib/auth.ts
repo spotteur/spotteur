@@ -1,5 +1,3 @@
-'use server'
-
 import { render, toPlainText } from '@react-email/render'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
