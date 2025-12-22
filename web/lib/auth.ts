@@ -12,6 +12,7 @@ import { sendEmail } from '@/lib/mailer'
 
 export const auth = betterAuth({
   secret: BETTER_AUTH_SECRET,
+  trustedOrigins: ['http://localhost:18000', 'http://127.0.0.1:18000'],
   database: drizzleAdapter(db, {
     schema: {
       users,
@@ -35,6 +36,13 @@ export const auth = betterAuth({
   advanced: {
     database: {
       generateId: false,
+    },
+  },
+  user: {
+    additionalFields: {
+      itemPerPage: {
+        type: 'number',
+      },
     },
   },
 })

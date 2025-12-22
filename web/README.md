@@ -1,6 +1,7 @@
 # Spotteur UI
 
 ## Components installations
+
 This is the list components installed to build the UI.
 
 ```bash
