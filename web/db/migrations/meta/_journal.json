@@ -29,6 +29,13 @@
       "when": 1766132696819,
       "tag": "0003_cooing_viper",
       "breakpoints": false
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766386224537,
+      "tag": "0004_public_ezekiel_stane",
+      "breakpoints": false
     }
   ]
 }
