@@ -1,10 +1,49 @@
-# Spotteur Screenshot Specification
+# SPT-001: Screenshot Specification
 
 ## Overview
 
-To reduce false-positive issue and ensure consistent visual testing result, we need a specification on how we will interact with the target website before taking a screenshot.
+To reduce false-positive issue and ensure consistent visual testing result, we need a specification on how we will interact with the target website before taking a screenshot and how we take a screenshot.
 
-## DOM Decorators
+## Screenshot Configuration
+
+Users can customize the screenshot process by providing a configuration object. This can be defined directly on the HTML page or configured within the Spotteur UI for users who cannot modify the source code.
+
+### API Definition
+
+```javascript
+window.spotteur = {
+  options: {
+    browsers: ["chrome", "firefox", "edge"],
+    viewports: [
+      [1024, 768],
+      [375, 812],
+    ],
+    mediaReset: true,
+    reducedMotion: true,
+    rules: [
+      {
+        selectors: ["h1"],
+        attrs: {
+          "data-spt-replace-words": "5",
+          "data-spt-hide": "true",
+        },
+      },
+    ],
+  },
+};
+```
+
+### Options
+
+- `browsers`: An array of strings specifying which browsers to use. Supported values: `chrome`, `firefox`, `edge`.
+- `viewports`: An array of arrays, where each inner array represents `[width, height]` in pixels.
+- `mediaReset`: Boolean. If true, resets all time-based media to a static state.
+- `reducedMotion`: Boolean. If true, disables CSS animations and transitions.
+- `rules`: An array of rules to dynamically apply `data-spt-*` attributes.
+  - `selectors`: Array of CSS selectors to target elements.
+  - `attrs`: Object containing the `data-spt-*` attributes to apply to the matched elements.
+
+## Rules
 
 Spotteur supports special `data-spt-*` attributes to change how they look in screenshots.
 
@@ -34,33 +73,8 @@ The runner looks for these attributes in your page and applies changes after the
 
 - `data-spt-custom`
   - Value: A text key.
-  - Effect: Replaces the text inside the element with a value from user defined dictionary matching the key.
+  - Effect: Replaces the text inside the element with a value from the dictionary matching the provided key. The dictionary can be configured via the Spotteur UI.
   - Example: `<h1 data-spt-custom="heading">Test</h1>`
-
-## User Script Hooks
-
-Spotteur supports a global hook system allowing the target page to define custom behavior before and after a screenshot.
-
-### Logic
-
-The runner must detect the presence of a global `spotteur.hooks` object on the global `window` variable. For now, the only available event is `pre-screenshot` that will be executed before the screenshot is taken.
-
-Each hook should be an async function and return a promise. The runner will invoke & resolve that function.
-
-### API Definition
-
-```javascript
-window.spotteur = {
-  hooks: {
-    /**
-     * @returns {Promise<void>}
-     */
-    "pre-screenshot": async () => {
-      // Custom logic
-    },
-  },
-};
-```
 
 ## Media Handling
 
@@ -137,6 +151,31 @@ if (hasOption || hasAttribute) {
 window.spotteur = {
   options: {
     reducedMotion: true,
+  },
+};
+```
+
+## User Script Hooks
+
+Spotteur supports a global hook system allowing the target page to define custom behavior before and after a screenshot.
+
+### Logic
+
+The runner must detect the presence of a global `spotteur.hooks` object on the global `window` variable. For now, the only available event is `pre-screenshot` that will be executed before the screenshot is taken.
+
+Each hook should be an async function and return a promise. The runner will invoke & resolve that function.
+
+### API Definition
+
+```javascript
+window.spotteur = {
+  hooks: {
+    /**
+     * @returns {Promise<void>}
+     */
+    "pre-screenshot": async () => {
+      // Custom logic
+    },
   },
 };
 ```
