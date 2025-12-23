@@ -6,7 +6,7 @@ To reduce false-positive issue and ensure consistent visual testing result, we n
 
 ## Screenshot Configuration
 
-Users can customize the screenshot process by providing a configuration object. This can be defined directly on the HTML page or configured within the Spotteur UI for users who cannot modify the source code.
+Users can customize the screenshot process by providing a configuration object. This can be defined directly on the HTML page or configured within the Spotteur UI for users who cannot modify the source code. Configuration defined in the Spotteur UI should takes precedence over the configuration defined in the HTML page. If a setting is present in both, the UI value should be used.
 
 ### API Definition
 
