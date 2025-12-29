@@ -9,7 +9,8 @@
       "extensions": [
         "ms-azuretools.vscode-containers",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "wix.vscode-import-cost"
       ]
     }
   }

@@ -25,4 +25,4 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100"
   db:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} exec db-psql psql -U {{.DB_USER}} -d {{.DB_NAME}}"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
