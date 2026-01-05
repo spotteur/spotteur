@@ -7,6 +7,7 @@ export const DB_PASSWORD = process.env.DB_PASSWORD || ''
 export const DB_NAME = process.env.DB_NAME || ''
 
 export const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET || ''
+export const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || ''
 
 export const S3_HOST = process.env.S3_HOST || ''
 export const S3_PORT = Number(process.env.S3_PORT || '0')
@@ -17,3 +18,10 @@ export const S3_BUCKET = process.env.S3_BUCKET || ''
 
 export const PUBLIC_S3_HOST = process.env.PUBLIC_S3_HOST || ''
 export const PUBLIC_S3_PORT = Number(process.env.PUBLIC_S3_PORT || '0')
+
+export const SMTP_HOST = process.env.SMTP_HOST || ''
+export const SMTP_PORT = Number(process.env.SMTP_PORT || '587')
+export const SMTP_USER = process.env.SMTP_USER || ''
+export const SMTP_PASSWORD = process.env.SMTP_PASSWORD || ''
+export const SMTP_FROM = process.env.SMTP_FROM || ''
+export const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465

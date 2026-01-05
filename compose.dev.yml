@@ -3,6 +3,8 @@ services:
     build:
       context: "web"
       target: "development"
+    ports:
+      - "18005:3001"
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"
@@ -16,6 +18,7 @@ services:
       INBUCKET_MAILBOXNAMING: "full"
       INBUCKET_SMTP_ADDR: "0.0.0.0:25"
       INBUCKET_POP3_ADDR: "0.0.0.0:110"
+      INBUCKET_LOGLEVEL: "warn"
     ports:
       - "18004:9000"
     healthcheck:
