@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, uuid, timestamp, integer, text, varchar } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, timestamp, integer, text, varchar, doublePrecision } from 'drizzle-orm/pg-core'
 
 import { media } from '@/db/schema/media'
 
@@ -55,7 +55,7 @@ export const snapshots = pgTable('snapshots', {
     .references(() => builds.id)
     .notNull(),
   pagePath: varchar('page_path').notNull(),
-  diffPercentage: integer('diff_percentage').notNull(),
+  diffPercentage: doublePrecision('diff_percentage').notNull(),
   approvalStatus: varchar('approval_status').notNull(),
   width: integer('width').notNull(),
   height: integer('height').notNull(),

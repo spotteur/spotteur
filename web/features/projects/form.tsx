@@ -1,24 +1,30 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
+import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ProjectBrowserEnum, ProjectCreateSchema } from '@/features/projects/schema'
+import { setFormErrors } from '@/lib/utils'
 
 export type ProjectFormInput = z.infer<typeof ProjectCreateSchema> & { id?: string }
 
-export interface ProjectFormProps {
+interface ProjectFormProps {
   defaultValues: ProjectFormInput
   onSubmit: (values: ProjectFormInput) => void
   submitLabel?: string
   isSubmitting?: boolean
+  errors?: z.core.$ZodFlattenedError<ProjectFormInput>
 }
 
 export function ProjectForm({
@@ -26,6 +32,7 @@ export function ProjectForm({
   onSubmit,
   submitLabel = 'Submit',
   isSubmitting = false,
+  errors = undefined,
 }: ProjectFormProps) {
   const form = useForm({
     defaultValues,
@@ -36,6 +43,27 @@ export function ProjectForm({
       onSubmit(value)
     },
   })
+
+  const [copied, setCopied] = useState(false)
+  const [regenerated, setRegenerated] = useState(false)
+  const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const regenerateResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setFormErrors<ProjectFormInput>(form, errors)
+  }, [errors, form])
+
+  useEffect(() => {
+    return () => {
+      if (copyResetRef.current) {
+        clearTimeout(copyResetRef.current)
+      }
+
+      if (regenerateResetRef.current) {
+        clearTimeout(regenerateResetRef.current)
+      }
+    }
+  }, [])
 
   return (
     <form
@@ -91,19 +119,78 @@ export function ProjectForm({
       />
       <form.Field
         name="token"
-        children={(field) => (
-          <Field>
-            <FieldLabel htmlFor="project-token">Token</FieldLabel>
-            <Input
-              id="project-token"
-              name={field.name}
-              value={field.state.value ?? ''}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
-            <FieldDescription>Optional authentication token for automated access</FieldDescription>
-          </Field>
-        )}
+        children={(field) => {
+          const tokenValue = field.state.value ?? ''
+
+          const handleCopy = async () => {
+            try {
+              await navigator.clipboard.writeText(tokenValue)
+              setCopied(true)
+              if (copyResetRef.current) {
+                clearTimeout(copyResetRef.current)
+              }
+              copyResetRef.current = setTimeout(() => setCopied(false), 3000)
+            } catch (error) {
+              console.error('Failed to copy token', error)
+            }
+          }
+
+          const handleRegenerate = () => {
+            const newToken = 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
+            field.handleChange(newToken)
+            setRegenerated(true)
+            if (regenerateResetRef.current) {
+              clearTimeout(regenerateResetRef.current)
+            }
+            regenerateResetRef.current = setTimeout(() => setRegenerated(false), 3000)
+          }
+
+          return (
+            <Field>
+              <FieldLabel htmlFor="project-token">Token</FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="project-token"
+                  name={field.name}
+                  value={tokenValue}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                <Tooltip open={copied}>
+                  <TooltipTrigger asChild>
+                    <InputGroupButton
+                      size="icon-sm"
+                      variant="ghost"
+                      type="button"
+                      aria-label="Copy token"
+                      onClick={handleCopy}
+                    >
+                      {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+                    </InputGroupButton>
+                  </TooltipTrigger>
+                  <TooltipContent>Token copied</TooltipContent>
+                </Tooltip>
+                <Tooltip open={regenerated}>
+                  <TooltipTrigger asChild>
+                    <InputGroupButton
+                      size="icon-sm"
+                      variant="ghost"
+                      type="button"
+                      aria-label="Generate new token"
+                      disabled={regenerated}
+                      className="disabled:opacity-100"
+                      onClick={handleRegenerate}
+                    >
+                      {regenerated ? <CheckIcon className="size-4" /> : <RefreshCcwIcon className="size-4" />}
+                    </InputGroupButton>
+                  </TooltipTrigger>
+                  <TooltipContent>New token generated</TooltipContent>
+                </Tooltip>
+              </InputGroup>
+              <FieldDescription>Optional authentication token for automated access</FieldDescription>
+            </Field>
+          )
+        }}
       />
       <form.Field
         name="snapshotBrowser"

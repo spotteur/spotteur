@@ -1,10 +1,10 @@
 'use server'
 
-import { and, asc, count, desc, eq, ilike } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 import db from '@/db/drizzle'
-import { projects } from '@/db/schema/project'
+import { builds, projects, snapshots } from '@/db/schema/project'
 import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
 
 type SortKey = 'name' | 'createdAt' | 'updatedAt' | ''
@@ -65,7 +65,7 @@ export async function getProject(id: string) {
 export async function createProject(input: unknown) {
   const parsed = ProjectCreateSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: z.treeifyError(parsed.error) }
+    return { ok: false, error: z.flattenError(parsed.error) }
   }
 
   const data = parsed.data
@@ -87,7 +87,7 @@ export async function createProject(input: unknown) {
 export async function updateProject(input: unknown) {
   const parsed = ProjectUpdateSchema.safeParse(input)
   if (!parsed.success) {
-    return { ok: false, error: z.treeifyError(parsed.error) }
+    return { ok: false, error: z.flattenError(parsed.error) }
   }
 
   const data = parsed.data
@@ -107,6 +107,9 @@ export async function updateProject(input: unknown) {
 }
 
 export async function deleteProject(id: string) {
+  const buildIds = (await db.select({ id: builds.id }).from(builds).where(eq(builds.projectId, id))).map((b) => b.id)
+  await db.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
+  await db.delete(builds).where(inArray(builds.id, buildIds))
   await db.delete(projects).where(eq(projects.id, id))
   return { ok: true }
 }

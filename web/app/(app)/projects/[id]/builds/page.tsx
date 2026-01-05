@@ -1,0 +1,71 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { type Route } from 'next'
+import Link from 'next/link'
+import { notFound, useParams } from 'next/navigation'
+import { useMemo } from 'react'
+
+import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { BuildCardsList } from '@/features/builds/table'
+import { getProject } from '@/features/projects/actions'
+
+export default function ProjectBuildsPage() {
+  const params = useParams<{ id: string }>()
+
+  const { data, isLoading } = useQuery({
+    queryKey: [QUERY_KEY_PROJECTS, params.id],
+    queryFn: () => getProject(params.id),
+  })
+
+  const breadcrumbs = useMemo(
+    () =>
+      data ? (
+        <>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/projects">Projects</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/projects/${params.id}`}>{data.name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Builds</BreadcrumbPage>
+          </BreadcrumbItem>
+        </>
+      ) : null,
+    [data, params.id],
+  )
+
+  useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
+  if (!isLoading && !data) {
+    notFound()
+  }
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex gap-2 border-b">
+        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
+          <Link href={`/projects/${params.id}`}>General</Link>
+        </Button>
+        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
+          <Link href={`/projects/${params.id}/page-rules` as Route}>Page Rules</Link>
+        </Button>
+        <Button variant="ghost" asChild className="rounded-none border-b-2 border-primary">
+          <Link href={`/projects/${params.id}/builds` as Route}>Builds</Link>
+        </Button>
+      </div>
+
+      {data && <BuildCardsList projectId={data.id} />}
+    </div>
+  )
+}

@@ -10,7 +10,8 @@
         "ms-azuretools.vscode-containers",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "wix.vscode-import-cost"
+        "wix.vscode-import-cost",
+        "bradlc.vscode-tailwindcss"
       ]
     }
   }

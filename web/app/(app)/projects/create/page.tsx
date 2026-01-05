@@ -1,9 +1,14 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { type $ZodFlattenedError } from 'zod/v4/core'
 
+import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
@@ -16,6 +21,7 @@ const DEFAULT_SNAPSHOT_HEIGHT = 768
 export default function NewProjectPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const [formErrors, setFormErrors] = useState<$ZodFlattenedError<ProjectFormInput> | undefined>(undefined)
 
   const mutation = useMutation({
     mutationFn: async (values: ProjectFormInput) => createProject(values),
@@ -24,30 +30,55 @@ export default function NewProjectPage() {
         toast.success('Project created', { description: 'Your project was successfully created.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
         router.push('/projects')
+      } else {
+        setFormErrors(res.error)
+        toast.error('Project creation failed', { description: 'Please review the error and try again.' })
       }
+    },
+    onError: (error) => {
+      console.error('Project creation error:', error)
+      toast.error('Project creation failed', {
+        description: 'Something went wrong. Please try again later.',
+      })
     },
   })
 
-  const defaultValues: ProjectFormInput = {
-    name: '',
-    baseUrl: '',
-    snapshotBrowser: DEFAULT_SNAPSHOT_BROWSER,
-    snapshotSelector: DEFAULT_SNAPSHOT_SELECTOR,
-    snapshotWidth: DEFAULT_SNAPSHOT_WIDTH,
-    snapshotHeight: DEFAULT_SNAPSHOT_HEIGHT,
-    pagePaths: [],
-    token: '',
-  }
+  const breadcrumbs = useMemo(
+    () => (
+      <>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href="/projects">Projects</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>Create</BreadcrumbPage>
+        </BreadcrumbItem>
+      </>
+    ),
+    [],
+  )
+  useHeaderBreadcrumbs(breadcrumbs)
 
   return (
     <div className="max-w-2xl p-4">
       <h1 className="text-xl font-semibold mb-4">Create Project</h1>
       <ProjectForm
-        defaultValues={defaultValues}
+        defaultValues={{
+          name: '',
+          baseUrl: '',
+          snapshotBrowser: DEFAULT_SNAPSHOT_BROWSER,
+          snapshotSelector: DEFAULT_SNAPSHOT_SELECTOR,
+          snapshotWidth: DEFAULT_SNAPSHOT_WIDTH,
+          snapshotHeight: DEFAULT_SNAPSHOT_HEIGHT,
+          pagePaths: [],
+          token: '',
+        }}
         onSubmit={(values) => mutation.mutate(values)}
         submitLabel="Create"
-        // isSuccess to keep it disabled after mutation success to prevent button re-enables during redirect
-        isSubmitting={mutation.isPending || mutation.isSuccess}
+        isSubmitting={mutation.isPending}
+        errors={formErrors}
       />
     </div>
   )

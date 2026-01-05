@@ -5,12 +5,14 @@ import { Search, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
+import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { TableSkeleton } from '@/components/table-skeleton'
+import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deleteProject, listProjects } from '@/features/projects/actions'
 import { getColumns } from '@/features/projects/columns'
@@ -44,8 +46,24 @@ export default function ProjectsPage() {
     mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
+      toast.success('Project deleted', { description: 'The project was successfully deleted.' })
+    },
+    onError: () => {
+      toast.error('Project deletion failed', { description: 'Something went wrong. Please try again later.' })
     },
   })
+
+  const breadcrumbs = useMemo(
+    () => (
+      <>
+        <BreadcrumbItem>
+          <BreadcrumbPage>Projects</BreadcrumbPage>
+        </BreadcrumbItem>
+      </>
+    ),
+    [],
+  )
+  useHeaderBreadcrumbs(breadcrumbs)
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -54,27 +72,6 @@ export default function ProjectsPage() {
     },
     [setPendingSearch, resetPagination],
   )
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 flex-1">
-            <div className="relative flex-1 max-w-sm">
-              <Skeleton className="h-10 w-full max-w-sm rounded-md" />
-            </div>
-          </div>
-          <Skeleton className="h-10 w-36 rounded-md" />
-        </div>
-
-        <div className="border rounded-lg">
-          <TableSkeleton rows={5} columns={6} />
-        </div>
-
-        <Skeleton className="h-4 w-40 rounded" />
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-4">
@@ -100,13 +97,17 @@ export default function ProjectsPage() {
         </Link>
       </div>
 
-      <DataTable
-        pagination={pagination}
-        onPaginationChange={onPaginationChange}
-        columns={columns}
-        data={data?.data ?? []}
-        rowCount={data?.total ?? 0}
-      />
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={6} />
+      ) : (
+        <DataTable
+          pagination={pagination}
+          onPaginationChange={onPaginationChange}
+          columns={columns}
+          data={data?.data ?? []}
+          rowCount={data?.total ?? 0}
+        />
+      )}
 
       <ConfirmDeleteProjectDialog
         open={!!pendingDelete}

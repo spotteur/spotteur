@@ -22,15 +22,11 @@ export default function ThemeTrigger() {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
       onClick={() => setTheme(resolvedTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK)}
     >
-      {resolvedTheme === THEME_DARK ? (
-        <Moon className="h-[1.2rem] w-[1.2rem]" />
-      ) : (
-        <Sun className="h-[1.2rem] w-[1.2rem]" />
-      )}
+      {resolvedTheme === THEME_DARK ? <Moon /> : <Sun />}
     </Button>
   )
 }
