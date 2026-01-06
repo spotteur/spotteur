@@ -39,15 +39,21 @@ async function uploadScreenshotToS3(buffer: Buffer, key: string, mimeType: strin
   return key
 }
 
-async function createMediaRecord(fileName: string, fileSize: number, s3Path: string): Promise<string> {
+async function createMediaRecord(
+  fileName: string,
+  fileSize: number,
+  s3Path: string,
+  width: number,
+  height: number,
+): Promise<string> {
   const [record] = await db
     .insert(media)
     .values({
       fileName,
       fileSize,
       mimeType: 'image/jpeg',
-      width: 1024,
-      height: 768,
+      width,
+      height,
       path: `${PUBLIC_S3_HOST}:${PUBLIC_S3_PORT}/${S3_BUCKET}/${s3Path}`,
     })
     .returning()
@@ -115,7 +121,7 @@ async function main() {
         } = await getSeedScreenshotBuffer()
         const fileName = `screenshot.png`
         const s3Path = await uploadScreenshotToS3(screenshotBuffer, prefix + fileName, mimeType)
-        const mediaId = await createMediaRecord(fileName, screenshotBuffer.length, s3Path)
+        const mediaId = await createMediaRecord(fileName, screenshotBuffer.length, s3Path, width, height)
 
         // Baseline screenshot
         const { buffer: baselineScreenshotBuffer } = await getSeedScreenshotBuffer()
@@ -125,6 +131,8 @@ async function main() {
           baselineFileName,
           baselineScreenshotBuffer.length,
           baselineS3Path,
+          width,
+          height,
         )
 
         // Diff heatmap
@@ -135,7 +143,13 @@ async function main() {
         })
         const diffFileName = `diff-screenshot.png`
         const diffS3Path = await uploadScreenshotToS3(diffScreenshotBuffer, prefix + diffFileName, mimeType)
-        const diffMediaId = await createMediaRecord(diffFileName, diffScreenshotBuffer.length, diffS3Path)
+        const diffMediaId = await createMediaRecord(
+          diffFileName,
+          diffScreenshotBuffer.length,
+          diffS3Path,
+          width,
+          height,
+        )
 
         await db.insert(snapshots).values({
           buildId: build.id,

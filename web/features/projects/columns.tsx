@@ -51,7 +51,7 @@ export function getColumns(
           <div className="flex items-center justify-end gap-2">
             <Link href={`/projects/${id}`}>
               <Button variant="ghost" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
             </Link>

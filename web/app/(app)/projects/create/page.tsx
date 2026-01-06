@@ -63,7 +63,7 @@ export default function NewProjectPage() {
 
   return (
     <div className="max-w-2xl p-4">
-      <h1 className="text-xl font-semibold mb-4">Create Project</h1>
+      <h1 className="mb-4 text-xl font-semibold">Create Project</h1>
       <ProjectForm
         defaultValues={{
           name: '',

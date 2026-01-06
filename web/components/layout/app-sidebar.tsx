@@ -64,5 +64,5 @@ export function AppSidebarTrigger() {
 
   if (!sidebar) return null
 
-  return <SidebarTrigger className="border cursor-pointer" />
+  return <SidebarTrigger className="cursor-pointer border" />
 }

@@ -11,10 +11,10 @@ export default function AppHeader() {
   const { breadcrumbs, isLoading } = useHeaderContext()
 
   return (
-    <div className="header w-full border-b bg-background/80 supports-backdrop-filter:backdrop-blur">
+    <div className="header bg-background/80 w-full border-b supports-backdrop-filter:backdrop-blur">
       <div className="header-content flex flex-col gap-2 px-5 py-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="border cursor-pointer" />
+          <SidebarTrigger className="cursor-pointer border" />
           <Separator orientation="vertical" className="data-[orientation=vertical]:h-6" />
           {isLoading && <Skeleton className="h-6 w-48" />}
           {!isLoading && breadcrumbs && (

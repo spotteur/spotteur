@@ -8,19 +8,15 @@ import { media } from '@/db/schema/media'
 import { builds, projects, snapshots } from '@/db/schema/project'
 import { humanReadableEpoch } from '@/lib/utils'
 
-type SortKey = 'identifier' | 'status' | 'createdAt' | 'updatedAt' | ''
+type SortKey = 'createdAt' | 'updatedAt' | ''
 
 const sortColumn = (key: SortKey) => {
   switch (key) {
-    case 'identifier':
-      return builds.identifier
-    case 'status':
-      return builds.status
     case 'updatedAt':
       return builds.updatedAt
     case 'createdAt':
     default:
-      return builds.createdAt
+      return builds.id
   }
 }
 
@@ -111,6 +107,7 @@ export async function getBuildDetail({ projectId, buildId }: { projectId: string
     .from(snapshots)
     .where(eq(snapshots.buildId, buildId))
     .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
+    .orderBy(desc(snapshots.diffPercentage), asc(snapshots.id))
 
   return { build, snapshots: snapshotRows }
 }

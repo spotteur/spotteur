@@ -96,14 +96,14 @@ export default function BuildDetailSnapshotsPage() {
             </>
           )}
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <CardContent className="text-muted-foreground space-y-2 text-sm">
           {buildData ? (
             <>
               <div className="flex flex-wrap gap-4">
-                <span className="font-medium text-foreground">Base URL:</span> {buildData.build.baseUrl}
+                <span className="text-foreground font-medium">Base URL:</span> {buildData.build.baseUrl}
               </div>
               <div className="flex flex-wrap gap-4">
-                <span className="font-medium text-foreground">Created:</span>{' '}
+                <span className="text-foreground font-medium">Created:</span>{' '}
                 {formatDateTime(buildData.build.createdAt)}
               </div>
             </>
@@ -117,7 +117,7 @@ export default function BuildDetailSnapshotsPage() {
       </Card>
 
       <div className="flex gap-2 border-b">
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-primary">
+        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
           <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>Snapshots</Link>
         </Button>
         <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">

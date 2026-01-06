@@ -101,16 +101,16 @@ export default function BuildDetailLogsPage() {
           <div>
             <CardTitle className="text-xl">{buildData.build.identifier}</CardTitle>
           </div>
-          <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize">
+          <span className="bg-muted rounded-full px-3 py-1 text-xs font-medium capitalize">
             {BUILD_STATUS_MAP[buildData.build.status as BuildStatus]}
           </span>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <CardContent className="text-muted-foreground space-y-2 text-sm">
           <div className="flex flex-wrap gap-4">
-            <span className="font-medium text-foreground">Base URL:</span> {buildData.build.baseUrl}
+            <span className="text-foreground font-medium">Base URL:</span> {buildData.build.baseUrl}
           </div>
           <div className="flex flex-wrap gap-4">
-            <span className="font-medium text-foreground">Created:</span> {formatDateTime(buildData.build.createdAt)}
+            <span className="text-foreground font-medium">Created:</span> {formatDateTime(buildData.build.createdAt)}
           </div>
         </CardContent>
       </Card>
@@ -119,7 +119,7 @@ export default function BuildDetailLogsPage() {
         <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
           <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>Snapshots</Link>
         </Button>
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-primary">
+        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
           <Link href={`/projects/${params.id}/builds/${params.buildId}/logs` as Route}>Logs</Link>
         </Button>
       </div>

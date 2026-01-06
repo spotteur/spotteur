@@ -6,11 +6,11 @@ export default function AuthLayout({
   children: React.ReactNode
 }>) {
   return (
-    <div className="auth-page w-full h-screen">
-      <div className="theme-trigger absolute right-5 top-5">
+    <div className="auth-page h-screen w-full">
+      <div className="theme-trigger absolute top-5 right-5">
         <ThemeTrigger />
       </div>
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3">
         <div className="header">
           <h1 className="text-xl font-semibold">Spotteur</h1>
         </div>

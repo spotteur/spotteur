@@ -101,7 +101,7 @@ export const Comparison = ({ className, mode = 'drag', onDragStart, onDragEnd, .
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={sliderPosition}
-        className={cn('relative isolate w-full select-none overflow-hidden', className)}
+        className={cn('relative isolate w-full overflow-hidden select-none', className)}
         onMouseDown={handleDragStart}
         onMouseLeave={handleDragEnd}
         onMouseMove={handleMouseDrag}
@@ -151,7 +151,7 @@ export const ComparisonHandle = ({ className, children, ...props }: ComparisonHa
     <motion.div
       aria-hidden="true"
       className={cn(
-        '-translate-x-1/2 absolute top-0 z-50 flex h-full w-10 items-center justify-center',
+        'absolute top-0 z-50 flex h-full w-10 -translate-x-1/2 items-center justify-center',
         mode === 'drag' && 'cursor-grab active:cursor-grabbing',
         className,
       )}
@@ -161,10 +161,10 @@ export const ComparisonHandle = ({ className, children, ...props }: ComparisonHa
     >
       {children ?? (
         <>
-          <div className="-translate-x-1/2 absolute left-1/2 h-full w-1 bg-background" />
+          <div className="bg-background absolute left-1/2 h-full w-1 -translate-x-1/2" />
           {mode === 'drag' && (
-            <div className="z-50 flex items-center justify-center rounded-sm bg-background px-0.5 py-1">
-              <GripVerticalIcon className="h-4 w-4 select-none text-muted-foreground" />
+            <div className="bg-background z-50 flex items-center justify-center rounded-sm px-0.5 py-1">
+              <GripVerticalIcon className="text-muted-foreground h-4 w-4 select-none" />
             </div>
           )}
         </>

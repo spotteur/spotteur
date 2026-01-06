@@ -76,7 +76,7 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex flex-1 items-center gap-2">
           <InputGroup className="max-w-sm">
             <InputGroupInput
               placeholder="Search by project name"
@@ -91,7 +91,7 @@ export default function ProjectsPage() {
         </div>
         <Link href="/projects/create">
           <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Project
           </Button>
         </Link>

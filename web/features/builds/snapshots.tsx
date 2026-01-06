@@ -58,7 +58,7 @@ export function SnapshotsList({ build, snapshots, projectId }: SnapshotsProps) {
   }
 
   return (
-    <Card className="p-4 bg-muted">
+    <Card className="bg-muted p-4">
       <ItemGroup className="grid grid-cols-3 gap-4">
         {snapshots.map((snapshot) => (
           <SnapshotListItem key={snapshot.id} snapshot={snapshot} projectId={projectId} build={build} />
@@ -103,7 +103,7 @@ export function SnapshotViewer({ snapshot }: { snapshot: Snapshot }) {
 
       <TabsContent value="comparison">
         {snapshot.baselineScreenshotMedia?.path && snapshot.screenshotMedia?.path ? (
-          <Card className="py-0 bg-muted/40">
+          <Card className="bg-muted/40 py-0">
             <Comparison className="aspect-video" mode="hover">
               {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
               <ComparisonItem position="right">
@@ -119,10 +119,10 @@ export function SnapshotViewer({ snapshot }: { snapshot: Snapshot }) {
                 <Image src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" unoptimized />
               </ComparisonItem>
               <ComparisonHandle />
-              <Badge variant="outline" className="pointer-events-none absolute left-6 top-6">
+              <Badge variant="outline" className="pointer-events-none absolute top-6 left-6">
                 Baseline
               </Badge>
-              <Badge variant="outline" className="pointer-events-none absolute right-6 top-6">
+              <Badge variant="outline" className="pointer-events-none absolute top-6 right-6">
                 Current
               </Badge>
             </Comparison>
@@ -134,7 +134,7 @@ export function SnapshotViewer({ snapshot }: { snapshot: Snapshot }) {
       <TabsContent value="heatmap">
         <div className="w-full">
           {snapshot.diffScreenshotMedia?.path ? (
-            <div className="relative w-full h-1280">
+            <div className="relative h-1280 w-full">
               <Image
                 src={snapshot.diffScreenshotMedia?.path}
                 alt="Diff heatmap"
@@ -149,7 +149,7 @@ export function SnapshotViewer({ snapshot }: { snapshot: Snapshot }) {
         </div>
       </TabsContent>
       <TabsContent value="side-by-side">
-        <div className="grid gap-4 lg:grid-cols-2 space-y-4">
+        <div className="grid w-full grid-cols-2 gap-4">
           <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
           <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
         </div>
@@ -166,16 +166,16 @@ function SnapshotListItem({ snapshot, projectId, build }: { snapshot: Snapshot; 
         aria-label={`View ${snapshot.pagePath}`}
       >
         <ItemHeader>
-          <div className="relative h-56 w-full shrink-0 overflow-hidden rounded-md border bg-muted/40">
+          <div className="bg-muted/40 relative h-56 w-full shrink-0 overflow-hidden rounded-md border">
             <>
               {snapshot.screenshotMedia?.path ? (
                 <Image src={snapshot.screenshotMedia.path} alt="" fill className="object-cover" unoptimized />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs">
                   Image not available
                 </div>
               )}
-              <SnapshotDiffBadge diffPercentage={snapshot.diffPercentage} className="absolute right-3 top-3" />
+              <SnapshotDiffBadge diffPercentage={snapshot.diffPercentage} className="absolute top-3 right-3" />
             </>
           </div>
         </ItemHeader>
@@ -193,10 +193,12 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: SnapshotMedia
     return <PreviewFallback label={label} />
   }
 
+  const aspectRatio = media.width && media.height ? `${media.width} / ${media.height}` : '4 / 3'
+
   return (
-    <div className="flex flex-col gap-2">
-      {label ? <span className="text-xs text-muted-foreground">{label}</span> : null}
-      <div className="overflow-hidden relative rounded-lg border w-full h-auto min-h-180 bg-muted/20">
+    <div className="flex w-full flex-col gap-2">
+      {label ? <span className="text-muted-foreground text-xs">{label}</span> : null}
+      <div className="bg-muted/20 relative w-full overflow-hidden rounded-lg border" style={{ aspectRatio }}>
         <Image src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" unoptimized />
       </div>
     </div>
@@ -205,8 +207,8 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: SnapshotMedia
 
 const PreviewFallback = ({ label, message }: { label?: string; message?: string }) => (
   <div className="flex flex-col gap-2">
-    {label ? <span className="text-xs text-muted-foreground">{label}</span> : null}
-    <div className="flex h-48 items-center justify-center rounded-lg border bg-muted/40 text-xs text-muted-foreground">
+    {label ? <span className="text-muted-foreground text-xs">{label}</span> : null}
+    <div className="bg-muted/40 text-muted-foreground flex h-48 items-center justify-center rounded-lg border text-xs">
       {message ?? 'No image available'}
     </div>
   </div>

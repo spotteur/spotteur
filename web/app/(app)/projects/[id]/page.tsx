@@ -71,9 +71,9 @@ export default function EditProjectPage() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4 p-4">
       <div className="flex gap-2 border-b">
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-primary">
+        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
           <Link href={`/projects/${params.id}`}>General</Link>
         </Button>
         <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">

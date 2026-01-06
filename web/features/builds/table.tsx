@@ -41,7 +41,7 @@ export function BuildCardsList({ projectId }: BuildsTableProps) {
 
   return (
     <Card>
-      <CardHeader className="flex gap-2 pb-0 flex-row items-center justify-end">
+      <CardHeader className="flex flex-row items-center justify-end gap-2 pb-0">
         <Button onClick={() => trigger.mutate()} disabled={trigger.isPending} size="sm">
           <Play className="mr-2 h-4 w-4" /> Trigger build
         </Button>
@@ -60,7 +60,7 @@ export function BuildCardsList({ projectId }: BuildsTableProps) {
                   href={`/projects/${projectId}/builds/${build.id}/snapshots` as Route}
                   className="group"
                 >
-                  <Card className="h-full transition hover:border-primary">
+                  <Card className="hover:border-primary h-full transition">
                     <CardHeader className="space-y-2">
                       <div className="flex items-start justify-between gap-3">
                         <CardTitle className="word-wrap text-lg font-semibold">{label}</CardTitle>
@@ -69,7 +69,7 @@ export function BuildCardsList({ projectId }: BuildsTableProps) {
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-sm text-muted-foreground">
+                    <CardContent className="text-muted-foreground space-y-3 text-sm">
                       <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4" />
                         <span>{build.pagePaths?.length ?? 0} pages</span>
