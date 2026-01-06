@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import {
   ChangeEmailCard,
@@ -8,8 +8,26 @@ import {
   UpdateAvatarCard,
   UpdateFieldCard,
   UpdateNameCard,
-} from "@daveyplate/better-auth-ui"
-export default function page() {
+} from '@daveyplate/better-auth-ui'
+import { useEffect, useState } from 'react'
+
+import { authClient } from '@/lib/auth-client'
+
+export default function SettingsPage() {
+  const [itemPerPage, setItemPerPage] = useState<number>()
+
+  useEffect(() => {
+    const process = async () => {
+      const result = await authClient.getSession()
+      const data = result.data
+
+      if (data) {
+        setItemPerPage(data.user.itemPerPage)
+      }
+    }
+    process()
+  }, [])
+
   return (
     <div className="flex flex-col gap-6">
       <UpdateAvatarCard />
@@ -17,11 +35,7 @@ export default function page() {
       <ChangeEmailCard />
       <ChangePasswordCard />
       <SessionsCard />
-      <UpdateFieldCard
-        name="itemPerPage"
-        label="Items per page"
-        type="number"
-      />
+      <UpdateFieldCard name="itemPerPage" label="Items per page" type="number" value={itemPerPage} />
       <DeleteAccountCard />
     </div>
   )

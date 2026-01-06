@@ -7,4 +7,5 @@ module.exports = {
   trailingComma: 'all',
   arrowParens: 'always',
   printWidth: 120,
+  plugins: ['prettier-plugin-tailwindcss'],
 }
