@@ -1,7 +1,7 @@
 'use client'
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus } from 'lucide-react'
+import { Plus, X, Search } from 'lucide-react'
 import Link from 'next/link'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useMemo, useState } from 'react'
@@ -22,7 +22,7 @@ import { usePagination } from '@/hooks/use-pagination'
 
 export default function ProjectsPage() {
   const queryClient = useQueryClient()
-  const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination()
+  const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({})
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
 
   const columns = useMemo(
@@ -73,6 +73,11 @@ export default function ProjectsPage() {
     [setPendingSearch, resetPagination],
   )
 
+  const handleClearSearch = useCallback(() => {
+    setPendingSearch('')
+    resetPagination()
+  }, [setPendingSearch, resetPagination])
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -81,17 +86,21 @@ export default function ProjectsPage() {
             <InputGroupInput
               placeholder="Search by project name"
               value={pendingSearch}
-              type="search"
               onChange={(e) => handleSearchChange(e.target.value)}
             />
             <InputGroupAddon>
               <Search />
             </InputGroupAddon>
+            {pendingSearch && (
+              <InputGroupAddon onClick={handleClearSearch} className="cursor-pointer" align="inline-end">
+                <X />
+              </InputGroupAddon>
+            )}
           </InputGroup>
         </div>
         <Link href="/projects/create">
           <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 size-4" />
             Create Project
           </Button>
         </Link>

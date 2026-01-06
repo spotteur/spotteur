@@ -1,11 +1,10 @@
 'use server'
 
 import { and, asc, count, desc, eq } from 'drizzle-orm'
-import { alias } from 'drizzle-orm/pg-core'
 
+import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
-import { media } from '@/db/schema/media'
-import { builds, projects, snapshots } from '@/db/schema/project'
+import { builds, projects } from '@/db/schema/project'
 import { humanReadableEpoch } from '@/lib/utils'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
@@ -52,7 +51,7 @@ export async function listBuildsByProject({
   return { data: rows, total }
 }
 
-export async function triggerBuild(projectId: string, identifier?: string) {
+export async function triggerBuild({ projectId, identifier }: { projectId: string; identifier?: string }) {
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
 
   if (!project) {
@@ -69,7 +68,7 @@ export async function triggerBuild(projectId: string, identifier?: string) {
       projectId: project.id,
       baseUrl: project.baseUrl,
       pagePaths: project.pagePaths,
-      status: 'pending',
+      status: BuildStatus.pending,
       identifier: buildIdentifier,
     })
     .returning()
@@ -88,87 +87,5 @@ export async function getBuildDetail({ projectId, buildId }: { projectId: string
 
   if (!build) return null
 
-  const snapshotRows = await db
-    .select({
-      id: snapshots.id,
-      pagePath: snapshots.pagePath,
-      diffPercentage: snapshots.diffPercentage,
-      approvalStatus: snapshots.approvalStatus,
-      width: snapshots.width,
-      height: snapshots.height,
-      screenshotMedia: {
-        id: media.id,
-        path: media.path,
-        width: media.width,
-        height: media.height,
-        mimeType: media.mimeType,
-      },
-    })
-    .from(snapshots)
-    .where(eq(snapshots.buildId, buildId))
-    .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
-    .orderBy(desc(snapshots.diffPercentage), asc(snapshots.id))
-
-  return { build, snapshots: snapshotRows }
-}
-
-export async function getSnapshotDetail({
-  projectId,
-  buildId,
-  snapshotId,
-}: {
-  projectId: string
-  buildId: string
-  snapshotId: string
-}) {
-  const baselineMedia = alias(media, 'baseline_media')
-  const diffMedia = alias(media, 'diff_media')
-
-  const [build] = await db
-    .select()
-    .from(builds)
-    .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
-    .limit(1)
-
-  if (!build) return null
-
-  const [snapshot] = await db
-    .select({
-      id: snapshots.id,
-      pagePath: snapshots.pagePath,
-      diffPercentage: snapshots.diffPercentage,
-      approvalStatus: snapshots.approvalStatus,
-      width: snapshots.width,
-      height: snapshots.height,
-      screenshotMedia: {
-        id: media.id,
-        path: media.path,
-        width: media.width,
-        height: media.height,
-        mimeType: media.mimeType,
-      },
-      baselineScreenshotMedia: {
-        id: baselineMedia.id,
-        path: baselineMedia.path,
-        width: baselineMedia.width,
-        height: baselineMedia.height,
-        mimeType: baselineMedia.mimeType,
-      },
-      diffScreenshotMedia: {
-        id: diffMedia.id,
-        path: diffMedia.path,
-        width: diffMedia.width,
-        height: diffMedia.height,
-        mimeType: diffMedia.mimeType,
-      },
-    })
-    .from(snapshots)
-    .where(and(eq(snapshots.id, snapshotId), eq(snapshots.buildId, buildId)))
-    .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
-    .leftJoin(baselineMedia, eq(snapshots.baselineScreenshotMediaId, baselineMedia.id))
-    .leftJoin(diffMedia, eq(snapshots.diffScreenshotMediaId, diffMedia.id))
-
-  if (!snapshot) return null
-
-  return { build, snapshot }
+  return build
 }

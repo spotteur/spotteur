@@ -10,7 +10,7 @@ import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { BuildCardsList } from '@/features/builds/table'
+import { BuildListCard } from '@/features/builds/list'
 import { getProject } from '@/features/projects/actions'
 
 export default function ProjectBuildsPage() {
@@ -65,7 +65,7 @@ export default function ProjectBuildsPage() {
         </Button>
       </div>
 
-      {data && <BuildCardsList projectId={data.id} />}
+      <BuildListCard projectId={data?.id} />
     </div>
   )
 }

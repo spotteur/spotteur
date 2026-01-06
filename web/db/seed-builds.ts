@@ -5,6 +5,7 @@ import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
 import { PUBLIC_S3_HOST, PUBLIC_S3_PORT, S3_BUCKET } from '@/constants/env'
+import { BuildStatusValues, SnapshotApprovalStatusValues } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
 import { getImageDiff } from '@/lib/image-diff'
@@ -75,7 +76,7 @@ async function main() {
       .insert(projects)
       .values({
         name: 'Demo Project - Kororo',
-        baseUrl: 'https://kororo.co',
+        baseUrl: 'https://kororo.co/',
         token: crypto.randomUUID(),
         snapshotBrowser: 'chrome',
         snapshotSelector: 'body',
@@ -98,7 +99,7 @@ async function main() {
       .values({
         projectId: project.id,
         baseUrl: project.baseUrl,
-        status: randomElement(['pending', 'in_progress', 'completed', 'failed']),
+        status: randomElement(BuildStatusValues),
         identifier: `build-${humanReadableEpoch()}-${i}`,
         pagePaths: project.pagePaths,
         baselineBuildId: existingBuilds.length > 0 ? randomElement(existingBuilds).id : null,
@@ -153,7 +154,7 @@ async function main() {
 
         await db.insert(snapshots).values({
           buildId: build.id,
-          approvalStatus: randomElement(['pending', 'approved', 'rejected']),
+          approvalStatus: randomElement(SnapshotApprovalStatusValues),
           screenshotMediaId: mediaId,
           baselineScreenshotMediaId: baselineMediaId,
           diffScreenshotMediaId: diffMediaId,

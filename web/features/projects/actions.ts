@@ -26,7 +26,7 @@ export async function listProjects({
   pageSize = 10,
   sortBy = '',
   sortDir = 'desc',
-  search,
+  search = '',
 }: {
   page?: number
   pageSize?: number
