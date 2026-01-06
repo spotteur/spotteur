@@ -1,17 +1,16 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { type Route } from 'next'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { BuildCardsList } from '@/features/builds/table'
 import { getProject } from '@/features/projects/actions'
+import { NavigationType } from '@/lib/type/app'
 
 export default function ProjectBuildsPage() {
   const params = useParams<{ id: string }>()
@@ -47,25 +46,28 @@ export default function ProjectBuildsPage() {
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
+  const navigations = useMemo<NavigationType[]>(
+    () => [
+      {
+        label: 'General',
+        url: `/projects/${params.id}`,
+      },
+      {
+        label: 'Page Rules',
+        url: `/projects/${params.id}/page-rules`,
+      },
+      {
+        label: 'Builds',
+        url: `/projects/${params.id}/builds`,
+      },
+    ],
+    [params.id],
+  )
+  useHeaderNavigations(navigations)
+
   if (!isLoading && !data) {
     notFound()
   }
 
-  return (
-    <div className="space-y-4 p-4">
-      <div className="flex gap-2 border-b">
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
-          <Link href={`/projects/${params.id}`}>General</Link>
-        </Button>
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
-          <Link href={`/projects/${params.id}/page-rules` as Route}>Page Rules</Link>
-        </Button>
-        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
-          <Link href={`/projects/${params.id}/builds` as Route}>Builds</Link>
-        </Button>
-      </div>
-
-      {data && <BuildCardsList projectId={data.id} />}
-    </div>
-  )
+  return <div className="space-y-4 p-4">{data && <BuildCardsList projectId={data.id} />}</div>
 }

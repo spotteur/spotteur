@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { Badge } from '@/components/ui/badge'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import { BUILD_STATUS_COLOR_MAP, BUILD_STATUS_MAP, type BuildStatus } from '@/co
 import { getBuildDetail } from '@/features/builds/actions'
 import { SnapshotsList } from '@/features/builds/snapshots'
 import { getProject } from '@/features/projects/actions'
+import { NavigationType } from '@/lib/type/app'
 import { formatDateTime } from '@/lib/utils'
 
 export default function BuildDetailSnapshotsPage() {
@@ -73,6 +74,24 @@ export default function BuildDetailSnapshotsPage() {
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+  const navigations = useMemo<NavigationType[]>(
+    () => [
+      {
+        label: 'General',
+        url: `/projects/${params.id}`,
+      },
+      {
+        label: 'Page Rules',
+        url: `/projects/${params.id}/page-rules`,
+      },
+      {
+        label: 'Builds',
+        url: `/projects/${params.id}/builds`,
+      },
+    ],
+    [params.id],
+  )
+  useHeaderNavigations(navigations)
 
   if (!isLoading && !buildData) {
     notFound()
