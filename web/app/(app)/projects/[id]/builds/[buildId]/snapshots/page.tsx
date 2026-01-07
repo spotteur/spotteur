@@ -7,18 +7,14 @@ import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
-import { Badge } from '@/components/ui/badge'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { BUILD_STATUS_COLOR_MAP, BUILD_STATUS_MAP, type BuildStatus } from '@/constants/status-map'
 import { getBuildDetail } from '@/features/builds/actions'
-import { SnapshotsList } from '@/features/builds/snapshots'
+import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
+import { SnapshotListCard } from '@/features/snapshots/list'
 import { NavigationType } from '@/lib/type/app'
-import { formatDateTime } from '@/lib/utils'
 
 export default function BuildDetailSnapshotsPage() {
   const params = useParams<{ id: string; buildId: string }>()
@@ -60,7 +56,7 @@ export default function BuildDetailSnapshotsPage() {
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
               <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>
-                {buildData.build.identifier}
+                {buildData.identifier}
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -99,41 +95,7 @@ export default function BuildDetailSnapshotsPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <Card>
-        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          {buildData ? (
-            <>
-              <CardTitle className="text-xl">{buildData.build.identifier}</CardTitle>
-              <Badge variant={BUILD_STATUS_COLOR_MAP[buildData.build.status as BuildStatus]}>
-                {BUILD_STATUS_MAP[buildData.build.status as BuildStatus]}
-              </Badge>
-            </>
-          ) : (
-            <>
-              <Skeleton className="h-5 w-56" />
-              <Skeleton className="h-5 w-20" />
-            </>
-          )}
-        </CardHeader>
-        <CardContent className="text-muted-foreground space-y-2 text-sm">
-          {buildData ? (
-            <>
-              <div className="flex flex-wrap gap-4">
-                <span className="text-foreground font-medium">Base URL:</span> {buildData.build.baseUrl}
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <span className="text-foreground font-medium">Created:</span>{' '}
-                {formatDateTime(buildData.build.createdAt)}
-              </div>
-            </>
-          ) : (
-            <>
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-4 w-28" />
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <BuildSummaryCard build={buildData} />
 
       <div className="flex gap-2 border-b">
         <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
@@ -144,7 +106,7 @@ export default function BuildDetailSnapshotsPage() {
         </Button>
       </div>
 
-      {buildData && <SnapshotsList build={buildData.build} snapshots={buildData.snapshots} projectId={params.id} />}
+      {buildData && <SnapshotListCard build={buildData} />}
     </div>
   )
 }

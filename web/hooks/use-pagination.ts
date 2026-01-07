@@ -1,7 +1,7 @@
 import { parseAsIndex, parseAsInteger, useQueryStates } from 'nuqs'
 import { useCallback } from 'react'
 
-export function usePagination(defaultPageIndex = 0, defaultPageSize = 5) {
+export function usePagination({ defaultPageIndex = 0, defaultPageSize = 5 }) {
   const [pagination, setPagination] = useQueryStates(
     {
       pageIndex: parseAsIndex.withDefault(defaultPageIndex),

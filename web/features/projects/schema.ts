@@ -4,7 +4,9 @@ export const ProjectBrowserEnum = z.enum(['chrome', 'firefox', 'edge'], 'Invalid
 
 export const ProjectBaseSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters'),
-  baseUrl: z.url('Base URL must be a valid URL'),
+  baseUrl: z.url('Base URL must be a valid URL').refine((url) => url.endsWith('/'), {
+    message: 'Base URL must end with a trailing slash (/)',
+  }),
   token: z.string().optional(),
   snapshotBrowser: ProjectBrowserEnum,
   snapshotSelector: z.string().min(1, 'Selector is required'),

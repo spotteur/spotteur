@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { BuildCardsList } from '@/features/builds/table'
+import { BuildListCard } from '@/features/builds/list'
 import { getProject } from '@/features/projects/actions'
 import { NavigationType } from '@/lib/type/app'
 
@@ -69,5 +69,5 @@ export default function ProjectBuildsPage() {
     notFound()
   }
 
-  return <div className="space-y-4 p-4">{data && <BuildCardsList projectId={data.id} />}</div>
+  return <div className="space-y-4 p-4">{data && <BuildListCard projectId={data.id} />}</div>
 }

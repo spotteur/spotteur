@@ -34,7 +34,7 @@ export const builds = pgTable('builds', {
     .notNull(),
   baseUrl: varchar('base_url').notNull(),
   baselineBuildId: uuid('baseline_build_id'),
-  identifier: varchar('identifier'),
+  identifier: varchar('identifier').notNull(),
   pagePaths: text('page_paths')
     .array()
     .notNull()

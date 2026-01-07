@@ -10,9 +10,10 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
-import { getSnapshotDetail } from '@/features/builds/actions'
-import { SnapshotApprovalStatusBadge, SnapshotDiffBadge, SnapshotViewer } from '@/features/builds/snapshots'
 import { getProject } from '@/features/projects/actions'
+import { getSnapshotDetail } from '@/features/snapshots/actions'
+import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
+import { SnapshotViewer } from '@/features/snapshots/detail'
 
 export default function SnapshotDetailPage() {
   const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
@@ -84,14 +85,10 @@ export default function SnapshotDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {!isLoading && snapshotData ? (
-              `Page path ${snapshotData.snapshot.pagePath}`
-            ) : (
-              <Skeleton className="h-6 w-48" />
-            )}
+            {snapshotData ? `Page path ${snapshotData.snapshot.pagePath}` : <Skeleton className="h-6 w-48" />}
           </CardTitle>
           <CardDescription className="flex items-center gap-2 text-xs">
-            {!isLoading && snapshotData ? (
+            {snapshotData ? (
               <>
                 <SnapshotApprovalStatusBadge status={snapshotData.snapshot.approvalStatus} />
                 <SnapshotDiffBadge diffPercentage={snapshotData.snapshot.diffPercentage} />
@@ -107,7 +104,9 @@ export default function SnapshotDetailPage() {
       </Card>
 
       <Card>
-        <CardContent>{snapshotData && <SnapshotViewer snapshot={snapshotData.snapshot} />}</CardContent>
+        <CardContent>
+          {snapshotData ? <SnapshotViewer snapshot={snapshotData.snapshot} /> : <Skeleton className="h-150 w-full" />}
+        </CardContent>
       </Card>
     </div>
   )

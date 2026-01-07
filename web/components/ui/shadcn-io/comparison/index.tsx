@@ -164,7 +164,7 @@ export const ComparisonHandle = ({ className, children, ...props }: ComparisonHa
           <div className="bg-background absolute left-1/2 h-full w-1 -translate-x-1/2" />
           {mode === 'drag' && (
             <div className="bg-background z-50 flex items-center justify-center rounded-sm px-0.5 py-1">
-              <GripVerticalIcon className="text-muted-foreground h-4 w-4 select-none" />
+              <GripVerticalIcon className="text-muted-foreground size-4 select-none" />
             </div>
           )}
         </>

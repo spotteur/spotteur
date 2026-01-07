@@ -1,7 +1,7 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { Edit, MoreHorizontal } from 'lucide-react'
+import { Eye, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -51,14 +51,14 @@ export function getColumns(
           <div className="flex items-center justify-end gap-2">
             <Link href={`/projects/${id}`}>
               <Button variant="ghost" size="sm">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
+                <Eye className="mr-2 size-4" />
+                View
               </Button>
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

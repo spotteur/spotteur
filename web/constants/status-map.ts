@@ -9,6 +9,8 @@ export const BuildStatus = {
   failed: 'failed',
 } as const
 
+export const BuildStatusValues = Object.values(BuildStatus) as BuildStatus[]
+
 export type BuildStatus = (typeof BuildStatus)[keyof typeof BuildStatus]
 
 export const BUILD_STATUS_MAP: Record<BuildStatus, string> = {
@@ -30,6 +32,8 @@ export const SnapshotApprovalStatus = {
   approved: 'approved',
   rejected: 'rejected',
 } as const
+
+export const SnapshotApprovalStatusValues = Object.values(SnapshotApprovalStatus) as SnapshotApprovalStatus[]
 
 export type SnapshotApprovalStatus = (typeof SnapshotApprovalStatus)[keyof typeof SnapshotApprovalStatus]
 
