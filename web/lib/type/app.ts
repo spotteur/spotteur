@@ -1,4 +1,4 @@
-import { Route } from 'next'
+import { type Route } from 'next'
 
 export type NavigationType = {
   label: string
