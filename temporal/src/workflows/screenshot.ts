@@ -1,8 +1,8 @@
-import { executeChild, proxyActivities } from '@temporalio/workflow'
-import type * as Activities from '../activities/screenshot.ts'
-import type { GenerateSnapshotsWorkflowParams, ScreenshotWorkflowParams } from '../types/screenshot.ts'
+import { proxyActivities } from '@temporalio/workflow'
+import type * as Activities from '../activities/build.ts'
+import type { ScreenshotWorkflowParams } from '../types/screenshot.ts'
 
-const { getScreenshotPaths, takeScreenshot, saveScreenshot } = proxyActivities<typeof Activities>({
+const { takeScreenshot, saveScreenshot } = proxyActivities<typeof Activities>({
   startToCloseTimeout: '30 minutes',
   retry: {
     initialInterval: '500 ms',
@@ -16,21 +16,7 @@ const { getScreenshotPaths, takeScreenshot, saveScreenshot } = proxyActivities<t
  * @param args Workflow args
  */
 export async function screenshotWorkflow({ projectId, buildId, ssOpts }: ScreenshotWorkflowParams) {
-  const ss = await takeScreenshot(ssOpts)
-  const ssPath = await saveScreenshot(projectId, buildId, ssOpts.url, ss.buffer)
-  return ssPath
-}
-
-/**
- * Workflow
- * @param args Workflow args
- */
-export async function generateSnapshotsWorkflow({ projectId, buildId, ssOpts }: GenerateSnapshotsWorkflowParams) {
-  const paths = await getScreenshotPaths(projectId)
-  const results = await Promise.all(
-    paths.map((path) => {
-      return executeChild(screenshotWorkflow, { args: [{ projectId, buildId, ssOpts: { ...ssOpts, url: path } }] })
-    }),
-  )
-  return `Successfully generated snapshots (${results.length} pages)`
+  const ss = await takeScreenshot(ssOpts) // save to /tmp
+  const s3Path = await saveScreenshot({ projectId, buildId, url: ssOpts.url, file: ss })
+  return s3Path
 }

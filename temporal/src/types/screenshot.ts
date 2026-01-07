@@ -2,7 +2,7 @@ export interface ScreenshotOptions {
   url: string
   width?: number
   height?: number
-  browser?: 'chrome' | 'firefox' | 'MicrosoftEdge' | 'safari'
+  browser?: string // 'chrome' | 'firefox' | 'MicrosoftEdge' | 'safari'
   selector?: string
 }
 

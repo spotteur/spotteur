@@ -1,7 +1,8 @@
 import { NativeConnection, Worker } from '@temporalio/worker'
 import { URL, fileURLToPath } from 'url'
 import path from 'path'
-import * as screenshotActivities from './activities/screenshot.ts'
+import * as buildActivities from './activities/build.ts'
+import * as projectActivities from './activities/project.ts'
 
 // TODO: Implement dynamic workflow path to include all workflow automatically
 const workflowsPathUrl = new URL(`./workflows/index${path.extname(import.meta.url)}`, import.meta.url)
@@ -12,7 +13,8 @@ const worker = await Worker.create({
   }),
   workflowsPath: fileURLToPath(workflowsPathUrl),
   activities: {
-    ...screenshotActivities,
+    ...buildActivities,
+    ...projectActivities,
   },
   taskQueue: 'spotteur',
 })

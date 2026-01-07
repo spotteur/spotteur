@@ -1,4 +1,5 @@
 export const {
+  S3_ENDPOINT = 'http://rustfs:9000',
   S3_HOST = 'rustfs',
   S3_PORT = '9000',
   S3_REGION = 'us-east-1',
