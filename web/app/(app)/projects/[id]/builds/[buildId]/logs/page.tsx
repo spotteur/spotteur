@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardDescription } from '@/components/ui/card'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
@@ -87,7 +87,11 @@ export default function BuildDetailLogsPage() {
         </Button>
       </div>
 
-      <Card></Card>
+      <Card>
+        <CardContent>
+          <CardDescription>Coming soon...</CardDescription>
+        </CardContent>
+      </Card>
     </div>
   )
 }

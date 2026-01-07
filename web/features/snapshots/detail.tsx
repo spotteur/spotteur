@@ -1,12 +1,105 @@
 'use client'
 
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { CheckCircle2, XCircle, RotateCcw, Loader2 } from 'lucide-react'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
+import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
+
+export function SnapshotActionButtons({
+  snapshot,
+  projectId,
+  buildId,
+  snapshotId,
+}: {
+  snapshot: SnapshotDetailRes
+  projectId: string
+  buildId: string
+  snapshotId: string
+}) {
+  const queryClient = useQueryClient()
+
+  const { mutate: updateStatus, isPending } = useMutation({
+    mutationFn: (status: SnapshotApprovalStatus) =>
+      updateSnapshotApprovalStatus({
+        snapshotId,
+        status,
+      }),
+    onSuccess: (res, status) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
+        })
+
+        const statusMessages = {
+          [SnapshotApprovalStatus.approved]: 'Snapshot approved',
+          [SnapshotApprovalStatus.rejected]: 'Snapshot rejected',
+          [SnapshotApprovalStatus.pending]: 'Review removed',
+        }
+
+        toast.success(statusMessages[status])
+        return
+      }
+
+      toast.error('Failed to update snapshot approval', { description: res.error })
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
+    },
+  })
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {snapshot.approvalStatus === SnapshotApprovalStatus.pending ? (
+        <>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => updateStatus(SnapshotApprovalStatus.approved)}
+            disabled={isPending}
+            className="gap-2"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            Approve
+          </Button>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => updateStatus(SnapshotApprovalStatus.rejected)}
+            disabled={isPending}
+            className="gap-2"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+            Reject
+          </Button>
+        </>
+      ) : (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => updateStatus(SnapshotApprovalStatus.pending)}
+          disabled={isPending}
+          className="gap-2"
+        >
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+          Undo Review
+        </Button>
+      )}
+    </div>
+  )
+}
 
 export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
   return (

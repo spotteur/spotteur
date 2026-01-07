@@ -13,6 +13,7 @@ import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { DEFAULT_ERROR_DESCRIPTION } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deleteProject, listProjects } from '@/features/projects/actions'
 import { getColumns } from '@/features/projects/columns'
@@ -48,8 +49,9 @@ export default function ProjectsPage() {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
       toast.success('Project deleted', { description: 'The project was successfully deleted.' })
     },
-    onError: () => {
-      toast.error('Project deletion failed', { description: 'Something went wrong. Please try again later.' })
+    onError: (error) => {
+      console.error(error)
+      toast.error('Project deletion failed', { description: DEFAULT_ERROR_DESCRIPTION })
     },
   })
 

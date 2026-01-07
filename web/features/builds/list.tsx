@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 import { BUILD_STATUS_COLOR_MAP, BUILD_STATUS_MAP, type BuildStatus } from '@/constants/status-map'
 import { builds } from '@/db/schema'
@@ -27,13 +28,18 @@ export function BuildListCard({ projectId }: { projectId?: string }) {
 
   const trigger = useMutation({
     mutationFn: (projectId: string) => triggerBuild({ projectId }),
-    onSuccess: (res) => {
+    onSuccess: (res, projectId) => {
       if (res.ok) {
         toast.success('Build triggered', { description: 'A new build was queued.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, projectId] })
-      } else {
-        toast.error('Failed to trigger build', { description: res.error ?? 'Unknown error' })
+        return
       }
+
+      toast.error('Failed to trigger build', { description: res.error })
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
     },
   })
 

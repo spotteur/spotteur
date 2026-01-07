@@ -111,5 +111,5 @@ export async function deleteProject(id: string) {
   await db.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
   await db.delete(builds).where(inArray(builds.id, buildIds))
   await db.delete(projects).where(eq(projects.id, id))
-  return { ok: true }
+  return { ok: true } as const
 }
