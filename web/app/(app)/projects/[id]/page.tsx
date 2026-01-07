@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Route } from 'next'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
@@ -69,15 +70,15 @@ export default function EditProjectPage() {
     () => [
       {
         label: 'General',
-        url: `/projects/${params.id}`,
+        url: `/projects/${params.id}` as Route,
       },
       {
         label: 'Page Rules',
-        url: `/projects/${params.id}/page-rules`,
+        url: `/projects/${params.id}/page-rules` as Route,
       },
       {
         label: 'Builds',
-        url: `/projects/${params.id}/builds`,
+        url: `/projects/${params.id}/builds` as Route,
       },
     ],
     [params.id],

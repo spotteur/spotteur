@@ -58,7 +58,7 @@ export function useHeaderNavigations(navigations?: NavigationType[]) {
   const defaultNavigations = useMemo<NavigationType[]>(
     () => [
       {
-        label: 'Overview',
+        label: 'Projects',
         url: '/projects',
       },
     ],

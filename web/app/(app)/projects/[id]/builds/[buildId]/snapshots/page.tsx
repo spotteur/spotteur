@@ -74,15 +74,15 @@ export default function BuildDetailSnapshotsPage() {
     () => [
       {
         label: 'General',
-        url: `/projects/${params.id}`,
+        url: `/projects/${params.id}` as Route,
       },
       {
         label: 'Page Rules',
-        url: `/projects/${params.id}/page-rules`,
+        url: `/projects/${params.id}/page-rules` as Route,
       },
       {
         label: 'Builds',
-        url: `/projects/${params.id}/builds`,
+        url: `/projects/${params.id}/builds` as Route,
       },
     ],
     [params.id],

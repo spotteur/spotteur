@@ -1,6 +1,5 @@
 'use client'
 
-import { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -26,7 +25,7 @@ export function AppNavigation({ navigations }: { navigations: NavigationType[] }
             <NavigationMenuItem key={key}>
               <NavigationMenuLink asChild className="rounded-none">
                 <Link
-                  href={item.url as Route}
+                  href={item.url}
                   className={cn(
                     'text-muted-foreground',
                     pathname === item.url && 'text-foreground border-primary rounded-none border-b-2',

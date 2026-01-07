@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { Route } from 'next'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
@@ -10,7 +11,7 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { BuildListCard } from '@/features/builds/list'
 import { getProject } from '@/features/projects/actions'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function ProjectBuildsPage() {
   const params = useParams<{ id: string }>()
@@ -50,15 +51,15 @@ export default function ProjectBuildsPage() {
     () => [
       {
         label: 'General',
-        url: `/projects/${params.id}`,
+        url: `/projects/${params.id}` as Route,
       },
       {
         label: 'Page Rules',
-        url: `/projects/${params.id}/page-rules`,
+        url: `/projects/${params.id}/page-rules` as Route,
       },
       {
         label: 'Builds',
-        url: `/projects/${params.id}/builds`,
+        url: `/projects/${params.id}/builds` as Route,
       },
     ],
     [params.id],
@@ -69,5 +70,9 @@ export default function ProjectBuildsPage() {
     notFound()
   }
 
-  return <div className="space-y-4 p-4">{data && <BuildListCard projectId={data.id} />}</div>
+  return (
+    <div className="space-y-4 p-4">
+      <BuildListCard projectId={data?.id} />
+    </div>
+  )
 }
