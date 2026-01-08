@@ -90,7 +90,7 @@ export default function EditRulePage() {
               defaultValues={{
                 viewports: data.rule.viewports,
                 snapshotBrowsers: data.rule.snapshotBrowsers,
-                pagePaths: data.rule.pagePath,
+                pagePath: data.rule.pagePath,
                 rules: data.rule.rules,
                 mediaReset: data.rule.mediaReset,
                 reducedMotion: data.rule.reducedMotion,

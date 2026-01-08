@@ -11,7 +11,7 @@ import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { createRule } from '@/features/page-rules/actions'
+import { CreateRule } from '@/features/page-rules/actions'
 import PageRuleForm, { PageRuleFormInput } from '@/features/page-rules/form'
 import { getProject } from '@/features/projects/actions'
 
@@ -27,10 +27,9 @@ export default function NewRulePage() {
   })
 
   const mutation = useMutation({
-    mutationFn: async (values: PageRuleFormInput) => createRule(values, data ? data.id : ''),
+    mutationFn: async (values: PageRuleFormInput) => CreateRule(values, data ? data.id : ''),
     onSuccess: (res) => {
       if (res.ok) {
-        console.log('res data =>', res.data)
         toast.success('Page Rule created', { description: 'Your rule was successfully created.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
         router.push(`/projects/${data?.id}/page-rules`)
@@ -90,9 +89,9 @@ export default function NewRulePage() {
           <CardContent className="max-w-2xl">
             <PageRuleForm
               defaultValues={{
-                viewports: [],
-                snapshotBrowsers: [],
-                pagePaths: '',
+                viewports: data.viewports,
+                snapshotBrowsers: data.snapshotBrowsers,
+                pagePath: '',
                 rules: [],
               }}
               onSubmit={(values) => mutation.mutate(values)}

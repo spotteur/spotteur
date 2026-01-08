@@ -44,7 +44,6 @@ export default function PageRuleForm({
     defaultValues,
     validators: {
       onSubmit: PageRuleCreateSchema,
-      // onSubmitAsync: () => console.log('test'),
     },
     onSubmit: async ({ value }) => {
       onSubmit(value)
@@ -63,6 +62,34 @@ export default function PageRuleForm({
       }}
       className="space-y-4"
     >
+      <form.Field
+        name="pagePath"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="pageRules-pagePath">Page Path</FieldLabel>
+              <Select
+                value={field.state.value}
+                onValueChange={(value) => field.handleChange(value as PageRuleFormInput['pagePath'])}
+              >
+                <SelectTrigger id="pageRules-pagePath" aria-invalid={isInvalid}>
+                  <SelectValue placeholder="Select path" />
+                </SelectTrigger>
+                <SelectContent>
+                  {project.pagePaths.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>path to use for capturing snapshots and implement the rule.</FieldDescription>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
       <form.Field
         name="snapshotBrowsers"
         children={(field) => {
@@ -84,7 +111,6 @@ export default function PageRuleForm({
       <form.Field
         name="viewports"
         children={(field) => {
-          console.log('field value', field.state.value)
           const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <>
@@ -180,7 +206,7 @@ export default function PageRuleForm({
                 <div className="grid gap-3">
                   <FieldLabel htmlFor="pageRule-mediaReset">Media reset</FieldLabel>
                   <p className="text-muted-foreground text-sm">
-                    If true, resets all time-based media to a static state.
+                    If checked, resets all time-based media to a static state.
                   </p>
                 </div>
               </div>
@@ -203,37 +229,9 @@ export default function PageRuleForm({
                 />
                 <div className="grid gap-3">
                   <FieldLabel htmlFor="pageRule-reducedMotion">Reduce Motion</FieldLabel>
-                  <p className="text-muted-foreground text-sm">If true, disables CSS animations and transitions.</p>
+                  <p className="text-muted-foreground text-sm">If checked, disables CSS animations and transitions.</p>
                 </div>
               </div>
-              {isInvalid && <FieldError errors={field.state.meta.errors} />}
-            </Field>
-          )
-        }}
-      />
-      <form.Field
-        name="pagePaths"
-        children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-          return (
-            <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor="pageRules-pagePaths">Page Path</FieldLabel>
-              <Select
-                value={field.state.value}
-                onValueChange={(value) => field.handleChange(value as PageRuleFormInput['pagePaths'])}
-              >
-                <SelectTrigger id="pageRules-pagePaths" aria-invalid={isInvalid}>
-                  <SelectValue placeholder="Select path" />
-                </SelectTrigger>
-                <SelectContent>
-                  {project.pagePaths.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldDescription>path to use for capturing snapshots and implement the rule.</FieldDescription>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
           )
@@ -282,7 +280,7 @@ export default function PageRuleForm({
                                       name={`rules[${index}].attrs[${i}].name`}
                                       listeners={{
                                         onChange: ({ value }) => {
-                                          return AttributeWithTrueValue.includes(value)
+                                          return AttributeWithTrueValue.filter((v) => v === value)
                                             ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
                                             : ''
                                         },
@@ -309,7 +307,9 @@ export default function PageRuleForm({
                                             onBlur={field.handleBlur}
                                             placeholder="attr value (ex: true)"
                                             onChange={(e) => field.handleChange(e.target.value)}
-                                            readOnly={AttributeWithTrueValue.includes(attrObj.name)}
+                                            readOnly={
+                                              AttributeWithTrueValue.filter((v) => v === attrObj.name) ? true : false
+                                            }
                                           />
                                         )}
                                       </form.Field>

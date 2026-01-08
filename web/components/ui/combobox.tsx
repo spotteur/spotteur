@@ -9,7 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 export interface ComboboxProps {
-  data: string[]
+  data: readonly string[]
   value: string
   onSelect: (value: string) => void
 }

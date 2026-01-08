@@ -74,13 +74,18 @@ export async function createProject(input: unknown) {
     name: data.name,
     baseUrl: data.baseUrl,
     token,
-    snapshotBrowser: data.snapshotBrowser,
+    snapshotBrowsers: data.snapshotBrowsers,
     snapshotSelector: data.snapshotSelector,
-    snapshotWidth: data.snapshotWidth,
-    snapshotHeight: data.snapshotHeight,
+    viewports: data.viewports,
     pagePaths: data.pagePaths,
   }
-  const [created] = await db.insert(projects).values(insert).returning()
+
+  const payload = {
+    ...insert,
+    viewports: insert.viewports.map((v) => [v[0], v[1]] as [number, number]),
+  }
+  console.log(payload)
+  const [created] = await db.insert(projects).values(payload).returning()
   return { ok: true, data: created }
 }
 
@@ -96,13 +101,16 @@ export async function updateProject(input: unknown) {
     name: data.name,
     baseUrl: data.baseUrl,
     token,
-    snapshotBrowser: data.snapshotBrowser,
+    snapshotBrowsers: data.snapshotBrowsers,
     snapshotSelector: data.snapshotSelector,
-    snapshotWidth: data.snapshotWidth,
-    snapshotHeight: data.snapshotHeight,
+    viewports: data.viewports,
     pagePaths: data.pagePaths,
   }
-  const [updated] = await db.update(projects).set(update).where(eq(projects.id, data.id)).returning()
+  const payload = {
+    ...update,
+    viewports: update.viewports.map((v) => [v[0], v[1]] as [number, number]),
+  }
+  const [updated] = await db.update(projects).set(payload).where(eq(projects.id, data.id)).returning()
   return { ok: true, data: updated }
 }
 

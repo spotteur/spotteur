@@ -57,6 +57,13 @@
       "when": 1767851464903,
       "tag": "0007_smooth_chameleon",
       "breakpoints": false
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1767863344296,
+      "tag": "0008_panoramic_stellaris",
+      "breakpoints": false
     }
   ]
 }

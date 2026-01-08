@@ -7,12 +7,12 @@ export const PageRuleBrowserEnum = z.array(
 )
 
 export const RuleAttrSchema = z.object({
-  value: z.string(),
-  name: z.string(),
+  value: z.string().nonempty('Attribute value is required'),
+  name: z.string().nonempty('Attribute name is required'),
 })
 
 export const RuleSchema = z.object({
-  selectors: z.array(z.string()).min(1, 'Value is required'),
+  selectors: z.array(z.string()).min(1, 'Selector is required'),
   attrs: z.array(RuleAttrSchema),
 })
 
@@ -31,7 +31,7 @@ export const PageRuleBaseSchema = z.object({
     .nonempty('Viewport is required'),
   mediaReset: z.boolean().optional(),
   reducedMotion: z.boolean().optional(),
-  pagePaths: z.string().nonempty('Page path is required'),
+  pagePath: z.string().nonempty('Page path is required'),
   rules: z.array(RuleSchema).min(1, 'At least one rule is required'),
 })
 

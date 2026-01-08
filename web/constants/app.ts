@@ -16,6 +16,6 @@ export const BrowserLists = [
   },
 ]
 
-export const AttributesLists = ['data-spt-hide', 'data-spt-remove', 'data-spt-replace-words', 'data-spt-custom']
-export const AttributeWithValueLists = ['data-spt-replace-words', 'data-spt-custom']
-export const AttributeWithTrueValue = ['data-spt-hide', 'data-spt-remove']
+export const AttributeWithValueLists = ['data-spt-replace-words', 'data-spt-custom'] as const
+export const AttributeWithTrueValue = ['data-spt-hide', 'data-spt-remove'] as const
+export const AttributesLists = [...AttributeWithTrueValue, ...AttributeWithValueLists] as const

@@ -10,10 +10,15 @@ export const projects = pgTable('projects', {
   name: varchar('name').notNull(),
   baseUrl: varchar('base_url').notNull(),
   token: varchar('token').unique().notNull(),
-  snapshotBrowser: varchar('snapshot_browser').notNull(),
+  snapshotBrowsers: text('snapshot_browsers')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  viewports: jsonb('viewports')
+    .$type<[number, number][]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
   snapshotSelector: varchar('snapshot_selector').notNull(),
-  snapshotWidth: integer('snapshot_width').notNull(),
-  snapshotHeight: integer('snapshot_height').notNull(),
   pagePaths: text('page_paths')
     .array()
     .notNull()

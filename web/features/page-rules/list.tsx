@@ -4,10 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Globe, MoreHorizontal, Plus } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { EmptySection } from '@/components/empty-section'
+import PaginationCard from '@/components/pagination-cards'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
@@ -23,9 +25,22 @@ export function PageRuleListCard({
   projectId?: string
   onRequestDelete: (payload: { id: string; path: string }) => void
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const page = Number(searchParams.get('page') ?? 1)
+  const PAGE_SIZE = 21
+
+  const handleChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', String(newPage))
+    router.replace(`${pathname}?${params.toString()}` as Route, {
+      scroll: false,
+    })
+  }
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_PAGE_RULES, projectId],
-    queryFn: () => listPageRulesByProject({ projectId: projectId!, pageSize: 50 }),
+    queryKey: [QUERY_KEY_PAGE_RULES, projectId, page],
+    queryFn: () => listPageRulesByProject({ projectId: projectId!, pageSize: PAGE_SIZE, page: page }),
     enabled: !!projectId,
   })
 
@@ -56,9 +71,16 @@ export function PageRuleListCard({
             })}
           </div>
         ) : (
-          <EmptySection url={`/projects/${projectId}/page-rules/create`} label="Add page rule" title="Page rule" />
+          <EmptySection
+            url={`/projects/${projectId}/page-rules/create` as Route}
+            label="Add page rule"
+            title="Page rule"
+          />
         )}
       </CardContent>
+      <CardFooter>
+        <PaginationCard page={page} total={data ? data.total : 0} pageSize={PAGE_SIZE} onPageChange={handleChange} />
+      </CardFooter>
     </Card>
   )
 }
