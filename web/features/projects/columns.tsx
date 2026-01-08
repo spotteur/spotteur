@@ -49,7 +49,7 @@ export function getColumns(
         const name = row.original.name
         return (
           <div className="flex items-center justify-end gap-2">
-            <Link href={`/projects/${id}`}>
+            <Link href={`/projects/${id}`} className="cursor-pointer">
               <Button variant="ghost" size="sm">
                 <Eye className="mr-2 size-4" />
                 View

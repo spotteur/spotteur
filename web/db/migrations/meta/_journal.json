@@ -50,6 +50,13 @@
       "when": 1767691488416,
       "tag": "0006_flaky_overlord",
       "breakpoints": false
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767851464903,
+      "tag": "0007_smooth_chameleon",
+      "breakpoints": false
     }
   ]
 }
