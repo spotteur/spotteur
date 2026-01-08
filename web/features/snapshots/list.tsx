@@ -24,7 +24,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { cn } from '@/lib/utils'
 
-export function SnapshotListCard({ build }: { build: typeof builds.$inferSelect }) {
+export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect | null }) {
   const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({
     defaultPageSize: 6,
   })
@@ -33,11 +33,14 @@ export function SnapshotListCard({ build }: { build: typeof builds.$inferSelect 
   const [approvalStatus, setApprovalStatus] = useQueryState('status', parseAsString.withDefault(''))
   const search = useDebounce(pendingSearch, 300)
 
-  const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, build.projectId, build.id, { page, pageSize, search, approvalStatus }],
-    queryFn: () => listSnapshotsByBuild({ buildId: build.id, page, pageSize, search, approvalStatus }),
+  const { data, isLoading: isLoadingSnapshots } = useQuery({
+    queryKey: [QUERY_KEY_SNAPSHOTS, build?.projectId, build?.id, { page, pageSize, search, approvalStatus }],
+    queryFn: () => listSnapshotsByBuild({ buildId: build?.id || '', page, pageSize, search, approvalStatus }),
     placeholderData: keepPreviousData,
+    enabled: !!build?.id && !!build?.projectId,
   })
+
+  const isLoading = !build || isLoadingSnapshots
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -131,16 +134,17 @@ export function SnapshotListCard({ build }: { build: typeof builds.$inferSelect 
           </Popover>
         </div>
       </CardHeader>
-      <CardContent className="">
+      <CardContent>
         <div className="grid gap-4 pb-6 md:grid-cols-2 xl:grid-cols-3">
-          {isLoading && (
+          {(isLoading || !build) && (
             <>
-              <Skeleton className="h-80 w-full" />
-              <Skeleton className="h-80 w-full" />
-              <Skeleton className="h-80 w-full" />
+              <Skeleton className="h-79.5 w-full" />
+              <Skeleton className="h-79.5 w-full" />
+              <Skeleton className="h-79.5 w-full" />
             </>
           )}
           {!isLoading &&
+            build &&
             table.getRowModel().rows?.length > 0 &&
             table.getRowModel().rows.map((row) => (
               <Link
@@ -151,7 +155,7 @@ export function SnapshotListCard({ build }: { build: typeof builds.$inferSelect 
                 <SnapshotItemCard snapshot={row.original} build={build} />
               </Link>
             ))}
-          {!isLoading && table.getRowModel().rows?.length === 0 && (
+          {!isLoading && build && table.getRowModel().rows?.length === 0 && (
             <div className="col-span-full py-8">
               <p className="text-muted-foreground text-center">No snapshots found.</p>
             </div>

@@ -22,10 +22,16 @@ export function SnapshotDiffBadge({ diffPercentage, className }: { diffPercentag
   )
 }
 
-export function SnapshotApprovalStatusBadge({ status, className }: { status: string; className?: string }) {
+export function SnapshotApprovalStatusBadge({
+  status,
+  className,
+}: {
+  status: SnapshotApprovalStatus
+  className?: string
+}) {
   return (
-    <Badge variant={SNAPSHOT_APPROVAL_STATUS_COLOR_MAP[status as SnapshotApprovalStatus]} className={className}>
-      {SNAPSHOT_APPROVAL_STATUS_MAP[status as SnapshotApprovalStatus]}
+    <Badge variant={SNAPSHOT_APPROVAL_STATUS_COLOR_MAP[status]} className={className}>
+      {SNAPSHOT_APPROVAL_STATUS_MAP[status]}
     </Badge>
   )
 }

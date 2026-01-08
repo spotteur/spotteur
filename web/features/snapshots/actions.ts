@@ -1,11 +1,11 @@
 'use server'
 
-import { and, count, asc, desc, eq, ilike, BinaryOperator } from 'drizzle-orm'
+import { and, count, asc, desc, eq, ilike, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
-import { builds, media, snapshots } from '@/db/schema'
+import { builds, media, projects, snapshots } from '@/db/schema'
 
 type SortKey = 'id' | 'diffPercentage' | 'createdAt' | 'updatedAt' | ''
 
@@ -43,7 +43,7 @@ export async function listSnapshotsByBuild({
   const column = sortColumn(sortBy)
   const order = sortDir === 'asc' ? asc(column) : desc(column)
 
-  const filters = [eq(snapshots.buildId, buildId)] as ReturnType<typeof ilike | BinaryOperator>[]
+  const filters = [eq(snapshots.buildId, buildId)] as SQL[]
 
   const trimmedSearch = search?.trim()
   if (trimmedSearch) {
@@ -153,6 +153,11 @@ export async function updateSnapshotApprovalStatus({
   status: SnapshotApprovalStatus
 }) {
   try {
+    const isValidStatus = SnapshotApprovalStatus[status] ?? undefined
+    if (!isValidStatus) {
+      return { ok: false, error: 'Invalid approval status' } as const
+    }
+
     await db.transaction(async (tx) => {
       const [snapshot] = await tx
         .update(snapshots)
@@ -160,6 +165,7 @@ export async function updateSnapshotApprovalStatus({
         .where(eq(snapshots.id, snapshotId))
         .returning()
 
+      // Update build status based on snapshot approvals
       const [{ total: totalRejected }] = await tx
         .select({ total: count() })
         .from(snapshots)
@@ -187,6 +193,17 @@ export async function updateSnapshotApprovalStatus({
       }
 
       await tx.update(builds).set({ status: buildStatus }).where(eq(builds.id, snapshot.buildId))
+
+      // Find baseline build for the snapshot's build
+      const [latestApprovedBuild] = await tx
+        .select()
+        .from(builds)
+        .where(and(eq(builds.projectId, snapshot.buildId), eq(builds.status, BuildStatus.passed)))
+        .orderBy(desc(builds.createdAt))
+        .limit(1)
+      if (latestApprovedBuild) {
+        await tx.update(projects).set({ baselineBuildId: latestApprovedBuild.id }).where(eq(snapshots.id, snapshotId))
+      }
     })
 
     return { ok: true } as const

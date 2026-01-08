@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, RotateCcw, Loader2 } from 'lucide-react'
+import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
+import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
@@ -29,7 +30,11 @@ export function SnapshotActionButtons({
 }) {
   const queryClient = useQueryClient()
 
-  const { mutate: updateStatus, isPending } = useMutation({
+  const {
+    mutate: updateStatus,
+    isPending,
+    variables: pendingStatus,
+  } = useMutation({
     mutationFn: (status: SnapshotApprovalStatus) =>
       updateSnapshotApprovalStatus({
         snapshotId,
@@ -68,9 +73,12 @@ export function SnapshotActionButtons({
             variant="default"
             onClick={() => updateStatus(SnapshotApprovalStatus.approved)}
             disabled={isPending}
-            className="gap-2"
           >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {isPending && pendingStatus === SnapshotApprovalStatus.approved ? (
+              <Spinner />
+            ) : (
+              <CheckCircle2 className="size-4" />
+            )}
             Approve
           </Button>
 
@@ -79,9 +87,12 @@ export function SnapshotActionButtons({
             variant="destructive"
             onClick={() => updateStatus(SnapshotApprovalStatus.rejected)}
             disabled={isPending}
-            className="gap-2"
           >
-            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+            {isPending && pendingStatus === SnapshotApprovalStatus.rejected ? (
+              <Spinner />
+            ) : (
+              <XCircle className="size-4" />
+            )}
             Reject
           </Button>
         </>
@@ -91,9 +102,12 @@ export function SnapshotActionButtons({
           variant="outline"
           onClick={() => updateStatus(SnapshotApprovalStatus.pending)}
           disabled={isPending}
-          className="gap-2"
         >
-          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+          {isPending && pendingStatus === SnapshotApprovalStatus.pending ? (
+            <Spinner />
+          ) : (
+            <RotateCcw className="size-4" />
+          )}
           Undo Review
         </Button>
       )}
