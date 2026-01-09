@@ -4,8 +4,8 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
-import { PUBLIC_S3_HOST, PUBLIC_S3_PORT, S3_BUCKET } from '@/constants/env'
-import { BuildStatusValues, SnapshotApprovalStatusValues } from '@/constants/status-map'
+import { PUBLIC_S3_ENDPOINT, S3_BUCKET } from '@/constants/env'
+import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
 import { getImageDiff } from '@/lib/image-diff'
@@ -55,7 +55,7 @@ async function createMediaRecord(
       mimeType: 'image/jpeg',
       width,
       height,
-      path: `${PUBLIC_S3_HOST}:${PUBLIC_S3_PORT}/${S3_BUCKET}/${s3Path}`,
+      path: `${PUBLIC_S3_ENDPOINT}/${S3_BUCKET}/${s3Path}`,
     })
     .returning()
 
@@ -99,7 +99,7 @@ async function main() {
       .values({
         projectId: project.id,
         baseUrl: project.baseUrl,
-        status: randomElement(BuildStatusValues),
+        status: randomElement(Object.values(BuildStatus)),
         identifier: `build-${humanReadableEpoch()}-${i}`,
         pagePaths: project.pagePaths,
         baselineBuildId: existingBuilds.length > 0 ? randomElement(existingBuilds).id : null,
@@ -154,13 +154,11 @@ async function main() {
 
         await db.insert(snapshots).values({
           buildId: build.id,
-          approvalStatus: randomElement(SnapshotApprovalStatusValues),
+          approvalStatus: randomElement(Object.values(SnapshotApprovalStatus)),
           screenshotMediaId: mediaId,
           baselineScreenshotMediaId: baselineMediaId,
           diffScreenshotMediaId: diffMediaId,
           diffPercentage,
-          width,
-          height,
           pagePath,
         })
 

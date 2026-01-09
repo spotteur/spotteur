@@ -1,6 +1,6 @@
 'use server'
 
-import { and, asc, count, desc, eq } from 'drizzle-orm'
+import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
 
 import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
@@ -25,26 +25,30 @@ export async function listBuildsByProject({
   pageSize = 10,
   sortBy = 'createdAt',
   sortDir = 'desc',
+  search = '',
 }: {
   projectId: string
   page?: number
   pageSize?: number
   sortBy?: SortKey
   sortDir?: 'asc' | 'desc'
+  search?: string
 }) {
   const offset = (page - 1) * pageSize
   const column = sortColumn(sortBy)
   const order = sortDir === 'asc' ? asc(column) : desc(column)
 
-  const rowsQuery = db
-    .select()
-    .from(builds)
-    .where(eq(builds.projectId, projectId))
-    .orderBy(order)
-    .limit(pageSize)
-    .offset(offset)
+  const filters = [eq(builds.projectId, projectId)] as SQL[]
+  const trimmedSearch = search?.trim()
+  if (trimmedSearch) {
+    filters.push(like(builds.identifier, `${trimmedSearch}%`))
+  }
 
-  const countQuery = db.select({ total: count() }).from(builds).where(eq(builds.projectId, projectId))
+  const where = filters.length > 0 ? and(...filters) : undefined
+
+  const rowsQuery = db.select().from(builds).where(where).orderBy(order).limit(pageSize).offset(offset)
+
+  const countQuery = db.select({ total: count() }).from(builds).where(where)
 
   const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
 
@@ -70,6 +74,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
       pagePaths: project.pagePaths,
       status: BuildStatus.pending,
       identifier: buildIdentifier,
+      baselineBuildId: project.baselineBuildId,
     })
     .returning()
 

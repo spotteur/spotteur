@@ -91,7 +91,7 @@ export default function BuildDetailSnapshotsPage() {
         </Button>
       </div>
 
-      {buildData && <SnapshotListCard build={buildData} />}
+      <SnapshotListCard build={buildData} />
     </div>
   )
 }

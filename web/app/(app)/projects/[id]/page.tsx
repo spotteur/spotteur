@@ -1,7 +1,6 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type Route } from 'next'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
@@ -12,6 +11,7 @@ import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { projectsMenu } from '@/constants/app'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, VALIDATION_ERROR_DESCRIPTION } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
@@ -36,13 +36,13 @@ export default function EditProjectPage() {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
       } else {
         setFormErrors(res.error)
-        toast.error('Project update failed', { description: 'Please review the error and try again.' })
+        toast.error('Project update failed', { description: VALIDATION_ERROR_DESCRIPTION })
       }
     },
     onError: (error) => {
-      console.error('Project update error:', error)
-      toast.error('Project update failed', {
-        description: 'Something went wrong. Please try again later.',
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
       })
     },
   })
