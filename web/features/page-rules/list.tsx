@@ -1,22 +1,22 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
 import { Globe, MoreHorizontal, Plus } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { EmptySection } from '@/components/empty-section'
-import PaginationCard from '@/components/pagination-cards'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { pageRules } from '@/db/schema'
+import { listPageRulesByProject } from '@/features/page-rules/actions'
+import { usePagination } from '@/hooks/use-pagination'
 import { formatDateTime } from '@/lib/utils'
-
-import { listPageRulesByProject } from './actions'
 
 export function PageRuleListCard({
   projectId,
@@ -25,23 +25,27 @@ export function PageRuleListCard({
   projectId?: string
   onRequestDelete: (payload: { id: string; path: string }) => void
 }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const page = Number(searchParams.get('page') ?? 1)
-  const PAGE_SIZE = 21
-
-  const handleChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('page', String(newPage))
-    router.replace(`${pathname}?${params.toString()}` as Route, {
-      scroll: false,
-    })
-  }
+  const { page, pageSize, pagination, onPaginationChange } = usePagination({
+    defaultPageSize: 6,
+  })
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEY_PAGE_RULES, projectId, page],
-    queryFn: () => listPageRulesByProject({ projectId: projectId!, pageSize: PAGE_SIZE, page: page }),
+    queryFn: () => listPageRulesByProject({ projectId: projectId!, pageSize, page }),
     enabled: !!projectId,
+  })
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: data?.data ?? [],
+    columns: [],
+    rowCount: data?.total ?? 0,
+    manualPagination: true,
+    state: {
+      pagination,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange,
   })
 
   return (
@@ -78,8 +82,8 @@ export function PageRuleListCard({
           />
         )}
       </CardContent>
-      <CardFooter>
-        <PaginationCard page={page} total={data ? data.total : 0} pageSize={PAGE_SIZE} onPageChange={handleChange} />
+      <CardFooter className="justify-center">
+        <DataTablePagination table={table} pageSizeOptions={[6]} />
       </CardFooter>
     </Card>
   )

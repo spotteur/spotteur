@@ -38,7 +38,6 @@ export async function listPageRulesByProject({
   sortBy?: SortKey
   sortDir?: 'asc' | 'desc'
 }) {
-  console.log('page222 =>', page)
   const offset = (page - 1) * pageSize
   const column = sortColumn(sortBy)
   const order = sortDir === 'asc' ? asc(column) : desc(column)
@@ -58,7 +57,7 @@ export async function listPageRulesByProject({
   return { data: rows, total }
 }
 
-export async function CreateRule(input: unknown, project_id: string) {
+export async function createRule(input: unknown, projectId: string) {
   const parsed = PageRuleCreateSchema.safeParse(input)
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
@@ -66,7 +65,7 @@ export async function CreateRule(input: unknown, project_id: string) {
   const data = parsed.data
 
   const insert = {
-    projectId: project_id,
+    projectId: projectId,
     snapshotBrowsers: data.snapshotBrowsers,
     viewports: data.viewports,
     mediaReset: data.mediaReset,

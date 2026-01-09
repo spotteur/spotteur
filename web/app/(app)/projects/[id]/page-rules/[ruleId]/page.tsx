@@ -96,7 +96,6 @@ export default function EditRulePage() {
                 reducedMotion: data.rule.reducedMotion,
               }}
               onSubmit={(values) => {
-                console.log('values', values)
                 return mutation.mutate(values as PageRuleFormInput)
               }}
               submitLabel="Update"

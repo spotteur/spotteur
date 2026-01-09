@@ -11,7 +11,6 @@ async function main() {
 
   await db.insert(users).values(randomUsers)
 
-  console.log('✅ Seed selesai')
   process.exit(0)
 }
 

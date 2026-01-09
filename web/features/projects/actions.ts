@@ -84,7 +84,6 @@ export async function createProject(input: unknown) {
     ...insert,
     viewports: insert.viewports.map((v) => [v[0], v[1]] as [number, number]),
   }
-  console.log(payload)
   const [created] = await db.insert(projects).values(payload).returning()
   return { ok: true, data: created }
 }
