@@ -7,13 +7,13 @@ import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { getProject } from '@/features/projects/actions'
 import { getSnapshotDetail } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
-import { SnapshotViewer } from '@/features/snapshots/detail'
+import { SnapshotViewer, SnapshotActionButtons } from '@/features/snapshots/detail'
 
 export default function SnapshotDetailPage() {
   const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
@@ -85,20 +85,34 @@ export default function SnapshotDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {snapshotData ? `Page path ${snapshotData.snapshot.pagePath}` : <Skeleton className="h-6 w-48" />}
+            {snapshotData ? `Page path ${snapshotData.snapshot.pagePath}` : <Skeleton className="h-7 w-48" />}
           </CardTitle>
-          <CardDescription className="flex items-center gap-2 text-xs">
+          <CardAction>
             {snapshotData ? (
-              <>
-                <SnapshotApprovalStatusBadge status={snapshotData.snapshot.approvalStatus} />
-                <SnapshotDiffBadge diffPercentage={snapshotData.snapshot.diffPercentage} />
-              </>
+              <SnapshotActionButtons
+                snapshot={snapshotData.snapshot}
+                projectId={params.id}
+                buildId={params.buildId}
+                snapshotId={params.snapshotId}
+              />
             ) : (
-              <>
-                <Skeleton className="h-5.5 w-18" />
-                <Skeleton className="h-5.5 w-18" />
-              </>
+              <Skeleton className="h-8 w-40" />
             )}
+          </CardAction>
+          <CardDescription className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              {snapshotData ? (
+                <>
+                  <SnapshotApprovalStatusBadge status={snapshotData.snapshot.approvalStatus} />
+                  <SnapshotDiffBadge diffPercentage={snapshotData.snapshot.diffPercentage} />
+                </>
+              ) : (
+                <>
+                  <Skeleton className="h-5.5 w-18" />
+                  <Skeleton className="h-5.5 w-18" />
+                </>
+              )}
+            </div>
           </CardDescription>
         </CardHeader>
       </Card>

@@ -1,6 +1,6 @@
 'use server'
 
-import { and, asc, count, desc, eq, ilike, inArray } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, inArray, type SQL } from 'drizzle-orm'
 import { z } from 'zod'
 
 import db from '@/db/drizzle'
@@ -38,7 +38,7 @@ export async function listProjects({
   const column = sortColumn(sortBy)
   const order = sortDir === 'asc' ? asc(column) : desc(column)
 
-  const filters = [] as ReturnType<typeof ilike>[]
+  const filters = [] as SQL[]
   const trimmedSearch = search?.trim()
   if (trimmedSearch) {
     filters.push(ilike(projects.name, `%${trimmedSearch}%`))
@@ -111,5 +111,5 @@ export async function deleteProject(id: string) {
   await db.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
   await db.delete(builds).where(inArray(builds.id, buildIds))
   await db.delete(projects).where(eq(projects.id, id))
-  return { ok: true }
+  return { ok: true } as const
 }

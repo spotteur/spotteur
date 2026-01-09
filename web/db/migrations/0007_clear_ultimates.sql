@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "baseline_build_id" uuid;

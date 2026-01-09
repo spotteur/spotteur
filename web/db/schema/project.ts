@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm'
 import { pgTable, uuid, timestamp, integer, text, varchar, doublePrecision } from 'drizzle-orm/pg-core'
 
+import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
 
 export const projects = pgTable('projects', {
@@ -18,6 +19,7 @@ export const projects = pgTable('projects', {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
+  baselineBuildId: uuid('baseline_build_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -39,7 +41,7 @@ export const builds = pgTable('builds', {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
-  status: varchar('status').notNull(),
+  status: varchar('status').notNull().$type<BuildStatus>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -56,9 +58,7 @@ export const snapshots = pgTable('snapshots', {
     .notNull(),
   pagePath: varchar('page_path').notNull(),
   diffPercentage: doublePrecision('diff_percentage').notNull(),
-  approvalStatus: varchar('approval_status').notNull(),
-  width: integer('width').notNull(),
-  height: integer('height').notNull(),
+  approvalStatus: varchar('approval_status').notNull().$type<SnapshotApprovalStatus>(),
   screenshotMediaId: uuid('screenshot_media_id')
     .references(() => media.id)
     .notNull(),
