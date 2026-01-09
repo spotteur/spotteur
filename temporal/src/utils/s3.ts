@@ -1,8 +1,8 @@
 import { S3Client, S3ClientConfig } from '@aws-sdk/client-s3'
-import { S3_ACCESS_KEY, S3_HOST, S3_PORT, S3_REGION, S3_SECRET_KEY } from '../constants/env.ts'
+import { S3_ACCESS_KEY, S3_ENDPOINT, S3_REGION, S3_SECRET_KEY } from '../constants/env.ts'
 
 const config: S3ClientConfig = {
-  endpoint: `http://${S3_HOST}:${S3_PORT}`,
+  endpoint: S3_ENDPOINT,
   region: S3_REGION,
   credentials: {
     accessKeyId: S3_ACCESS_KEY,

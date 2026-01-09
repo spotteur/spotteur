@@ -16,7 +16,7 @@ const { takeScreenshot, saveScreenshot } = proxyActivities<typeof Activities>({
  * @param args Workflow args
  */
 export async function screenshotWorkflow({ projectId, buildId, ssOpts }: ScreenshotWorkflowParams) {
-  const ss = await takeScreenshot(ssOpts) // save to /tmp
-  const s3Path = await saveScreenshot({ projectId, buildId, url: ssOpts.url, file: ss })
+  const ssFile = await takeScreenshot(ssOpts) // save to /tmp
+  const s3Path = await saveScreenshot({ projectId, buildId, url: ssOpts.url, file: ssFile })
   return s3Path
 }

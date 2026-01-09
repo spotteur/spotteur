@@ -15,7 +15,6 @@ export interface ScreenshotWorkflowParams {
 export interface GenerateSnapshotsWorkflowParams {
   projectId: string | number
   buildId: string | number
-  ssOpts: Omit<ScreenshotOptions, 'url'>
 }
 
 export interface ScreenshotResult {

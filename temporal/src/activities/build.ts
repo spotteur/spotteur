@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
-import * as path from 'node:path'
 import * as crypto from 'crypto'
+import * as uuid from 'uuid'
 
 import { ApplicationFailure } from '@temporalio/common'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
@@ -16,7 +16,7 @@ export async function takeScreenshot(opts: ScreenshotOptions) {
   try {
     console.log(`Taking screenshot of ${opts.url}`)
     const result = await captureScreenshot(opts)
-    const tmpPath = `/tmp/spotteur/${sha256Hex(opts.url)}.png`
+    const tmpPath = `/tmp/spotteur/${uuid.v4()}.png`
     fs.writeFileSync(tmpPath, result.buffer)
     console.log(`Screenshot captured, saved to: ${tmpPath}`)
     return tmpPath
@@ -40,7 +40,7 @@ export async function saveScreenshot({ projectId, buildId, url, file }: SaveScre
     throw ApplicationFailure.nonRetryable(`Upload target not found: ${file}`)
   }
 
-  const filename = path.basename(file)
+  const filename = sha256Hex(url)
   const key = `${projectId}/${buildId}/${filename}.png`
   console.log(`Saving screenshot to ${key}`)
   try {
@@ -52,6 +52,7 @@ export async function saveScreenshot({ projectId, buildId, url, file }: SaveScre
         ContentType: 'image/png',
       }),
     )
+    fs.rmSync(file, { force: true })
     return 'Screenshot saved'
   } catch (err) {
     console.error(err)

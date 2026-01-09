@@ -23,5 +23,6 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
       return executeChild(screenshotWorkflow, { args: [{ projectId, buildId, ssOpts: opt }] })
     }),
   )
+  // TODO: Notify project users, create notification(s) into db
   return `Successfully generated snapshots (${results.length} pages)`
 }
