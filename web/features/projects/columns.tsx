@@ -23,22 +23,11 @@ export function getColumns(
       header: 'Base URL',
     },
     {
-      id: 'snapshotBrowser',
-      accessorKey: 'snapshotBrowser',
+      id: 'snapshotBrowsers',
+      accessorKey: 'snapshotBrowsers',
       header: 'Browser',
-    },
-    {
-      id: 'snapshotViewport',
-      accessorKey: 'snapshotWidth',
-      header: 'Viewport (in px)',
       cell: ({ row }) => {
-        const width = row.original.snapshotWidth
-        const height = row.original.snapshotHeight
-        return (
-          <span>
-            {width} x {height}
-          </span>
-        )
+        return row.original.snapshotBrowsers.join(', ')
       },
     },
     {
