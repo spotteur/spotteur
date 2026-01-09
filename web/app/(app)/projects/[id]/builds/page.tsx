@@ -8,6 +8,7 @@ import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { BuildListCard } from '@/features/builds/list'
 import { getProject } from '@/features/projects/actions'
@@ -47,23 +48,7 @@ export default function ProjectBuildsPage() {
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
-  const navigations = useMemo<NavigationType[]>(
-    () => [
-      {
-        label: 'General',
-        url: `/projects/${params.id}` as Route,
-      },
-      {
-        label: 'Page Rules',
-        url: `/projects/${params.id}/page-rules` as Route,
-      },
-      {
-        label: 'Builds',
-        url: `/projects/${params.id}/builds` as Route,
-      },
-    ],
-    [params.id],
-  )
+  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
   useHeaderNavigations(navigations)
 
   if (!isLoading && !data) {

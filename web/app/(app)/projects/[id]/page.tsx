@@ -11,6 +11,7 @@ import { type $ZodFlattenedError } from 'zod/v4/core'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
+import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
@@ -66,23 +67,7 @@ export default function EditProjectPage() {
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
-  const navigations = useMemo<NavigationType[]>(
-    () => [
-      {
-        label: 'General',
-        url: `/projects/${params.id}` as Route,
-      },
-      {
-        label: 'Page Rules',
-        url: `/projects/${params.id}/page-rules` as Route,
-      },
-      {
-        label: 'Builds',
-        url: `/projects/${params.id}/builds` as Route,
-      },
-    ],
-    [params.id],
-  )
+  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
   useHeaderNavigations(navigations)
 
   if (!isLoading && !data) {
