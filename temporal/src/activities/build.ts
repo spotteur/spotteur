@@ -16,7 +16,7 @@ export async function takeScreenshot(opts: ScreenshotOptions) {
   try {
     console.log(`Taking screenshot of ${opts.url}`)
     const result = await captureScreenshot(opts)
-    const tmpPath = `/tmp/spotteur/${uuid.v4()}.png`
+    const tmpPath = `/tmp/${uuid.v4()}.png`
     fs.writeFileSync(tmpPath, result.buffer)
     console.log(`Screenshot captured, saved to: ${tmpPath}`)
     return tmpPath
