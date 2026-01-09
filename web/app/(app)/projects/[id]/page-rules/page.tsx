@@ -61,10 +61,6 @@ export default function ProjectPageRulesPage() {
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
-  if (!isLoading && !data) {
-    notFound()
-  }
-
   return (
     <div className="space-y-4 p-4">
       <PageRuleListCard projectId={data?.id} onRequestDelete={(val) => setPendingDelete(val)} />

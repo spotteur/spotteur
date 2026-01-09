@@ -68,10 +68,10 @@ export function PageRuleListCard({
       <CardContent className="pt-4">
         {!projectId || isLoading ? (
           <PageRuleListSkeleton />
-        ) : data && data.data.length > 0 ? (
+        ) : table && table.getRowModel().rows?.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.data.map((rule) => {
-              return <PageRuleItemCard rule={rule} onRequestDelete={onRequestDelete} key={rule.id} />
+            {table.getRowModel().rows.map((row) => {
+              return <PageRuleItemCard rule={row.original} onRequestDelete={onRequestDelete} key={row.original.id} />
             })}
           </div>
         ) : (
