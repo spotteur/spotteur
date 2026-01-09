@@ -1,6 +1,6 @@
 {
-  "id": "8c0cd3f8-a053-4b29-a97f-6adbf5e0bb84",
-  "prevId": "c5f19c66-623c-450f-8a31-de53de835cde",
+  "id": "50aff96b-cf0f-4acc-a0ba-67fee2a3afbd",
+  "prevId": "8c0cd3f8-a053-4b29-a97f-6adbf5e0bb84",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,8 +111,12 @@
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -200,8 +204,12 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -211,7 +219,9 @@
         "sessions_token_unique": {
           "name": "sessions_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -283,7 +293,9 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},
@@ -427,8 +439,107 @@
           "name": "builds_project_id_projects_id_fk",
           "tableFrom": "builds",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.page_rules": {
+      "name": "page_rules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snapshot_browsers": {
+          "name": "snapshot_browsers",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "viewports": {
+          "name": "viewports",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "page_path": {
+          "name": "page_path",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "media_reset": {
+          "name": "media_reset",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "reduce_motion": {
+          "name": "reduce_motion",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "rules": {
+          "name": "rules",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "page_rules_project_id_projects_id_fk": {
+          "name": "page_rules_project_id_projects_id_fk",
+          "tableFrom": "page_rules",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -468,27 +579,23 @@
           "primaryKey": false,
           "notNull": true
         },
-        "snapshot_browser": {
-          "name": "snapshot_browser",
-          "type": "varchar",
+        "snapshot_browsers": {
+          "name": "snapshot_browsers",
+          "type": "text[]",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "viewports": {
+          "name": "viewports",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "snapshot_selector": {
           "name": "snapshot_selector",
           "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "snapshot_width": {
-          "name": "snapshot_width",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "snapshot_height": {
-          "name": "snapshot_height",
-          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -527,7 +634,9 @@
         "projects_token_unique": {
           "name": "projects_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -607,8 +716,12 @@
           "name": "snapshots_build_id_builds_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "builds",
-          "columnsFrom": ["build_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "build_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -616,8 +729,12 @@
           "name": "snapshots_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -625,8 +742,12 @@
           "name": "snapshots_baseline_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["baseline_screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "baseline_screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -634,8 +755,12 @@
           "name": "snapshots_diff_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["diff_screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "diff_screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

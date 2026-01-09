@@ -1,41 +1,37 @@
-import { VariantProps } from 'class-variance-authority'
+import { type BadgeVariant } from '@/components/ui/badge'
 
-import { badgeVariants } from '@/components/ui/badge'
-
-export const BuildStatus = {
-  pending: 'pending',
-  in_progress: 'in_progress',
-  completed: 'completed',
-  failed: 'failed',
-} as const
-
-export const BuildStatusValues = Object.values(BuildStatus) as BuildStatus[]
-
-export type BuildStatus = (typeof BuildStatus)[keyof typeof BuildStatus]
+export enum BuildStatus {
+  pending = 'pending',
+  in_progress = 'in_progress',
+  error = 'error',
+  waiting_review = 'waiting_review',
+  passed = 'passed',
+  failed = 'failed',
+}
 
 export const BUILD_STATUS_MAP: Record<BuildStatus, string> = {
   [BuildStatus.pending]: 'Pending',
   [BuildStatus.in_progress]: 'In Progress',
-  [BuildStatus.completed]: 'Completed',
-  [BuildStatus.failed]: 'Failed',
-} as const
+  [BuildStatus.error]: 'System Error',
+  [BuildStatus.waiting_review]: 'Waiting Review',
+  [BuildStatus.passed]: 'Test Passed',
+  [BuildStatus.failed]: 'Test Failed',
+}
 
-export const BUILD_STATUS_COLOR_MAP: Record<BuildStatus, VariantProps<typeof badgeVariants>['variant']> = {
-  [BuildStatus.pending]: 'default',
+export const BUILD_STATUS_COLOR_MAP: Record<BuildStatus, BadgeVariant> = {
+  [BuildStatus.pending]: 'outline',
   [BuildStatus.in_progress]: 'secondary',
-  [BuildStatus.completed]: 'success',
+  [BuildStatus.error]: 'destructive',
+  [BuildStatus.waiting_review]: 'default',
+  [BuildStatus.passed]: 'success',
   [BuildStatus.failed]: 'destructive',
-} as const
+}
 
-export const SnapshotApprovalStatus = {
-  pending: 'pending',
-  approved: 'approved',
-  rejected: 'rejected',
-} as const
-
-export const SnapshotApprovalStatusValues = Object.values(SnapshotApprovalStatus) as SnapshotApprovalStatus[]
-
-export type SnapshotApprovalStatus = (typeof SnapshotApprovalStatus)[keyof typeof SnapshotApprovalStatus]
+export enum SnapshotApprovalStatus {
+  pending = 'pending',
+  approved = 'approved',
+  rejected = 'rejected',
+}
 
 export const SNAPSHOT_APPROVAL_STATUS_MAP: Record<SnapshotApprovalStatus, string> = {
   [SnapshotApprovalStatus.pending]: 'Pending',
@@ -43,11 +39,13 @@ export const SNAPSHOT_APPROVAL_STATUS_MAP: Record<SnapshotApprovalStatus, string
   [SnapshotApprovalStatus.rejected]: 'Rejected',
 } as const
 
-export const SNAPSHOT_APPROVAL_STATUS_COLOR_MAP: Record<
-  SnapshotApprovalStatus,
-  VariantProps<typeof badgeVariants>['variant']
-> = {
+export const SNAPSHOT_APPROVAL_STATUS_COLOR_MAP: Record<SnapshotApprovalStatus, BadgeVariant> = {
   [SnapshotApprovalStatus.pending]: 'default',
   [SnapshotApprovalStatus.approved]: 'success',
   [SnapshotApprovalStatus.rejected]: 'destructive',
 } as const
+
+export const SnapshotApprovalStatusOptions = Object.values(SnapshotApprovalStatus).map((status) => ({
+  value: status,
+  label: SNAPSHOT_APPROVAL_STATUS_MAP[status],
+}))

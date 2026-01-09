@@ -12,12 +12,11 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { BrowserLists } from '@/constants/app'
-import { ProjectBrowserEnum, ProjectCreateSchema } from '@/features/projects/schema'
+import { ProjectCreateSchema } from '@/features/projects/schema'
 import { setFormErrors } from '@/lib/utils'
 
 export type ProjectFormInput = z.infer<typeof ProjectCreateSchema> & { id?: string }

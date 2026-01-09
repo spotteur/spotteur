@@ -1,5 +1,5 @@
 {
-  "id": "71e62373-7009-4037-87b5-177b1d9d6e9c",
+  "id": "c5f19c66-623c-450f-8a31-de53de835cde",
   "prevId": "2ff4a076-d99a-4e81-96ab-e73c5f414ba0",
   "version": "7",
   "dialect": "postgresql",
@@ -439,97 +439,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.page_rules": {
-      "name": "page_rules",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuidv7()"
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "snapshot_browsers": {
-          "name": "snapshot_browsers",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::text[]"
-        },
-        "viewports": {
-          "name": "viewports",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "page_path": {
-          "name": "page_path",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "media_reset": {
-          "name": "media_reset",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "reduce_motion": {
-          "name": "reduce_motion",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "rules": {
-          "name": "rules",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "page_rules_project_id_projects_id_fk": {
-          "name": "page_rules_project_id_projects_id_fk",
-          "tableFrom": "page_rules",
-          "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.projects": {
       "name": "projects",
       "schema": "",
@@ -589,6 +498,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'::text[]"
+        },
+        "baseline_build_id": {
+          "name": "baseline_build_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

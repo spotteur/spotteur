@@ -51,7 +51,7 @@ export function getColumns(
           <div className="flex items-center justify-end gap-2">
             <Link href={`/projects/${id}`} className="cursor-pointer">
               <Button variant="ghost" size="sm">
-                <Eye className="mr-2 size-4" />
+                <Eye className="size-4" />
                 View
               </Button>
             </Link>

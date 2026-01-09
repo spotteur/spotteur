@@ -54,15 +54,22 @@
     {
       "idx": 7,
       "version": "7",
-      "when": 1767851464903,
-      "tag": "0007_smooth_chameleon",
+      "when": 1767784740971,
+      "tag": "0007_clear_ultimates",
       "breakpoints": false
     },
     {
       "idx": 8,
       "version": "7",
-      "when": 1767863344296,
-      "tag": "0008_panoramic_stellaris",
+      "when": 1767790021390,
+      "tag": "0008_fast_the_fury",
+      "breakpoints": false
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1767926762220,
+      "tag": "0009_same_toro",
       "breakpoints": false
     }
   ]

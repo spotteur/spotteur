@@ -19,3 +19,6 @@ export const BrowserLists = [
 export const AttributeWithValueLists = ['data-spt-replace-words', 'data-spt-custom'] as const
 export const AttributeWithTrueValue = ['data-spt-hide', 'data-spt-remove'] as const
 export const AttributesLists = [...AttributeWithTrueValue, ...AttributeWithValueLists] as const
+export const DEFAULT_ERROR_MESSAGE = 'Internal Server Error'
+export const DEFAULT_ERROR_DESCRIPTION = 'Something went wrong. Please try again later.'
+export const VALIDATION_ERROR_DESCRIPTION = 'Please review the error and try again.'

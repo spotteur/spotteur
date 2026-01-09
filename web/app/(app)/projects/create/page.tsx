@@ -9,14 +9,12 @@ import { type $ZodFlattenedError } from 'zod/v4/core'
 
 import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, VALIDATION_ERROR_DESCRIPTION } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 
-const DEFAULT_SNAPSHOT_BROWSER = 'chrome'
 const DEFAULT_SNAPSHOT_SELECTOR = 'body'
-const DEFAULT_SNAPSHOT_WIDTH = 1024
-const DEFAULT_SNAPSHOT_HEIGHT = 768
 
 export default function NewProjectPage() {
   const router = useRouter()
@@ -30,15 +28,16 @@ export default function NewProjectPage() {
         toast.success('Project created', { description: 'Your project was successfully created.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
         router.push('/projects')
-      } else {
-        setFormErrors(res.error)
-        toast.error('Project creation failed', { description: 'Please review the error and try again.' })
+        return
       }
+
+      setFormErrors(res.error)
+      toast.error('Project creation failed', { description: VALIDATION_ERROR_DESCRIPTION })
     },
     onError: (error) => {
-      console.error('Project creation error:', error)
-      toast.error('Project creation failed', {
-        description: 'Something went wrong. Please try again later.',
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
       })
     },
   })
