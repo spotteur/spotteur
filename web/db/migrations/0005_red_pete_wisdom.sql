@@ -1,0 +1,1 @@
+ALTER TABLE "snapshots" ALTER COLUMN "diff_percentage" SET DATA TYPE double precision;

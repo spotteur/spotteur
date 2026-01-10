@@ -13,12 +13,12 @@ export function EmailLayout({ children }: EmailLayoutProps) {
       <Head />
       <Tailwind>
         <Body className="bg-gray-100 font-sans">
-          <Container className="max-w-[600px] mx-auto">
+          <Container className="mx-auto max-w-[600px]">
             <Section className="py-6 text-center">
               <Text className="m-0 text-2xl font-bold text-gray-900">Spotteur</Text>
             </Section>
 
-            <Section className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <Section className="overflow-hidden rounded-lg bg-white shadow-sm">
               <Section className="p-8">{children}</Section>
             </Section>
           </Container>
@@ -42,7 +42,7 @@ interface EmailTextProps {
 }
 
 export function EmailText({ children, className = '' }: EmailTextProps) {
-  return <Text className={cn('m-0 mb-4 text-gray-600 leading-relaxed', className)}>{children}</Text>
+  return <Text className={cn('m-0 mb-4 leading-relaxed text-gray-600', className)}>{children}</Text>
 }
 
 interface EmailSubtextProps {
@@ -50,7 +50,7 @@ interface EmailSubtextProps {
 }
 
 export function EmailSubtext({ children }: EmailSubtextProps) {
-  return <Text className="m-0 text-gray-600 leading-relaxed text-sm">{children}</Text>
+  return <Text className="m-0 text-sm leading-relaxed text-gray-600">{children}</Text>
 }
 
 interface EmailButtonProps {
@@ -63,7 +63,7 @@ export function EmailButton({ actionLink, actionLabel }: EmailButtonProps) {
     <Section className="my-6 text-center">
       <Button
         href={actionLink}
-        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold no-underline inline-block"
+        className="inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white no-underline"
       >
         {actionLabel}
       </Button>

@@ -1,0 +1,97 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { type Route } from 'next'
+import Link from 'next/link'
+import { notFound, useParams } from 'next/navigation'
+import { useMemo } from 'react'
+
+import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { getBuildDetail } from '@/features/builds/actions'
+import { BuildSummaryCard } from '@/features/builds/summary'
+import { getProject } from '@/features/projects/actions'
+
+export default function BuildDetailLogsPage() {
+  const params = useParams<{ id: string; buildId: string }>()
+
+  const { data: projectData, isLoading: isLoadingProject } = useQuery({
+    queryKey: [QUERY_KEY_PROJECTS, params.id],
+    queryFn: () => getProject(params.id),
+  })
+
+  const { data: buildData, isLoading: isLoadingBuild } = useQuery({
+    queryKey: [QUERY_KEY_BUILDS, params.id, params.buildId],
+    queryFn: () => getBuildDetail({ projectId: params.id, buildId: params.buildId }),
+  })
+
+  const isLoading = isLoadingProject || isLoadingBuild
+
+  const breadcrumbs = useMemo(
+    () =>
+      projectData && buildData ? (
+        <>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/projects">Projects</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/projects/${params.id}`}>{projectData.name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/projects/${params.id}/builds` as Route}>Builds</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>
+                {buildData.identifier}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Logs</BreadcrumbPage>
+          </BreadcrumbItem>
+        </>
+      ) : null,
+    [projectData, buildData, params],
+  )
+
+  useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
+  if (!isLoading && !buildData) {
+    notFound()
+  }
+
+  return (
+    <div className="space-y-4 p-4">
+      <BuildSummaryCard build={buildData} />
+
+      <div className="flex gap-2 border-b">
+        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
+          <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>Snapshots</Link>
+        </Button>
+        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
+          <Link href={`/projects/${params.id}/builds/${params.buildId}/logs` as Route}>Logs</Link>
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent>
+          <CardDescription>Coming soon...</CardDescription>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

@@ -29,6 +29,41 @@
       "when": 1766132696819,
       "tag": "0003_cooing_viper",
       "breakpoints": false
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766386224537,
+      "tag": "0004_public_ezekiel_stane",
+      "breakpoints": false
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1767339157683,
+      "tag": "0005_red_pete_wisdom",
+      "breakpoints": false
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767691488416,
+      "tag": "0006_flaky_overlord",
+      "breakpoints": false
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1767784740971,
+      "tag": "0007_clear_ultimates",
+      "breakpoints": false
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1767790021390,
+      "tag": "0008_fast_the_fury",
+      "breakpoints": false
     }
   ]
 }

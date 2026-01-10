@@ -4,6 +4,7 @@ import eslint from '@eslint/js'
 import nextTs from 'eslint-config-next/typescript'
 import { globalIgnores, defineConfig } from 'eslint/config'
 import nextVitals from 'eslint-config-next/core-web-vitals'
+import eslintConfigPrettier from 'eslint-config-prettier/flat'
 
 const eslintConfig = defineConfig([
   eslint.configs.recommended,
@@ -28,6 +29,12 @@ const eslintConfig = defineConfig([
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
+      'react/no-children-prop': [
+        'error',
+        {
+          allowFunctions: true,
+        },
+      ],
     },
   })),
   ...nextVitals,
@@ -42,6 +49,7 @@ const eslintConfig = defineConfig([
     'components/ui/**',
     'node_modules/**',
   ]),
+  eslintConfigPrettier,
 ])
 
 export default eslintConfig

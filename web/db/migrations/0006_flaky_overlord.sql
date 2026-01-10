@@ -1,0 +1,1 @@
+ALTER TABLE "builds" ALTER COLUMN "identifier" SET NOT NULL;

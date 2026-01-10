@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 
 import { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } from '@/constants/env'
+import * as schema from '@/db/schema'
 
 const db = drizzle({
   connection: {
@@ -10,6 +11,7 @@ const db = drizzle({
     password: DB_PASSWORD,
     database: DB_NAME,
   },
+  schema,
 })
 
 export default db
