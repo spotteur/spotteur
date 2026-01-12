@@ -1,10 +1,15 @@
 'use server'
 
 import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
+import { type Route } from 'next'
 
+import { APP_URL } from '@/constants/env'
+import { NOVU_WORKFLOW_BUILD_CREATED } from '@/constants/novu'
 import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
+import { users } from '@/db/schema'
 import { builds, projects } from '@/db/schema/project'
+import novu from '@/lib/novu'
 import { humanReadableEpoch } from '@/lib/utils'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
@@ -66,7 +71,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
   const buildIdentifier =
     safeIdentifier && safeIdentifier.length > 0 ? safeIdentifier : `manual-${humanReadableEpoch()}`
 
-  const [created] = await db
+  const [build] = await db
     .insert(builds)
     .values({
       projectId: project.id,
@@ -80,7 +85,27 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
 
   // TODO: Put task to temporal
 
-  return { ok: true, data: created } as const
+  const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
+
+  const subscribers = await db.select({ id: users.id }).from(users)
+  const chunkedSubscribers = []
+  for (let i = 0; i < subscribers.length; i += 100) {
+    chunkedSubscribers.push(subscribers.slice(i, i + 100))
+  }
+
+  for (const chunk of chunkedSubscribers) {
+    novu.trigger({
+      workflowId: NOVU_WORKFLOW_BUILD_CREATED,
+      to: chunk.map((s) => s.id),
+      payload: {
+        buildIdentifier: build.identifier,
+        projectName: project.name,
+        actionUrl: `${APP_URL}${pagePath}`,
+      },
+    })
+  }
+
+  return { ok: true, data: build } as const
 }
 
 export async function getBuildDetail({ projectId, buildId }: { projectId: string; buildId: string }) {

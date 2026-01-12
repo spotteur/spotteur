@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   SNAPSHOT_APPROVAL_STATUS_COLOR_MAP,
   SNAPSHOT_APPROVAL_STATUS_MAP,
-  SnapshotApprovalStatus,
+  type SnapshotApprovalStatus,
 } from '@/constants/status-map'
 import { humanReadableDecimal } from '@/lib/utils'
 

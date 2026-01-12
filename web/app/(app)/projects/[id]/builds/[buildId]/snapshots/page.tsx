@@ -15,7 +15,7 @@ import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
 import { SnapshotListCard } from '@/features/snapshots/list'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function BuildDetailSnapshotsPage() {
   const params = useParams<{ id: string; buildId: string }>()

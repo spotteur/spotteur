@@ -4,7 +4,7 @@ import { useForm } from '@tanstack/react-form'
 import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
+import { type z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
