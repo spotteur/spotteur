@@ -6,14 +6,16 @@ import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
 import { SnapshotListCard } from '@/features/snapshots/list'
+import { NavigationType } from '@/lib/type/app'
 
 export default function BuildDetailSnapshotsPage() {
   const params = useParams<{ id: string; buildId: string }>()
@@ -69,6 +71,8 @@ export default function BuildDetailSnapshotsPage() {
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
+  useHeaderNavigations(navigations)
 
   if (!isLoading && !buildData) {
     notFound()

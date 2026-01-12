@@ -2,11 +2,15 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
+import { NavigationType } from '@/lib/type/app'
+
 type HeaderContextValue = {
   breadcrumbs: React.ReactNode | null
   setBreadcrumbs: (node: React.ReactNode | null) => void
   isLoading: boolean
   setIsLoading: (loading: boolean) => void
+  navigations: NavigationType[] | null
+  setNavigations: (navigations: NavigationType[] | null) => void
 }
 
 const HeaderContext = createContext<HeaderContextValue | null>(null)
@@ -14,8 +18,12 @@ const HeaderContext = createContext<HeaderContextValue | null>(null)
 export function HeaderProvider({ children }: { children: React.ReactNode }) {
   const [breadcrumbs, setBreadcrumbs] = useState<React.ReactNode | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [navigations, setNavigations] = useState<NavigationType[] | null>(null)
 
-  const value = useMemo(() => ({ breadcrumbs, setBreadcrumbs, isLoading, setIsLoading }), [breadcrumbs, isLoading])
+  const value = useMemo(
+    () => ({ breadcrumbs, setBreadcrumbs, isLoading, setIsLoading, navigations, setNavigations }),
+    [breadcrumbs, isLoading, navigations],
+  )
 
   return <HeaderContext.Provider value={value}>{children}</HeaderContext.Provider>
 }
@@ -42,4 +50,25 @@ export function useHeaderBreadcrumbs(node: React.ReactNode | null, isLoading?: b
       setIsLoading(false)
     }
   }, [node, isLoading, setBreadcrumbs, setIsLoading])
+}
+
+export function useHeaderNavigations(navigations?: NavigationType[]) {
+  const { setNavigations } = useHeaderContext()
+
+  const defaultNavigations = useMemo<NavigationType[]>(
+    () => [
+      {
+        label: 'Projects',
+        url: '/projects',
+      },
+    ],
+    [],
+  )
+
+  useEffect(() => {
+    if (navigations) {
+      return setNavigations([...defaultNavigations, ...navigations])
+    }
+    setNavigations(defaultNavigations)
+  }, [navigations, setNavigations, defaultNavigations])
 }
