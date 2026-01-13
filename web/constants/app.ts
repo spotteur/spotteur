@@ -1,5 +1,7 @@
 import { type Route } from 'next'
 
+import { NavigationType } from '@/lib/type/app'
+
 export const THEME_LIGHT = 'light'
 export const THEME_DARK = 'dark'
 
@@ -23,3 +25,10 @@ export const projectsMenu = (projectId: string) => {
     },
   ]
 }
+
+export const defaultMenu: NavigationType[] = [
+  {
+    label: 'Projects',
+    url: '/projects',
+  },
+]

@@ -9,10 +9,12 @@ import {
   UpdateFieldCard,
   UpdateNameCard,
 } from '@daveyplate/better-auth-ui'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useHeaderNavigations } from '@/components/layout/header-context'
+import { defaultMenu } from '@/constants/app'
 import { authClient } from '@/lib/auth-client'
+import { NavigationType } from '@/lib/type/app'
 
 export default function SettingsPage() {
   const [itemPerPage, setItemPerPage] = useState<number>()
@@ -29,7 +31,8 @@ export default function SettingsPage() {
     process()
   }, [])
 
-  useHeaderNavigations()
+  const defaultNavigations = useMemo<NavigationType[]>(() => defaultMenu, [])
+  useHeaderNavigations(defaultNavigations)
 
   return (
     <div className="flex flex-col gap-6">
