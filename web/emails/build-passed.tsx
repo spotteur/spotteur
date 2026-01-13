@@ -1,6 +1,3 @@
-import { type Route } from 'next'
-
-import { APP_URL } from '@/constants/env'
 import {
   EmailLayout,
   EmailHeading,
@@ -10,22 +7,9 @@ import {
   EmailDivider,
   EmailSubtext,
 } from '@/emails/base'
+import { payloadJsonSchema, type PayloadSchema } from '@/novu/workflows/build-passed'
 
-interface BuildPassedEmailProps {
-  projectId: string
-  buildId: string
-  buildIdentifier: string
-  totalSnapshotCount: number
-}
-
-export default function BuildPassedEmail({
-  projectId,
-  buildId,
-  buildIdentifier,
-  totalSnapshotCount,
-}: BuildPassedEmailProps) {
-  const buildPagePath = `/projects/${projectId}/builds/${buildId}/snapshots` as Route
-
+export default function BuildPassedEmail({ buildIdentifier, totalSnapshotCount, actionLink }: PayloadSchema) {
   return (
     <EmailLayout>
       <EmailHeading>Hello!</EmailHeading>
@@ -40,7 +24,7 @@ export default function BuildPassedEmail({
         has been marked as passed.
       </EmailText>
 
-      <EmailButton actionLink={`${APP_URL}${buildPagePath}`} actionLabel="View Build" />
+      <EmailButton actionLink={actionLink} actionLabel="View Build" />
 
       <EmailSubtext>If you are satisfied with these results, no further action is needed.</EmailSubtext>
 
@@ -52,8 +36,7 @@ export default function BuildPassedEmail({
 }
 
 BuildPassedEmail.PreviewProps = {
-  projectId: '019ba184-6205-7172-a327-c0c4b52b08ed',
-  buildId: '019ba184-65a6-71c1-82b8-8ad6b4254cb1',
-  buildIdentifier: '3edfe26',
-  totalSnapshotCount: 10,
-} satisfies BuildPassedEmailProps
+  buildIdentifier: payloadJsonSchema.properties.buildIdentifier.default,
+  totalSnapshotCount: payloadJsonSchema.properties.totalSnapshotCount.default,
+  actionLink: payloadJsonSchema.properties.actionLink.default,
+} satisfies PayloadSchema

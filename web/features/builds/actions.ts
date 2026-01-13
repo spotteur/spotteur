@@ -1,5 +1,6 @@
 'use server'
 
+import { type Subscriber } from '@novu/js'
 import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
 import { type Route } from 'next'
 
@@ -87,20 +88,25 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
 
   const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
 
-  const subscribers = await db.select({ id: users.id }).from(users)
-  const chunkedSubscribers = []
-  for (let i = 0; i < subscribers.length; i += 100) {
-    chunkedSubscribers.push(subscribers.slice(i, i + 100))
+  const userRows = await db.select({ id: users.id, email: users.email }).from(users)
+  const chunkedSubscribers: Subscriber[][] = []
+  for (let i = 0; i < userRows.length; i += 100) {
+    chunkedSubscribers.push(
+      userRows.slice(i, i + 100).map((s) => ({
+        subscriberId: s.id,
+        email: s.email,
+      })),
+    )
   }
 
-  for (const chunk of chunkedSubscribers) {
-    novu.trigger({
+  for (const subscribers of chunkedSubscribers) {
+    await novu.trigger({
       workflowId: NOVU_WORKFLOW_BUILD_CREATED,
-      to: chunk.map((s) => s.id),
+      to: subscribers,
       payload: {
         buildIdentifier: build.identifier,
         projectName: project.name,
-        actionUrl: `${APP_URL}${pagePath}`,
+        actionLink: `${APP_URL}${pagePath}`,
       },
     })
   }

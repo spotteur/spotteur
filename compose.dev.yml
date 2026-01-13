@@ -5,6 +5,7 @@ services:
       target: "development"
     ports:
       - "18005:3001"
+      - "18006:3002"
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"

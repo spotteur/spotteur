@@ -1,7 +1,3 @@
-import { type Route } from 'next'
-
-import { APP_URL } from '@/constants/env'
-import { SnapshotApprovalStatus } from '@/constants/status-map'
 import {
   EmailLayout,
   EmailHeading,
@@ -11,25 +7,14 @@ import {
   EmailDivider,
   EmailSalutation,
 } from '@/emails/base'
-
-interface BuildReadyForReviewEmailProps {
-  projectId: string
-  buildId: string
-  buildIdentifier: string
-  hasDiffSnapshotCount: number
-  totalSnapshotCount: number
-}
+import { payloadJsonSchema, type PayloadSchema } from '@/novu/workflows/build-ready-for-review'
 
 export default function BuildReadyForReviewEmail({
-  projectId,
-  buildId,
   buildIdentifier,
   hasDiffSnapshotCount,
   totalSnapshotCount,
-}: BuildReadyForReviewEmailProps) {
-  const buildPagePath =
-    `/projects/${projectId}/builds/${buildId}/snapshots?status=${SnapshotApprovalStatus.pending}` as Route
-
+  actionLink,
+}: PayloadSchema) {
   return (
     <EmailLayout>
       <EmailHeading>Hello!</EmailHeading>
@@ -44,7 +29,7 @@ export default function BuildReadyForReviewEmail({
         changed during visual regression testing. Please review the snapshots before approving or rejecting them.
       </EmailText>
 
-      <EmailButton actionLink={`${APP_URL}${buildPagePath}`} actionLabel="View Build" />
+      <EmailButton actionLink={actionLink} actionLabel="View Build" />
 
       <EmailSubtext>
         You can put your review on all snapshots. If all snapshot approved, this build will be marked as Passed and will
@@ -60,9 +45,8 @@ export default function BuildReadyForReviewEmail({
 }
 
 BuildReadyForReviewEmail.PreviewProps = {
-  projectId: '019ba184-6205-7172-a327-c0c4b52b08ed',
-  buildId: '019ba184-65a6-71c1-82b8-8ad6b4254cb1',
-  buildIdentifier: '3edfe26',
-  hasDiffSnapshotCount: 3,
-  totalSnapshotCount: 10,
-} satisfies BuildReadyForReviewEmailProps
+  buildIdentifier: payloadJsonSchema.properties.buildIdentifier.default,
+  hasDiffSnapshotCount: payloadJsonSchema.properties.hasDiffSnapshotCount.default,
+  totalSnapshotCount: payloadJsonSchema.properties.totalSnapshotCount.default,
+  actionLink: payloadJsonSchema.properties.actionLink.default,
+} satisfies PayloadSchema
