@@ -11,6 +11,7 @@ import {
 } from '@daveyplate/better-auth-ui'
 import { useEffect, useState } from 'react'
 
+import { useHeaderNavigations } from '@/components/layout/header-context'
 import { authClient } from '@/lib/auth-client'
 
 export default function SettingsPage() {
@@ -27,6 +28,8 @@ export default function SettingsPage() {
     }
     process()
   }, [])
+
+  useHeaderNavigations()
 
   return (
     <div className="flex flex-col gap-6">

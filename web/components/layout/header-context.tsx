@@ -52,18 +52,19 @@ export function useHeaderBreadcrumbs(node: React.ReactNode | null, isLoading?: b
   }, [node, isLoading, setBreadcrumbs, setIsLoading])
 }
 
-export function useHeaderNavigations(navigations?: NavigationType[]) {
+export function useHeaderNavigations(navigations?: NavigationType[], isProjectDetail?: boolean) {
   const { setNavigations } = useHeaderContext()
 
-  const defaultNavigations = useMemo<NavigationType[]>(
-    () => [
+  const defaultNavigations = useMemo<NavigationType[]>(() => {
+    if (isProjectDetail) return []
+
+    return [
       {
         label: 'Projects',
         url: '/projects',
       },
-    ],
-    [],
-  )
+    ]
+  }, [isProjectDetail])
 
   useEffect(() => {
     if (navigations) {

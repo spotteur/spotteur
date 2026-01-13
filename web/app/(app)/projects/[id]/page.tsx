@@ -68,7 +68,7 @@ export default function EditProjectPage() {
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
   const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
-  useHeaderNavigations(navigations)
+  useHeaderNavigations(navigations, true)
 
   if (!isLoading && !data) {
     notFound()
