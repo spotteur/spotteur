@@ -8,8 +8,7 @@ import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
-import { projectsMenu } from '@/constants/app'
+import { snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
@@ -71,7 +70,10 @@ export default function BuildDetailSnapshotsPage() {
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
-  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
+  const navigations = useMemo<NavigationType[]>(
+    () => snapshotsMenu(params.id, params.buildId),
+    [params.id, params.buildId],
+  )
   useHeaderNavigations(navigations)
 
   if (!isLoading && !buildData) {
@@ -81,15 +83,6 @@ export default function BuildDetailSnapshotsPage() {
   return (
     <div className="space-y-4 p-4">
       <BuildSummaryCard build={buildData} />
-
-      <div className="flex gap-2 border-b">
-        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
-          <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>Snapshots</Link>
-        </Button>
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
-          <Link href={`/projects/${params.id}/builds/${params.buildId}/logs` as Route}>Logs</Link>
-        </Button>
-      </div>
 
       <SnapshotListCard build={buildData} />
     </div>

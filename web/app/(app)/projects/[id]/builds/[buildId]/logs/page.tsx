@@ -6,14 +6,15 @@ import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function BuildDetailLogsPage() {
   const params = useParams<{ id: string; buildId: string }>()
@@ -70,6 +71,12 @@ export default function BuildDetailLogsPage() {
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
+  const navigations = useMemo<NavigationType[]>(
+    () => snapshotsMenu(params.id, params.buildId),
+    [params.id, params.buildId],
+  )
+  useHeaderNavigations(navigations)
+
   if (!isLoading && !buildData) {
     notFound()
   }
@@ -77,15 +84,6 @@ export default function BuildDetailLogsPage() {
   return (
     <div className="space-y-4 p-4">
       <BuildSummaryCard build={buildData} />
-
-      <div className="flex gap-2 border-b">
-        <Button variant="ghost" asChild className="rounded-none border-b-2 border-transparent">
-          <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>Snapshots</Link>
-        </Button>
-        <Button variant="ghost" asChild className="border-primary rounded-none border-b-2">
-          <Link href={`/projects/${params.id}/builds/${params.buildId}/logs` as Route}>Logs</Link>
-        </Button>
-      </div>
 
       <Card>
         <CardContent>
