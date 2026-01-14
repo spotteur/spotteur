@@ -12,7 +12,7 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Card, CardContent } from '@/components/ui/card'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createRule } from '@/features/page-rules/actions'
-import PageRuleForm, { PageRuleFormInput } from '@/features/page-rules/form'
+import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form'
 import { getProject } from '@/features/projects/actions'
 
 export default function NewRulePage() {

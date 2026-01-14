@@ -12,7 +12,7 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Card, CardContent } from '@/components/ui/card'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { getRule, updateRule } from '@/features/page-rules/actions'
-import PageRuleForm, { PageRuleFormInput } from '@/features/page-rules/form'
+import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form'
 
 export default function EditRulePage() {
   const router = useRouter()

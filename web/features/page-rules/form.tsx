@@ -4,7 +4,7 @@ import { useForm } from '@tanstack/react-form'
 import { Plus, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect } from 'react'
-import { z } from 'zod'
+import { type z } from 'zod'
 
 import InputTags from '@/components/input-tags'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { AttributesLists, AttributeWithTrueValue, BrowserLists } from '@/constants/app'
-import { projects } from '@/db/schema'
+import { type projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
 
