@@ -1,20 +1,22 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { CheckIcon, CopyIcon, RefreshCcwIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon, Plus, RefreshCcwIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { type z } from 'zod'
 
+import InputTags from '@/components/input-tags'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { ProjectBrowserEnum, ProjectCreateSchema } from '@/features/projects/schema'
+import { BrowserLists } from '@/constants/app'
+import { ProjectCreateSchema } from '@/features/projects/schema'
 import { setFormErrors } from '@/lib/utils'
 
 export type ProjectFormInput = z.infer<typeof ProjectCreateSchema> & { id?: string }
@@ -193,28 +195,18 @@ export function ProjectForm({
         }}
       />
       <form.Field
-        name="snapshotBrowser"
+        name="snapshotBrowsers"
         children={(field) => {
           const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor="project-snapshotBrowser">Browser</FieldLabel>
-              <Select
-                value={field.state.value}
-                onValueChange={(value) => field.handleChange(value as ProjectFormInput['snapshotBrowser'])}
-              >
-                <SelectTrigger id="project-snapshotBrowser" aria-invalid={isInvalid}>
-                  <SelectValue placeholder="Select browser" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ProjectBrowserEnum.options.map((opt) => (
-                    <SelectItem key={opt} value={opt}>
-                      {opt}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldDescription>Browser to use for capturing snapshots</FieldDescription>
+              <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
+              <InputTags
+                defaultValue={field.state.value}
+                tags={BrowserLists}
+                onRemove={(value) => field.handleChange(value)}
+                onSelect={(value) => field.handleChange(value)}
+              />
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
           )
@@ -241,52 +233,89 @@ export function ProjectForm({
           )
         }}
       />
-      <div className="grid grid-cols-2 gap-4">
-        <form.Field
-          name="snapshotWidth"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor="project-snapshotWidth">Width</FieldLabel>
-                <Input
-                  id="project-snapshotWidth"
-                  name={field.name}
-                  type="number"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(Number(e.target.value))}
-                  aria-invalid={isInvalid}
-                />
-                <FieldDescription>Value in pixels (e.g., 1200)</FieldDescription>
+      <form.Field
+        name="viewports"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <>
+              <div className="flex flex-col items-start gap-3">
+                <FieldLabel htmlFor="pageRule-viewports">Viewports</FieldLabel>
+                <Field data-invalid={isInvalid}>
+                  <Card>
+                    <CardContent className="flex flex-col gap-3">
+                      {field.state.value &&
+                        field.state.value.map((_obj, index) => (
+                          <div key={index} className="w-full">
+                            <form.Field
+                              name={`viewports[${index}]`}
+                              children={(viewportField) => {
+                                const isValueInvalid =
+                                  viewportField.state.meta.isTouched && !viewportField.state.meta.isValid
+                                return (
+                                  <div className="flex gap-3">
+                                    <Field data-invalid={isValueInvalid}>
+                                      <FieldLabel htmlFor="pageRule-viewports-width">Width</FieldLabel>
+                                      <Input
+                                        id="pageRule-viewports-width"
+                                        name={viewportField.name}
+                                        value={viewportField.state.value.at(0)}
+                                        onBlur={viewportField.handleBlur}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value)
+
+                                          if (!Number.isNaN(value)) {
+                                            viewportField.handleChange((prev) => {
+                                              return [value, prev[1]]
+                                            })
+                                          }
+                                        }}
+                                        aria-invalid={isValueInvalid}
+                                      />
+                                      {isValueInvalid && <FieldError errors={field.state.meta.errors} />}
+                                    </Field>
+                                    <Field data-invalid={isValueInvalid}>
+                                      <FieldLabel htmlFor="pageRule-viewports-height">Height</FieldLabel>
+                                      <Input
+                                        id="pageRule-viewports-height"
+                                        name={viewportField.name}
+                                        value={viewportField.state.value[1] ?? ''}
+                                        onBlur={viewportField.handleBlur}
+                                        onChange={(e) => {
+                                          const value = Number(e.target.value)
+
+                                          if (!Number.isNaN(value)) {
+                                            viewportField.handleChange((prev) => {
+                                              return [prev[0], value]
+                                            })
+                                          }
+                                        }}
+                                        aria-invalid={isValueInvalid}
+                                      />
+                                      {isValueInvalid && <FieldError errors={viewportField.state.meta.errors} />}
+                                    </Field>
+                                  </div>
+                                )
+                              }}
+                            />
+                          </div>
+                        ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => field.handleChange((old) => [...old, [0, 0]])}
+                      >
+                        <Plus /> Add Viewport
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Field>
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        />
-        <form.Field
-          name="snapshotHeight"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor="project-snapshotHeight">Height</FieldLabel>
-                <Input
-                  id="project-snapshotHeight"
-                  name={field.name}
-                  type="number"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(Number(e.target.value))}
-                  aria-invalid={isInvalid}
-                />
-                <FieldDescription>Value in pixels (e.g., 800)</FieldDescription>
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            )
-          }}
-        />
-      </div>
+              </div>
+            </>
+          )
+        }}
+      />
       <form.Field
         name="pagePaths"
         children={(field) => {

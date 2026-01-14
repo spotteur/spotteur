@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, uuid, timestamp, integer, text, varchar, doublePrecision } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, timestamp, text, varchar, doublePrecision, jsonb, boolean } from 'drizzle-orm/pg-core'
 
 import { type BuildStatus, type SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
@@ -11,10 +11,15 @@ export const projects = pgTable('projects', {
   name: varchar('name').notNull(),
   baseUrl: varchar('base_url').notNull(),
   token: varchar('token').unique().notNull(),
-  snapshotBrowser: varchar('snapshot_browser').notNull(),
+  snapshotBrowsers: text('snapshot_browsers')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  viewports: jsonb('viewports')
+    .$type<[number, number][]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
   snapshotSelector: varchar('snapshot_selector').notNull(),
-  snapshotWidth: integer('snapshot_width').notNull(),
-  snapshotHeight: integer('snapshot_height').notNull(),
   pagePaths: text('page_paths')
     .array()
     .notNull()
@@ -70,8 +75,48 @@ export const snapshots = pgTable('snapshots', {
     .notNull(),
 })
 
+export const pageRules = pgTable('page_rules', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
+
+  projectId: uuid('project_id')
+    .references(() => projects.id)
+    .notNull(),
+
+  snapshotBrowsers: text('snapshot_browsers')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  viewports: jsonb('viewports')
+    .$type<[number, number][]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  pagePath: varchar('page_path').notNull(),
+  mediaReset: boolean('media_reset').notNull().default(true),
+  reducedMotion: boolean('reduce_motion').notNull().default(true),
+  rules: jsonb('rules')
+    .$type<
+      {
+        selectors: string[]
+        attrs: {
+          name: string
+          value: string
+        }[]
+      }[]
+    >()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+})
+
 export const projectsRelations = relations(projects, ({ many }) => ({
   builds: many(builds),
+  pageRules: many(pageRules),
 }))
 
 export const buildsRelations = relations(builds, ({ one }) => ({
@@ -96,4 +141,8 @@ export const snapshotsRelations = relations(snapshots, ({ one }) => ({
     fields: [snapshots.diffScreenshotMediaId],
     references: [media.id],
   }),
+}))
+
+export const pageRuleRelations = relations(projects, ({ one }) => ({
+  project: one(projects),
 }))
