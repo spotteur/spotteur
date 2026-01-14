@@ -4,7 +4,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
-import { PUBLIC_S3_ENDPOINT, S3_BUCKET } from '@/constants/env'
+import { S3_BUCKET } from '@/constants/env'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
@@ -55,7 +55,7 @@ async function createMediaRecord(
       mimeType: 'image/jpeg',
       width,
       height,
-      path: `${PUBLIC_S3_ENDPOINT}/${S3_BUCKET}/${s3Path}`,
+      path: `${s3Path}`,
     })
     .returning()
 
@@ -78,10 +78,9 @@ async function main() {
         name: 'Demo Project - Kororo',
         baseUrl: 'https://kororo.co/',
         token: crypto.randomUUID(),
-        snapshotBrowser: 'chrome',
+        snapshotBrowsers: ['chrome'],
         snapshotSelector: 'body',
-        snapshotWidth: 1024,
-        snapshotHeight: 768,
+        viewports: [[1280, 768]],
         pagePaths: ['/', '/works', '/company'],
       })
       .returning()

@@ -6,6 +6,7 @@ import { alias } from 'drizzle-orm/pg-core'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
+import { getPresignUrl } from '@/lib/s3'
 
 type SortKey = 'id' | 'diffPercentage' | 'createdAt' | 'updatedAt' | ''
 
@@ -83,7 +84,15 @@ export async function listSnapshotsByBuild({
 
   const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
 
-  return { data: rows, total }
+  const modifiedRows = rows.map(async (row) => {
+    if (row.screenshotMedia) {
+      const path = await getPresignUrl({ key: row.screenshotMedia.path })
+      return { ...row, screenshotMedia: { ...row.screenshotMedia, path } }
+    }
+    return row
+  })
+
+  return { data: await Promise.all(modifiedRows), total }
 }
 
 export async function getSnapshotDetail({
