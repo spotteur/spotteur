@@ -35,6 +35,12 @@ const eslintConfig = defineConfig([
           allowFunctions: true,
         },
       ],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          fixStyle: 'inline-type-imports',
+        },
+      ],
     },
   })),
   ...nextVitals,

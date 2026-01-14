@@ -16,7 +16,7 @@ import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { ProjectFormSkeleton } from '@/features/projects/form-skeleton'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function EditProjectPage() {
   const params = useParams<{ id: string }>()

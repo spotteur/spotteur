@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card'
 import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject } from '@/features/projects/actions'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function ProjectPageRulesPage() {
   const params = useParams<{ id: string }>()

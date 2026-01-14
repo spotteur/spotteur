@@ -1,7 +1,7 @@
 import { relations, sql } from 'drizzle-orm'
 import { pgTable, uuid, timestamp, integer, text, varchar, doublePrecision } from 'drizzle-orm/pg-core'
 
-import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
+import { type BuildStatus, type SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
 
 export const projects = pgTable('projects', {

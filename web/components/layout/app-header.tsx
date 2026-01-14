@@ -2,6 +2,7 @@ import { UserButton } from '@daveyplate/better-auth-ui'
 
 import { AppNavigation } from '@/components/layout/app-navigation'
 import { useHeaderContext } from '@/components/layout/header-context'
+import NotificationInbox from '@/components/notification-inbox'
 import ThemeTrigger from '@/components/theme-trigger'
 import { Breadcrumb, BreadcrumbList } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
@@ -24,6 +25,7 @@ export default function AppHeader() {
           )}
         </div>
         <div className="header-right flex gap-2">
+          <NotificationInbox />
           <ThemeTrigger />
           <UserButton size="icon" classNames={{ skeleton: 'size-9', base: 'size-9' }} />
         </div>
