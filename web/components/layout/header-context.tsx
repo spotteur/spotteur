@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 type HeaderContextValue = {
   breadcrumbs: React.ReactNode | null

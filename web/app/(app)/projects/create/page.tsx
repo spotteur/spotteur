@@ -14,10 +14,7 @@ import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 
-const DEFAULT_SNAPSHOT_BROWSER = 'chrome'
 const DEFAULT_SNAPSHOT_SELECTOR = 'body'
-const DEFAULT_SNAPSHOT_WIDTH = 1024
-const DEFAULT_SNAPSHOT_HEIGHT = 768
 
 export default function NewProjectPage() {
   const router = useRouter()
@@ -70,10 +67,9 @@ export default function NewProjectPage() {
         defaultValues={{
           name: '',
           baseUrl: '',
-          snapshotBrowser: DEFAULT_SNAPSHOT_BROWSER,
+          snapshotBrowsers: [],
           snapshotSelector: DEFAULT_SNAPSHOT_SELECTOR,
-          snapshotWidth: DEFAULT_SNAPSHOT_WIDTH,
-          snapshotHeight: DEFAULT_SNAPSHOT_HEIGHT,
+          viewports: [],
           pagePaths: [],
           token: '',
         }}

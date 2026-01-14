@@ -16,7 +16,7 @@ import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { ProjectFormSkeleton } from '@/features/projects/form-skeleton'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function EditProjectPage() {
   const params = useParams<{ id: string }>()
@@ -87,10 +87,9 @@ export default function EditProjectPage() {
                 id: data.id,
                 name: data.name,
                 baseUrl: data.baseUrl,
-                snapshotBrowser: data.snapshotBrowser as ProjectFormInput['snapshotBrowser'],
+                snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
                 snapshotSelector: data.snapshotSelector,
-                snapshotWidth: data.snapshotWidth,
-                snapshotHeight: data.snapshotHeight,
+                viewports: data.viewports,
                 pagePaths: Array.isArray(data.pagePaths) ? data.pagePaths : [],
                 token: data.token ?? '',
               }}

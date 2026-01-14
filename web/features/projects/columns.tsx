@@ -1,12 +1,12 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { projects } from '@/db/schema/project'
+import { type projects } from '@/db/schema/project'
 
 export function getColumns(
   onRequestDelete: (payload: { id: string; name: string }) => void,
@@ -23,22 +23,11 @@ export function getColumns(
       header: 'Base URL',
     },
     {
-      id: 'snapshotBrowser',
-      accessorKey: 'snapshotBrowser',
+      id: 'snapshotBrowsers',
+      accessorKey: 'snapshotBrowsers',
       header: 'Browser',
-    },
-    {
-      id: 'snapshotViewport',
-      accessorKey: 'snapshotWidth',
-      header: 'Viewport (in px)',
       cell: ({ row }) => {
-        const width = row.original.snapshotWidth
-        const height = row.original.snapshotHeight
-        return (
-          <span>
-            {width} x {height}
-          </span>
-        )
+        return row.original.snapshotBrowsers.join(', ')
       },
     },
     {
@@ -49,7 +38,7 @@ export function getColumns(
         const name = row.original.name
         return (
           <div className="flex items-center justify-end gap-2">
-            <Link href={`/projects/${id}`}>
+            <Link href={`/projects/${id}`} className="cursor-pointer">
               <Button variant="ghost" size="sm">
                 <Eye className="size-4" />
                 View

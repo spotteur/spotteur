@@ -8,10 +8,19 @@ export const ProjectBaseSchema = z.object({
     message: 'Base URL must end with a trailing slash (/)',
   }),
   token: z.string().optional(),
-  snapshotBrowser: ProjectBrowserEnum,
+  snapshotBrowsers: z
+    .array(z.string())
+    .transform((paths) => paths.filter(Boolean))
+    .pipe(z.array(z.string()).min(1, 'Provide at least 1 browser')),
+  viewports: z
+    .array(
+      z.tuple([
+        z.number().positive('Width must be greater than 0'),
+        z.number().positive('Height must be greater than 0'),
+      ]),
+    )
+    .nonempty('Viewport is required'),
   snapshotSelector: z.string().min(1, 'Selector is required'),
-  snapshotWidth: z.number().int().positive('Width must be a positive integer'),
-  snapshotHeight: z.number().int().positive('Height must be a positive integer'),
   pagePaths: z
     .array(z.string())
     .transform((paths) => paths.filter(Boolean))

@@ -16,7 +16,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
-import { builds } from '@/db/schema'
+import { type builds } from '@/db/schema'
 import { listBuildsByProject, triggerBuild } from '@/features/builds/actions'
 import { BuildStatusBadge } from '@/features/builds/badge'
 import { useDebounce } from '@/hooks/use-debounce'

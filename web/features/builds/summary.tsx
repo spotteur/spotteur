@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { builds } from '@/db/schema'
+import { type builds } from '@/db/schema'
 import { BuildStatusBadge } from '@/features/builds/badge'
 import { formatDateTime } from '@/lib/utils'
 
