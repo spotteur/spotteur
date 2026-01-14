@@ -14,6 +14,7 @@ tasks:
   up:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} up --detach --build --remove-orphans"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
   stop:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
