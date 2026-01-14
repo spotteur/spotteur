@@ -151,6 +151,21 @@ export async function getSnapshotDetail({
 
   if (!snapshot) return null
 
+  if (snapshot.screenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.screenshotMedia.path })
+    snapshot.screenshotMedia = { ...snapshot.screenshotMedia, path }
+  }
+
+  if (snapshot.baselineScreenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.baselineScreenshotMedia.path })
+    snapshot.baselineScreenshotMedia = { ...snapshot.baselineScreenshotMedia, path }
+  }
+
+  if (snapshot.diffScreenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.diffScreenshotMedia.path })
+    snapshot.diffScreenshotMedia = { ...snapshot.diffScreenshotMedia, path }
+  }
+
   return { build, snapshot }
 }
 
