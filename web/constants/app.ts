@@ -1,6 +1,6 @@
 import { type Route } from 'next'
 
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export const THEME_LIGHT = 'light'
 export const THEME_DARK = 'dark'

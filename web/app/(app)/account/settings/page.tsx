@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useHeaderNavigations } from '@/components/layout/header-context'
 import { defaultMenu } from '@/constants/app'
 import { authClient } from '@/lib/auth-client'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function SettingsPage() {
   const [itemPerPage, setItemPerPage] = useState<number>()

@@ -15,7 +15,7 @@ import { getProject } from '@/features/projects/actions'
 import { getSnapshotDetail } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
 import { SnapshotViewer, SnapshotActionButtons } from '@/features/snapshots/detail'
-import { NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function SnapshotDetailPage() {
   const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
