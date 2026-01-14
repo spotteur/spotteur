@@ -13,7 +13,7 @@ export function EmailLayout({ children }: EmailLayoutProps) {
       <Head />
       <Tailwind>
         <Body className="bg-gray-100 font-sans">
-          <Container className="mx-auto max-w-[600px]">
+          <Container className="mx-auto max-w-150 pb-3">
             <Section className="py-6 text-center">
               <Text className="m-0 text-2xl font-bold text-gray-900">Spotteur</Text>
             </Section>

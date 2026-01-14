@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatusOptions } from '@/constants/status-map'
-import { builds } from '@/db/schema'
+import { type builds } from '@/db/schema'
 import { listSnapshotsByBuild, type SnapshotListItemRes } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
 import { useDebounce } from '@/hooks/use-debounce'

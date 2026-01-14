@@ -7,7 +7,7 @@ import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -66,6 +66,7 @@ export default function ProjectsPage() {
     [],
   )
   useHeaderBreadcrumbs(breadcrumbs)
+  useHeaderNavigations()
 
   const handleSearchChange = useCallback(
     (value: string) => {

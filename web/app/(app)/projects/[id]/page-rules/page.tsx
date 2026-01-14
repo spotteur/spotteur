@@ -6,13 +6,15 @@ import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deletePageRule } from '@/features/page-rules/actions'
 import { ConfirmDeletePageRuletDialog } from '@/features/page-rules/confirm-delete-dialog'
 import { PageRuleListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
+import { type NavigationType } from '@/lib/type/app'
 
 export default function ProjectPageRulesPage() {
   const queryClient = useQueryClient()
@@ -60,6 +62,9 @@ export default function ProjectPageRulesPage() {
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
+  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
+  useHeaderNavigations(navigations)
 
   if (!isLoading && !data) {
     notFound()

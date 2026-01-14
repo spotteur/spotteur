@@ -1,12 +1,12 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { projects } from '@/db/schema/project'
+import { type projects } from '@/db/schema/project'
 
 export function getColumns(
   onRequestDelete: (payload: { id: string; name: string }) => void,

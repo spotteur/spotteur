@@ -1,3 +1,5 @@
+import { type Route } from 'next'
+
 export const THEME_LIGHT = 'light'
 export const THEME_DARK = 'dark'
 
@@ -22,3 +24,20 @@ export const AttributesLists = [...AttributeWithTrueValue, ...AttributeWithValue
 export const DEFAULT_ERROR_MESSAGE = 'Internal Server Error'
 export const DEFAULT_ERROR_DESCRIPTION = 'Something went wrong. Please try again later.'
 export const VALIDATION_ERROR_DESCRIPTION = 'Please review the error and try again.'
+
+export const projectsMenu = (projectId: string) => {
+  return [
+    {
+      label: 'General',
+      url: `/projects/${projectId}` as Route,
+    },
+    {
+      label: 'Page Rules',
+      url: `/projects/${projectId}/page-rules` as Route,
+    },
+    {
+      label: 'Builds',
+      url: `/projects/${projectId}/builds` as Route,
+    },
+  ]
+}
