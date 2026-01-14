@@ -2,6 +2,7 @@ import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { NodeHttpHandler } from '@smithy/node-http-handler'
 
+import { S3_PRESIGN_TIMEOUT } from '@/constants/app'
 import { S3_ACCESS_KEY, S3_BUCKET, S3_ENDPOINT, S3_REGION, S3_SECRET_KEY } from '@/constants/env'
 
 const s3 = new S3Client({
@@ -20,7 +21,7 @@ const s3 = new S3Client({
 
 export async function getPresignUrl({ key }: { key: string }) {
   const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: S3_BUCKET, Key: key }), {
-    expiresIn: 900,
+    expiresIn: S3_PRESIGN_TIMEOUT,
   })
 
   return url

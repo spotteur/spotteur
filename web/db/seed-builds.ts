@@ -55,7 +55,7 @@ async function createMediaRecord(
       mimeType: 'image/jpeg',
       width,
       height,
-      path: `${s3Path}`,
+      path: s3Path,
     })
     .returning()
 
