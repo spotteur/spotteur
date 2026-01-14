@@ -26,6 +26,19 @@ export const projectsMenu = (projectId: string) => {
   ]
 }
 
+export const snapshotsMenu = (projectId: string, buildId: string) => {
+  return [
+    {
+      label: 'Snapshots',
+      url: `/projects/${projectId}/builds/${buildId}/snapshots` as Route,
+    },
+    {
+      label: 'Logs',
+      url: `/projects/${projectId}/builds/${buildId}/logs` as Route,
+    },
+  ]
+}
+
 export const defaultMenu: NavigationType[] = [
   {
     label: 'Projects',

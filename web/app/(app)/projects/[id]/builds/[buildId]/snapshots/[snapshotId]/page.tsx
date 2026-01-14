@@ -5,15 +5,17 @@ import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { getProject } from '@/features/projects/actions'
 import { getSnapshotDetail } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
 import { SnapshotViewer, SnapshotActionButtons } from '@/features/snapshots/detail'
+import { NavigationType } from '@/lib/type/app'
 
 export default function SnapshotDetailPage() {
   const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
@@ -75,6 +77,12 @@ export default function SnapshotDetailPage() {
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
+  const navigations = useMemo<NavigationType[]>(
+    () => snapshotsMenu(params.id, params.buildId),
+    [params.id, params.buildId],
+  )
+  useHeaderNavigations(navigations)
 
   if (!isLoading && (!projectData || !snapshotData)) {
     notFound()
