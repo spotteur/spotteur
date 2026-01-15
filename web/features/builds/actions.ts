@@ -3,6 +3,7 @@
 import { type Subscriber } from '@novu/js'
 import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
 import { type Route } from 'next'
+import { NextResponse } from 'next/server'
 
 import { APP_URL } from '@/constants/env'
 import { NOVU_WORKFLOW_BUILD_CREATED } from '@/constants/novu'
@@ -68,6 +69,16 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     return { ok: false, error: 'Project not found' } as const
   }
 
+  const [pendingBuilds] = await db
+    .select()
+    .from(builds)
+    .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.pending)))
+    .limit(1)
+
+  if (pendingBuilds) {
+    return { ok: false, error: 'Pending build still exists!' } as const
+  }
+
   const safeIdentifier = identifier?.trim()
   const buildIdentifier =
     safeIdentifier && safeIdentifier.length > 0 ? safeIdentifier : `manual-${humanReadableEpoch()}`
@@ -124,4 +135,36 @@ export async function getBuildDetail({ projectId, buildId }: { projectId: string
   if (!build) return null
 
   return build
+}
+
+export async function triggerBuildApi({
+  projectId,
+  identifier,
+  token,
+}: {
+  projectId: string
+  identifier: string
+  token: string
+}) {
+  const [project] = await db
+    .select()
+    .from(projects)
+    .where(and(eq(projects.id, projectId), eq(projects.token, token)))
+    .limit(1)
+
+  if (!project) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: 'Invalid project id or token',
+      },
+      { status: 400 },
+    )
+  }
+
+  const build = await triggerBuild({ projectId, identifier })
+  if (!build.ok) {
+    return NextResponse.json(build, { status: 401 })
+  }
+  return NextResponse.json(build, { status: 201 })
 }
