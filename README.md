@@ -28,6 +28,8 @@ This project are using [Dev Containers](https://code.visualstudio.com/docs/devco
 - Next.js Error `Module not found: Can't resolve ...`:
   - Make sure there are no `node_modules` folder in the host machine.
   - Try to rebuild the container without cache if the issue persist
+- Selenium error `Pull appears to have succeeded, but image not present locally: ...`:
+  - Please try to pull the image manually, most likely this happens because your platform are not supported. You may try to pull it manualy like this `docker pull --platform linux/amd64 selenium/standalone-chrome:4.39.0-20251202`
 
 ### Available Services
 

@@ -71,6 +71,13 @@
       "when": 1767926762220,
       "tag": "0009_same_toro",
       "breakpoints": false
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1768400848341,
+      "tag": "0010_vengeful_satana",
+      "breakpoints": false
     }
   ]
 }

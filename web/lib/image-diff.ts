@@ -6,7 +6,7 @@ interface ImageDiffInput {
   imgUrl2?: string
   imgBuffer1?: Buffer
   imgBuffer2?: Buffer
-  threshold: number
+  threshold?: number
 }
 
 interface ImageDiffOutput {
@@ -16,7 +16,7 @@ interface ImageDiffOutput {
   diffImageMimetype: string
 }
 
-async function bufferFromUrl(url: string): Promise<Buffer> {
+export async function bufferFromUrl(url: string): Promise<Buffer> {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Failed to fetch image from ${url}`)
 
@@ -28,7 +28,7 @@ export async function getImageDiff({
   imgBuffer2,
   imgUrl1,
   imgUrl2,
-  threshold,
+  threshold = 0.2,
 }: ImageDiffInput): Promise<ImageDiffOutput> {
   const buffer1 = imgBuffer1 ?? (imgUrl1 ? await bufferFromUrl(imgUrl1) : undefined)
   const buffer2 = imgBuffer2 ?? (imgUrl2 ? await bufferFromUrl(imgUrl2) : undefined)

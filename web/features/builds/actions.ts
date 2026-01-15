@@ -3,15 +3,19 @@
 import { type Subscriber } from '@novu/js'
 import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
 import { type Route } from 'next'
+import { v7 as uuidv7 } from 'uuid'
 
 import { APP_URL } from '@/constants/env'
 import { NOVU_WORKFLOW_BUILD_CREATED } from '@/constants/novu'
 import { BuildStatus } from '@/constants/status-map'
+import { TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, TEMPORAL_QUEUE_NAME } from '@/constants/temporal'
 import db from '@/db/drizzle'
 import { users } from '@/db/schema'
 import { builds, projects } from '@/db/schema/project'
 import novu from '@/lib/novu'
+import { temporalClient } from '@/lib/temporal-client'
 import { humanReadableEpoch } from '@/lib/utils'
+import { type SnapshotPayload } from '@/types/screenshot'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
 
@@ -61,6 +65,20 @@ export async function listBuildsByProject({
   return { data: rows, total }
 }
 
+export async function getNovuSubscribers() {
+  const userRows = await db.select({ id: users.id, email: users.email }).from(users)
+  const chunkedSubscribers: Subscriber[][] = []
+  for (let i = 0; i < userRows.length; i += 100) {
+    chunkedSubscribers.push(
+      userRows.slice(i, i + 100).map((s) => ({
+        subscriberId: s.id,
+        email: s.email,
+      })),
+    )
+  }
+  return chunkedSubscribers
+}
+
 export async function triggerBuild({ projectId, identifier }: { projectId: string; identifier?: string }) {
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
 
@@ -84,22 +102,15 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     })
     .returning()
 
-  // TODO: Put task to temporal
+  await temporalClient.workflow.start(TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, {
+    workflowId: `build-${build.id}`,
+    taskQueue: TEMPORAL_QUEUE_NAME,
+    args: [{ projectId: project.id, buildId: build.id }],
+  })
 
   const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
 
-  const userRows = await db.select({ id: users.id, email: users.email }).from(users)
-  const chunkedSubscribers: Subscriber[][] = []
-  for (let i = 0; i < userRows.length; i += 100) {
-    chunkedSubscribers.push(
-      userRows.slice(i, i + 100).map((s) => ({
-        subscriberId: s.id,
-        email: s.email,
-      })),
-    )
-  }
-
-  for (const subscribers of chunkedSubscribers) {
+  for (const subscribers of await getNovuSubscribers()) {
     await novu.trigger({
       workflowId: NOVU_WORKFLOW_BUILD_CREATED,
       to: subscribers,
@@ -124,4 +135,55 @@ export async function getBuildDetail({ projectId, buildId }: { projectId: string
   if (!build) return null
 
   return build
+}
+
+export async function populateSnapshotsPayload({
+  build,
+  project,
+}: {
+  build: typeof builds.$inferSelect
+  project: typeof projects.$inferSelect
+}) {
+  if (!project.pagePaths.length) {
+    throw new Error(`This project doesn't have any page paths configured`)
+  }
+
+  if (!project.snapshotBrowsers.length) {
+    throw new Error(`This project doesn't have any snapshot browsers configured`)
+  }
+
+  if (!project.viewports.length) {
+    throw new Error(`This project doesn't have any viewports configured`)
+  }
+
+  // TODO: Get page rules configurations
+
+  const snapshotsArray: SnapshotPayload[] = []
+  for (const pagePath of project.pagePaths) {
+    if (!URL.canParse(pagePath, project.baseUrl)) {
+      throw new Error(`Invalid URL given for path: ${pagePath} with base URL ${project.baseUrl}`)
+    }
+
+    const viewports = project.viewports
+    // TODO: Apply page rules to override viewports if any
+
+    const browsers = project.snapshotBrowsers
+    // TODO: Apply page rules to override browsers if any
+
+    for (const viewport of viewports) {
+      for (const browser of browsers) {
+        snapshotsArray.push({
+          id: uuidv7(),
+          buildId: build.id,
+          pagePath,
+          pageUrl: new URL(pagePath, build.baseUrl).toString(),
+          browser,
+          viewportWidth: viewport[0],
+          viewportHeight: viewport[1],
+        } satisfies SnapshotPayload)
+      }
+    }
+  }
+
+  return snapshotsArray
 }

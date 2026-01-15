@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm'
 import { pgTable, uuid, timestamp, text, varchar, doublePrecision, jsonb, boolean } from 'drizzle-orm/pg-core'
 
+import { type Browser } from '@/constants/enum'
 import { type BuildStatus, type SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
 
@@ -14,6 +15,7 @@ export const projects = pgTable('projects', {
   snapshotBrowsers: text('snapshot_browsers')
     .array()
     .notNull()
+    .$type<Browser[]>()
     .default(sql`'{}'::text[]`),
   viewports: jsonb('viewports')
     .$type<[number, number][]>()
@@ -61,6 +63,9 @@ export const snapshots = pgTable('snapshots', {
   buildId: uuid('build_id')
     .references(() => builds.id)
     .notNull(),
+  viewportWidth: doublePrecision('viewport_width').notNull(),
+  viewportHeight: doublePrecision('viewport_height').notNull(),
+  browser: varchar('browser').notNull().$type<Browser>(),
   pagePath: varchar('page_path').notNull(),
   diffPercentage: doublePrecision('diff_percentage').notNull(),
   approvalStatus: varchar('approval_status').notNull().$type<SnapshotApprovalStatus>(),

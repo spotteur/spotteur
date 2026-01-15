@@ -4,6 +4,7 @@ import { type NavigationType } from '@/lib/type/app'
 
 export const THEME_LIGHT = 'light'
 export const THEME_DARK = 'dark'
+export const S3_PRESIGN_TIMEOUT = 900
 
 export const BrowserLists = [
   {
@@ -63,3 +64,8 @@ export const defaultMenu: NavigationType[] = [
     url: '/projects',
   },
 ]
+
+export const DEFAULT_SNAPSHOTS_WIDTH = 1280
+export const DEFAULT_SNAPSHOTS_HEIGHT = 720
+export const DEFAULT_SNAPSHOTS_BROWSER = 'chrome'
+export const DEFAULT_SNAPSHOTS_SELECTOR = 'body'

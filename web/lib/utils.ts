@@ -1,3 +1,5 @@
+import * as crypto from 'crypto'
+
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -47,3 +49,6 @@ export function setFormErrors<T>(form: AnyFormApi, errors?: $ZodFlattenedError<T
 export function randomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)]
 }
+
+export const sha256Hex = (input: string) =>
+  crypto.createHash('sha256').update(Buffer.from(input, 'utf-8')).digest('hex')

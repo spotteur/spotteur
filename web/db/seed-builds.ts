@@ -1,15 +1,17 @@
 import fs from 'node:fs'
 
-import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
+import { Browser } from '@/constants/enum'
 import { PUBLIC_S3_ENDPOINT, S3_BUCKET } from '@/constants/env'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
+import { populateSnapshotsPayload } from '@/features/builds/actions'
+import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
 import { getImageDiff } from '@/lib/image-diff'
-import s3 from '@/lib/s3'
+import { uploadScreenshot } from '@/lib/screenshot'
 import { humanReadableEpoch, randomElement } from '@/lib/utils'
 
 async function getSeedScreenshotBuffer() {
@@ -28,18 +30,6 @@ async function getSeedScreenshotBuffer() {
   }
 }
 
-async function uploadScreenshotToS3(buffer: Buffer, key: string, mimeType: string): Promise<string> {
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: mimeType,
-    }),
-  )
-  return key
-}
-
 async function createMediaRecord(
   fileName: string,
   fileSize: number,
@@ -52,7 +42,7 @@ async function createMediaRecord(
     .values({
       fileName,
       fileSize,
-      mimeType: 'image/jpeg',
+      mimeType: 'image/png',
       width,
       height,
       path: `${PUBLIC_S3_ENDPOINT}/${S3_BUCKET}/${s3Path}`,
@@ -78,10 +68,9 @@ async function main() {
         name: 'Demo Project - Kororo',
         baseUrl: 'https://kororo.co/',
         token: crypto.randomUUID(),
-        snapshotBrowser: 'chrome',
         snapshotSelector: 'body',
-        snapshotWidth: 1024,
-        snapshotHeight: 768,
+        snapshotBrowsers: [Browser.chrome],
+        viewports: [[1024, 768]],
         pagePaths: ['/', '/works', '/company'],
       })
       .returning()
@@ -110,24 +99,32 @@ async function main() {
 
     const mimeType = 'image/png'
 
-    for (const pagePath of build.pagePaths) {
+    const snapshotPayloads = await populateSnapshotsPayload({ build: build, project: project })
+
+    for (const snapshotPayload of snapshotPayloads) {
       try {
-        const url = new URL(pagePath, build.baseUrl).toString()
-        const prefix = `projects/${project.id}/builds/${build.id}/${url.replace(/[^a-zA-Z0-9.]/g, '-')}/`
+        const prefix = await generateSnapshotPath({
+          projectId: project.id,
+          buildId: snapshotPayload.buildId,
+          snapshotId: snapshotPayload.id,
+        })
 
         // Current screenshot
         const {
           buffer: screenshotBuffer,
           info: { height, width },
         } = await getSeedScreenshotBuffer()
-        const fileName = `screenshot.png`
-        const s3Path = await uploadScreenshotToS3(screenshotBuffer, prefix + fileName, mimeType)
+        const fileName = await generateSnapshotFileName({ pageUrl: snapshotPayload.pageUrl, type: 'screenshot' })
+        const s3Path = await uploadScreenshot(screenshotBuffer, prefix + fileName, mimeType)
         const mediaId = await createMediaRecord(fileName, screenshotBuffer.length, s3Path, width, height)
 
         // Baseline screenshot
         const { buffer: baselineScreenshotBuffer } = await getSeedScreenshotBuffer()
-        const baselineFileName = `baseline-screenshot.png`
-        const baselineS3Path = await uploadScreenshotToS3(baselineScreenshotBuffer, prefix + baselineFileName, mimeType)
+        const baselineFileName = await generateSnapshotFileName({
+          pageUrl: snapshotPayload.pageUrl,
+          type: 'baseline-screenshot',
+        })
+        const baselineS3Path = await uploadScreenshot(baselineScreenshotBuffer, prefix + baselineFileName, mimeType)
         const baselineMediaId = await createMediaRecord(
           baselineFileName,
           baselineScreenshotBuffer.length,
@@ -142,8 +139,8 @@ async function main() {
           imgBuffer2: baselineScreenshotBuffer,
           threshold: 0.2,
         })
-        const diffFileName = `diff-screenshot.png`
-        const diffS3Path = await uploadScreenshotToS3(diffScreenshotBuffer, prefix + diffFileName, mimeType)
+        const diffFileName = await generateSnapshotFileName({ pageUrl: snapshotPayload.pageUrl, type: 'diff' })
+        const diffS3Path = await uploadScreenshot(diffScreenshotBuffer, prefix + diffFileName, mimeType)
         const diffMediaId = await createMediaRecord(
           diffFileName,
           diffScreenshotBuffer.length,
@@ -153,18 +150,20 @@ async function main() {
         )
 
         await db.insert(snapshots).values({
-          buildId: build.id,
+          id: snapshotPayload.id,
+          buildId: snapshotPayload.buildId,
+          viewportWidth: snapshotPayload.viewportWidth,
+          viewportHeight: snapshotPayload.viewportHeight,
+          browser: snapshotPayload.browser,
+          pagePath: snapshotPayload.pagePath,
           approvalStatus: randomElement(Object.values(SnapshotApprovalStatus)),
           screenshotMediaId: mediaId,
           baselineScreenshotMediaId: baselineMediaId,
           diffScreenshotMediaId: diffMediaId,
           diffPercentage,
-          pagePath,
         })
-
-        console.log('Snapshot created for', pagePath)
       } catch (error) {
-        console.error('Error creating snapshot for', pagePath, 'Error:', error)
+        console.error('Error creating snapshot for', snapshotPayload.pagePath, 'Error:', error)
       }
     }
 
