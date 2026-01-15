@@ -1,0 +1,39 @@
+{
+  "name": "@spotteur/temporal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "build.watch": "tsc --build --watch",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "start": "tsx src/worker.ts",
+    "start.watch": "tsx watch src/worker.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@temporalio/activity": "^1.14.1",
+    "@temporalio/client": "^1.14.1",
+    "@temporalio/common": "^1.14.1",
+    "@temporalio/worker": "^1.14.1",
+    "@temporalio/workflow": "^1.14.1",
+    "selenium-webdriver": "^4.39.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.0",
+    "@types/node": "^22.9.1",
+    "@types/selenium-webdriver": "^4.35.4",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-deprecation": "^3.0.0",
+    "node-fetch": "^3.0.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
+  }
+}

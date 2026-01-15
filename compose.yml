@@ -76,6 +76,19 @@ services:
     depends_on:
       temporal:
         condition: "service_healthy"
+  temporal-worker:
+    build:
+      context: "temporal"
+      dockerfile: Dockerfile
+    # command: ['npm', 'run', 'start']
+    volumes:
+      - "./temporal:/usr/src/app"
+      - "/usr/src/app/node_modules/"
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: "temporal:7233"
   rustfs:
     image: "rustfs/rustfs:latest"
     security_opt:

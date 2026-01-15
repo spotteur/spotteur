@@ -1,0 +1,10 @@
+export const {
+  S3_ENDPOINT = 'http://rustfs:9000',
+  S3_HOST = 'rustfs',
+  S3_PORT = '9000',
+  S3_REGION = 'us-east-1',
+  S3_ACCESS_KEY = 'rustfsadmin',
+  S3_SECRET_KEY = 'rustfsadmin',
+  S3_BUCKET = 'spotteur',
+  SELENIUM_REMOTE_URL = 'http://selenium:4444',
+} = process.env
