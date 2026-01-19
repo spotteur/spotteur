@@ -14,7 +14,7 @@ import {
   TagsValue,
 } from '@/components/ui/tags'
 export type InputTagTypes = {
-  id: string
+  value: string
   label: string
 }
 
@@ -43,7 +43,7 @@ const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagInterface
       <TagsTrigger>
         {selected.map((tag) => (
           <TagsValue key={tag} onRemove={() => handleRemove(tag)}>
-            {tags.find((t) => t.id === tag)?.label}
+            {tags.find((t) => t.value === tag)?.label}
           </TagsValue>
         ))}
       </TagsTrigger>
@@ -53,9 +53,9 @@ const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagInterface
           <TagsEmpty />
           <TagsGroup>
             {tags.map((tag) => (
-              <TagsItem key={tag.id} onSelect={handleSelect} value={tag.id}>
+              <TagsItem key={tag.value} onSelect={handleSelect} value={tag.value}>
                 {tag.label}
-                {selected.includes(tag.id) && <CheckIcon className="text-muted-foreground" size={14} />}
+                {selected.includes(tag.value) && <CheckIcon className="text-muted-foreground" size={14} />}
               </TagsItem>
             ))}
           </TagsGroup>

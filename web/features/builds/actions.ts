@@ -180,6 +180,7 @@ export async function populateSnapshotsPayload({
           browser,
           viewportWidth: viewport[0],
           viewportHeight: viewport[1],
+          selector: project.snapshotSelector,
         } satisfies SnapshotPayload)
       }
     }

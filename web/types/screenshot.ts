@@ -6,15 +6,16 @@ export type SnapshotPayload = Pick<
   'id' | 'buildId' | 'pagePath' | 'browser' | 'viewportWidth' | 'viewportHeight'
 > & {
   pageUrl: string
+  selector: string
   s3Path?: string
 }
 
 export interface ScreenshotOptions {
   url: string
-  width?: number
-  height?: number
-  browser?: Browser
-  selector?: string
+  width: number
+  height: number
+  browser: Browser
+  selector: string
 }
 
 export interface ScreenshotWorkflowParams {
@@ -30,4 +31,10 @@ export interface GenerateSnapshotsWorkflowParams {
 export interface ScreenshotResult {
   buffer: Buffer
   mimetype: string
+}
+
+export interface ProcessScreenshotParams {
+  projectId: string
+  payload: SnapshotPayload
+  tempPath: string
 }

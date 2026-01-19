@@ -147,10 +147,13 @@ services:
   selenium:
     image: "selenium/standalone-docker:4.39.0"
     volumes:
-      - "./selenium/config.toml:/opt/bin/config.toml"
-      - "./selenium/assets:/opt/selenium/assets"
+      - "./selenium/config.toml:/opt/selenium/docker.toml:ro"
+      - "selenium_assets:/opt/selenium/assets"
+      - "selenium_tmp:/tmp"
       - "/var/run/docker.sock:/var/run/docker.sock"
 volumes:
+  selenium_assets:
+  selenium_tmp:
   postgres-temporal_data:
   postgres-webapp_data:
   rustfs_data:

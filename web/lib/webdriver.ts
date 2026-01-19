@@ -1,7 +1,20 @@
 import { type WebDriver } from 'selenium-webdriver'
 
 export async function scrollPageToBottom(driver: WebDriver) {
-  return await driver.executeScript<void>('window.scrollTo(0, document.body.scrollHeight)')
+  await driver.executeAsyncScript<void>(`
+    const viewportHeight = window.innerHeight;
+    const scrollHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) + 300;
+    let totalHeight = 0;
+
+    const timer = setInterval(() => {
+      window.scrollBy(0, viewportHeight);
+      totalHeight += viewportHeight;
+
+      if (totalHeight >= scrollHeight){
+        clearInterval(timer);
+      }
+    }, 2500);
+  `)
 }
 
 export async function waitForPageLoad(driver: WebDriver, timeout = 30000) {
@@ -31,4 +44,15 @@ export async function waitForNetworkIdle(driver: WebDriver, timeout = 30000, int
   }
 
   return false
+}
+
+export async function setViewportBaseOnFullPage(driver: WebDriver) {
+  const { width } = await driver.manage().window().getRect()
+  const { fullPageHeight } = await driver.executeScript<{ fullPageHeight: number }>(`
+    return {
+      fullPageHeight: Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) + 300
+    };
+  `)
+
+  await driver.manage().window().setRect({ width: width, height: fullPageHeight })
 }

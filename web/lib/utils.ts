@@ -34,7 +34,7 @@ export function humanReadableEpoch(ts: number = Date.now()): string {
 }
 
 export function humanReadableDecimal(num: number, decimalPlaces: number = 2): string {
-  return num.toFixed(decimalPlaces)
+  return parseFloat(num.toFixed(decimalPlaces)).toString()
 }
 
 export function setFormErrors<T>(form: AnyFormApi, errors?: $ZodFlattenedError<T>) {

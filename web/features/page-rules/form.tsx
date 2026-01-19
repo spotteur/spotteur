@@ -16,7 +16,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import { AttributesLists, AttributeWithTrueValue, BrowserLists } from '@/constants/app'
+import { AttributesLists, AttributeWithTrueValue } from '@/constants/app'
+import { BrowserOptions } from '@/constants/enum'
 import { type projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
@@ -99,7 +100,7 @@ export default function PageRuleForm({
               <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
               <InputTags
                 defaultValue={field.state.value}
-                tags={BrowserLists}
+                tags={BrowserOptions}
                 onRemove={(value) => field.handleChange(value)}
                 onSelect={(value) => field.handleChange(value)}
               />

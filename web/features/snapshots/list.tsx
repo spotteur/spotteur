@@ -15,8 +15,9 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
-import { SnapshotApprovalStatusOptions } from '@/constants/status-map'
+import { BuildStatus, SnapshotApprovalStatusOptions } from '@/constants/status-map'
 import { type builds } from '@/db/schema'
 import { listSnapshotsByBuild, type SnapshotListItemRes } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
@@ -37,6 +38,14 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
     queryKey: [QUERY_KEY_SNAPSHOTS, build?.projectId, build?.id, { page, pageSize, search, approvalStatus }],
     queryFn: () => listSnapshotsByBuild({ buildId: build?.id || '', page, pageSize, search, approvalStatus }),
     placeholderData: keepPreviousData,
+    refetchInterval: () => {
+      const buildStatus = build?.status
+      if (buildStatus === BuildStatus.pending || buildStatus === BuildStatus.in_progress) {
+        return 10_000
+      }
+
+      return false
+    },
     enabled: !!build?.id && !!build?.projectId,
   })
 
@@ -196,7 +205,8 @@ export function SnapshotItemCard({
       <CardHeader>
         <CardTitle className="truncate">Page path {snapshot.pagePath}</CardTitle>
         <CardDescription className="truncate">
-          Page full URL {new URL(snapshot.pagePath, build.baseUrl).toString()}
+          <div>Page full URL {new URL(snapshot.pagePath, build.baseUrl).toString()}</div>
+          <div>Browser {BROWSER_LABEL_MAP[snapshot.browser]}</div>
         </CardDescription>
       </CardHeader>
     </Card>
