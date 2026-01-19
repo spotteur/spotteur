@@ -130,16 +130,10 @@ export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
             <Comparison className="aspect-video" mode="hover">
               {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
               <ComparisonItem position="right">
-                <Image
-                  src={snapshot.baselineScreenshotMedia.path}
-                  alt="Baseline"
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
+                <Image src={snapshot.baselineScreenshotMedia.path} alt="Baseline" fill className="object-contain" />
               </ComparisonItem>
               <ComparisonItem position="left">
-                <Image src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" unoptimized />
+                <Image src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
               </ComparisonItem>
               <ComparisonHandle />
               <Badge variant="outline" className="pointer-events-none absolute top-6 left-6">
