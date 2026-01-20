@@ -11,6 +11,7 @@ import db, { type DB, type DBTransaction } from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
 import { getNovuSubscribers } from '@/features/builds/actions'
 import novu from '@/lib/novu'
+import { getPresignUrl } from '@/lib/s3'
 import { sha256Hex } from '@/lib/utils'
 import { type SnapshotPayload } from '@/types/screenshot'
 
@@ -91,7 +92,15 @@ export async function listSnapshotsByBuild({
 
   const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
 
-  return { data: rows, total }
+  const modifiedRows = rows.map(async (row) => {
+    if (row.screenshotMedia) {
+      const path = await getPresignUrl({ key: row.screenshotMedia.path })
+      return { ...row, screenshotMedia: { ...row.screenshotMedia, path } }
+    }
+    return row
+  })
+
+  return { data: await Promise.all(modifiedRows), total }
 }
 
 export async function getSnapshotDetail({
@@ -149,6 +158,21 @@ export async function getSnapshotDetail({
     .leftJoin(diffMedia, eq(snapshots.diffScreenshotMediaId, diffMedia.id))
 
   if (!snapshot) return null
+
+  if (snapshot.screenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.screenshotMedia.path })
+    snapshot.screenshotMedia = { ...snapshot.screenshotMedia, path }
+  }
+
+  if (snapshot.baselineScreenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.baselineScreenshotMedia.path })
+    snapshot.baselineScreenshotMedia = { ...snapshot.baselineScreenshotMedia, path }
+  }
+
+  if (snapshot.diffScreenshotMedia) {
+    const path = await getPresignUrl({ key: snapshot.diffScreenshotMedia.path })
+    snapshot.diffScreenshotMedia = { ...snapshot.diffScreenshotMedia, path }
+  }
 
   return { build, snapshot }
 }

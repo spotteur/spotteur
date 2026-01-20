@@ -3,6 +3,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
 import { Check, ChevronsUpDown, Search, X } from 'lucide-react'
+import { type Route } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { parseAsString, useQueryState } from 'nuqs'
@@ -158,7 +159,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
             table.getRowModel().rows.map((row) => (
               <Link
                 key={row.original.id}
-                href={`/projects/${build.projectId}/builds/${build.id}/snapshots/${row.original.id}`}
+                href={`/projects/${build.projectId}/builds/${build.id}/snapshots/${row.original.id}` as Route}
                 aria-label={`View ${row.original.pagePath}`}
               >
                 <SnapshotItemCard snapshot={row.original} build={build} />
@@ -187,9 +188,9 @@ export function SnapshotItemCard({
     <Card className="hover:border-primary pt-0 transition">
       <CardContent className="px-0">
         <div className="bg-muted/90 relative h-56 w-full shrink-0 overflow-hidden rounded-t-xl">
-          {snapshot.screenshotMedia?.path ? (
+          {snapshot.screenshotMedia ? (
             <>
-              <Image src={snapshot.screenshotMedia.path} alt="" fill className="object-cover" unoptimized />
+              <Image src={snapshot.screenshotMedia.path} alt="" fill className="object-cover" />
               <div className="absolute top-3 right-3 space-x-2">
                 <SnapshotApprovalStatusBadge status={snapshot.approvalStatus} />
                 <SnapshotDiffBadge diffPercentage={snapshot.diffPercentage} />

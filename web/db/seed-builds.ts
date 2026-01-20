@@ -3,8 +3,12 @@ import fs from 'node:fs'
 import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
-import { Browser } from '@/constants/enum'
-import { PUBLIC_S3_ENDPOINT, S3_BUCKET } from '@/constants/env'
+import {
+  DEFAULT_SNAPSHOTS_BROWSER,
+  DEFAULT_SNAPSHOTS_HEIGHT,
+  DEFAULT_SNAPSHOTS_SELECTOR,
+  DEFAULT_SNAPSHOTS_WIDTH,
+} from '@/constants/app'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'
@@ -45,7 +49,7 @@ async function createMediaRecord(
       mimeType: 'image/png',
       width,
       height,
-      path: `${PUBLIC_S3_ENDPOINT}/${S3_BUCKET}/${s3Path}`,
+      path: s3Path,
     })
     .returning()
 
@@ -68,9 +72,9 @@ async function main() {
         name: 'Demo Project - Kororo',
         baseUrl: 'https://kororo.co/',
         token: crypto.randomUUID(),
-        snapshotSelector: 'body',
-        snapshotBrowsers: [Browser.chrome],
-        viewports: [[1024, 768]],
+        snapshotBrowsers: [DEFAULT_SNAPSHOTS_BROWSER],
+        snapshotSelector: DEFAULT_SNAPSHOTS_SELECTOR,
+        viewports: [[DEFAULT_SNAPSHOTS_WIDTH, DEFAULT_SNAPSHOTS_HEIGHT]],
         pagePaths: ['/', '/works', '/company'],
       })
       .returning()
