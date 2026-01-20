@@ -1,11 +1,10 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import { type snapshots } from '@/db/schema'
 import type * as Activities from '@/temporal/activities/build'
-import { type ScreenshotWorkflowParams } from '@/types/screenshot'
+import { type ScreenshotWorkflowResult, type ScreenshotWorkflowParams } from '@/types/screenshot'
 
-const { takeScreenshot, processScreenshot } = proxyActivities<typeof Activities>({
-  startToCloseTimeout: '30 minutes',
+const { takeScreenshot, processScreenshot, markBuildAsStarted } = proxyActivities<typeof Activities>({
+  startToCloseTimeout: '15 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,
@@ -17,17 +16,11 @@ const { takeScreenshot, processScreenshot } = proxyActivities<typeof Activities>
  * Workflow for generating screenshots and saving them to DB and S3.
  * @param args Workflow args
  */
-export async function screenshotWorkflow({
-  projectId,
-  payload,
-}: ScreenshotWorkflowParams): Promise<typeof snapshots.$inferSelect> {
-  const tempPath = await takeScreenshot({
-    url: payload.pageUrl,
-    width: payload.viewportWidth,
-    height: payload.viewportHeight,
-    browser: payload.browser,
-    selector: payload.selector,
-  })
+export async function screenshotWorkflow({ payload }: ScreenshotWorkflowParams): Promise<ScreenshotWorkflowResult> {
+  const logPrefix = `[${payload.id} - ${payload.browser} - ${payload.viewportWidth}px]`
+  await markBuildAsStarted({ buildId: payload.buildId })
+  const { tempPath } = await takeScreenshot({ payload, logPrefix })
+  const { snapshot } = await processScreenshot({ payload, tempPath, logPrefix })
 
-  return await processScreenshot({ projectId, payload, tempPath })
+  return { snapshot }
 }

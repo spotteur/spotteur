@@ -9,7 +9,14 @@ import { type $ZodFlattenedError } from 'zod/v4/core'
 
 import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, VALIDATION_ERROR_DESCRIPTION } from '@/constants/app'
+import {
+  DEFAULT_ERROR_DESCRIPTION,
+  DEFAULT_ERROR_MESSAGE,
+  DEFAULT_SNAPSHOTS_BROWSER,
+  DEFAULT_SNAPSHOTS_HEIGHT,
+  DEFAULT_SNAPSHOTS_WIDTH,
+  VALIDATION_ERROR_DESCRIPTION,
+} from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
@@ -67,10 +74,10 @@ export default function NewProjectPage() {
         defaultValues={{
           name: '',
           baseUrl: '',
-          snapshotBrowsers: [],
+          snapshotBrowsers: [DEFAULT_SNAPSHOTS_BROWSER],
           snapshotSelector: DEFAULT_SNAPSHOT_SELECTOR,
-          viewports: [],
-          pagePaths: [],
+          viewports: [[DEFAULT_SNAPSHOTS_WIDTH, DEFAULT_SNAPSHOTS_HEIGHT]],
+          pagePaths: '',
           token: '',
         }}
         onSubmit={(values) => mutation.mutate(values)}

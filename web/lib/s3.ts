@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { NodeHttpHandler } from '@smithy/node-http-handler'
 
@@ -25,6 +25,23 @@ export async function getPresignUrl({ key }: { key: string }) {
   })
 
   return url
+}
+
+export async function uploadFileFromBuffer(buffer: Buffer, key: string, mimeType: string) {
+  console.log('Uploading file to', key)
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: mimeType,
+    }),
+  )
+
+  console.log('File uploaded to', key)
+
+  return key
 }
 
 export default s3

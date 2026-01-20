@@ -10,14 +10,18 @@ import InputTags from '@/components/input-tags'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Combobox } from '@/components/ui/combobox'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import { AttributesLists, AttributeWithTrueValue } from '@/constants/app'
-import { BrowserOptions } from '@/constants/enum'
+import {
+  BrowserOptions,
+  RULE_ATTR_TYPE_PLACEHOLDER_MAP,
+  type RuleAttrType,
+  RuleAttrTypeOptions,
+  RuleAttrTypeWithTrueValueOptions,
+} from '@/constants/enum'
 import { type projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
@@ -70,10 +74,7 @@ export default function PageRuleForm({
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor="pageRules-pagePath">Page Path</FieldLabel>
-              <Select
-                value={field.state.value}
-                onValueChange={(value) => field.handleChange(value as PageRuleFormInput['pagePath'])}
-              >
+              <Select value={field.state.value} onValueChange={(value) => field.handleChange(value)}>
                 <SelectTrigger id="pageRules-pagePath" aria-invalid={isInvalid}>
                   <SelectValue placeholder="Select path" />
                 </SelectTrigger>
@@ -135,7 +136,7 @@ export default function PageRuleForm({
                                       <Input
                                         id="pageRule-viewports-width"
                                         name={viewportField.name}
-                                        value={viewportField.state.value.at(0)}
+                                        value={viewportField.state.value.at(0) ?? '0'}
                                         onBlur={viewportField.handleBlur}
                                         onChange={(e) => {
                                           const value = Number(e.target.value)
@@ -155,7 +156,7 @@ export default function PageRuleForm({
                                       <Input
                                         id="pageRule-viewports-height"
                                         name={viewportField.name}
-                                        value={viewportField.state.value[1] ?? ''}
+                                        value={viewportField.state.value[1] ?? '0'}
                                         onBlur={viewportField.handleBlur}
                                         onChange={(e) => {
                                           const value = Number(e.target.value)
@@ -246,7 +247,6 @@ export default function PageRuleForm({
 
             {rulesField.state.value.map((_, index) => (
               <div key={index} className="flex items-start justify-between gap-3">
-                {/* ATTRS */}
                 <Card className="w-full">
                   <CardContent className="flex flex-col gap-3">
                     <form.Field name={`rules[${index}].selectors`}>
@@ -267,49 +267,59 @@ export default function PageRuleForm({
                         )
                       }}
                     </form.Field>
-                    <div className="flex flex-col gap-3">
-                      <FieldLabel htmlFor="pageRule-rules-attribute">Attribute</FieldLabel>
+                    <div className="flex flex-col gap-3 py-3">
+                      <FieldLabel htmlFor="pageRule-rules-attribute">Attributes</FieldLabel>
                       <form.Field name={`rules[${index}].attrs`}>
                         {(attrsField) => (
-                          <div className="flex flex-1 flex-col gap-3 space-y-2 py-3">
+                          <div id="pageRule-rules-attribute" className="flex flex-1 flex-col gap-3 space-y-2">
                             {attrsField.state.value &&
                               attrsField.state.value.map((attrObj, i) => (
                                 <div key={i} className="flex items-start justify-between gap-3">
                                   <div className="flex w-1/2 flex-col gap-3">
-                                    <FieldLabel htmlFor="pageRule-rules-attribute-name">Name</FieldLabel>
                                     <form.Field
                                       name={`rules[${index}].attrs[${i}].name`}
                                       listeners={{
                                         onChange: ({ value }) => {
-                                          return AttributeWithTrueValue.filter((v) => v === value)
+                                          return RuleAttrTypeWithTrueValueOptions.find((r) => r.toString() === value)
                                             ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
-                                            : ''
+                                            : form.setFieldValue(`rules[${index}].attrs[${i}].value`, '')
                                         },
                                       }}
                                     >
                                       {(field) => (
-                                        <Combobox
-                                          data={AttributesLists}
-                                          onSelect={(value) => field.handleChange(value)}
+                                        <Select
                                           value={field.state.value}
-                                        />
+                                          onValueChange={(value) => field.handleChange(value as RuleAttrType)}
+                                        >
+                                          <SelectTrigger id="pageRule-rules-attribute-name" className="w-full">
+                                            <SelectValue placeholder="Select rule" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {RuleAttrTypeOptions.map(({ value, label }) => (
+                                              <SelectItem key={value} value={value}>
+                                                {label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
                                       )}
                                     </form.Field>
                                   </div>
 
                                   {attrObj.name && (
                                     <div className="flex flex-col gap-3">
-                                      <FieldLabel htmlFor="pageRule-rules-attribute-value">Value</FieldLabel>
                                       <form.Field name={`rules[${index}].attrs[${i}].value`}>
                                         {(field) => (
                                           <Input
                                             id={`pageRule-rules[${index}]-attrs[${i}]-value`}
                                             value={field.state.value}
                                             onBlur={field.handleBlur}
-                                            placeholder="attr value (ex: true)"
+                                            placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
                                             onChange={(e) => field.handleChange(e.target.value)}
                                             readOnly={
-                                              AttributeWithTrueValue.filter((v) => v === attrObj.name) ? true : false
+                                              !!RuleAttrTypeWithTrueValueOptions.find(
+                                                (r) => r.toString() === attrObj.name,
+                                              )
                                             }
                                           />
                                         )}
@@ -333,7 +343,9 @@ export default function PageRuleForm({
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => attrsField.handleChange((old) => [...old, { name: '', value: '' }])}
+                              onClick={() =>
+                                attrsField.handleChange((old) => [...old, { name: '' as RuleAttrType, value: '' }])
+                              }
                             >
                               <Plus /> Add attribute
                             </Button>
@@ -360,9 +372,7 @@ export default function PageRuleForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                rulesField.handleChange((old) => [...old, { attrs: [{ name: '', value: '' }], selectors: [] }])
-              }
+              onClick={() => rulesField.handleChange((old) => [...old, { attrs: [], selectors: [] }])}
               className="ml-3"
             >
               <Plus /> Add Rules

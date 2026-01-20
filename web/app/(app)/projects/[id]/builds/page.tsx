@@ -11,7 +11,7 @@ import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { BuildListCard } from '@/features/builds/list'
 import { getProject } from '@/features/projects/actions'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function ProjectBuildsPage() {
   const params = useParams<{ id: string }>()

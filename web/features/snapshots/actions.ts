@@ -2,15 +2,11 @@
 
 import { and, count, asc, desc, eq, ilike, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
-import { type Route } from 'next'
 
-import { APP_URL } from '@/constants/env'
-import { NOVU_WORKFLOW_BUILD_FAILED, NOVU_WORKFLOW_BUILD_PASSED } from '@/constants/novu'
-import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
+import { SnapshotApprovalStatus } from '@/constants/status-map'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
-import { builds, media, projects, snapshots } from '@/db/schema'
-import { getNovuSubscribers } from '@/features/builds/actions'
-import novu from '@/lib/novu'
+import { builds, media, snapshots } from '@/db/schema'
+import { syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
 import { getPresignUrl } from '@/lib/s3'
 import { sha256Hex } from '@/lib/utils'
 import { type SnapshotPayload } from '@/types/screenshot'
@@ -127,6 +123,7 @@ export async function getSnapshotDetail({
     .select({
       id: snapshots.id,
       pagePath: snapshots.pagePath,
+      browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
       screenshotMedia: {
@@ -199,73 +196,7 @@ export async function updateSnapshotApprovalStatus({
 
       const [build] = await tx.select().from(builds).where(eq(builds.id, snapshot.buildId)).limit(1)
 
-      // Update build status based on snapshot approvals
-      const [{ totalRejected }] = await tx
-        .select({ totalRejected: count() })
-        .from(snapshots)
-        .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.rejected)))
-
-      const [{ total }] = await tx.select({ total: count() }).from(snapshots).where(eq(snapshots.buildId, build.id))
-
-      if (totalRejected > 0) {
-        build.status = BuildStatus.failed
-      } else {
-        const [{ totalApproved }] = await tx
-          .select({ totalApproved: count() })
-          .from(snapshots)
-          .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.approved)))
-        if (totalApproved === total) {
-          build.status = BuildStatus.passed
-        }
-      }
-
-      await tx.update(builds).set({ status: build.status }).where(eq(builds.id, build.id))
-
-      // Find baseline build for the snapshot's build
-      const [latestApprovedBuild] = await tx
-        .select()
-        .from(builds)
-        .where(and(eq(builds.projectId, build.projectId), eq(builds.status, BuildStatus.passed)))
-        .orderBy(desc(builds.createdAt))
-        .limit(1)
-      if (latestApprovedBuild) {
-        await tx
-          .update(projects)
-          .set({ baselineBuildId: latestApprovedBuild.id })
-          .where(eq(projects.id, build.projectId))
-      }
-
-      const pagePath = `/projects/${build.projectId}/builds/${build.id}/snapshots` as Route
-      const actionLink = `${APP_URL}${pagePath}`
-
-      if (build.status.toString() === BuildStatus.passed.toString()) {
-        for (const subscribers of await getNovuSubscribers()) {
-          await novu.trigger({
-            workflowId: NOVU_WORKFLOW_BUILD_PASSED,
-            to: subscribers,
-            payload: {
-              buildIdentifier: build.identifier,
-              totalSnapshotCount: total,
-              actionLink,
-            },
-          })
-        }
-      }
-
-      if (build.status.toString() === BuildStatus.failed.toString()) {
-        for (const subscribers of await getNovuSubscribers()) {
-          await novu.trigger({
-            workflowId: NOVU_WORKFLOW_BUILD_FAILED,
-            to: subscribers,
-            payload: {
-              buildIdentifier: build.identifier,
-              rejectedSnapshotCount: totalRejected,
-              totalSnapshotCount: total,
-              actionLink,
-            },
-          })
-        }
-      }
+      await syncBuildStatusBasedOnSnapshotApprovals({ dbOrTx: tx, build })
     })
 
     return { ok: true } as const

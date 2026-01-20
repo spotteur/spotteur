@@ -1,9 +1,11 @@
 import { relations, sql } from 'drizzle-orm'
 import { pgTable, uuid, timestamp, text, varchar, doublePrecision, jsonb, boolean } from 'drizzle-orm/pg-core'
+import { type z } from 'zod'
 
 import { type Browser } from '@/constants/enum'
 import { type BuildStatus, type SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
+import { type RulesSchema } from '@/features/page-rules/schema'
 
 export const projects = pgTable('projects', {
   id: uuid('id')
@@ -84,33 +86,24 @@ export const pageRules = pgTable('page_rules', {
   id: uuid('id')
     .primaryKey()
     .default(sql`uuidv7()`),
-
   projectId: uuid('project_id')
     .references(() => projects.id)
     .notNull(),
-
   snapshotBrowsers: text('snapshot_browsers')
     .array()
     .notNull()
+    .$type<Browser[]>()
     .default(sql`'{}'::text[]`),
   viewports: jsonb('viewports')
-    .$type<[number, number][]>()
     .notNull()
+    .$type<[number, number][]>()
     .default(sql`'[]'::jsonb`),
   pagePath: varchar('page_path').notNull(),
   mediaReset: boolean('media_reset').notNull().default(true),
   reducedMotion: boolean('reduce_motion').notNull().default(true),
   rules: jsonb('rules')
-    .$type<
-      {
-        selectors: string[]
-        attrs: {
-          name: string
-          value: string
-        }[]
-      }[]
-    >()
     .notNull()
+    .$type<z.infer<typeof RulesSchema>>()
     .default(sql`'[]'::jsonb`),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')

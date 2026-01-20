@@ -13,21 +13,30 @@ export async function getSnapshotsPayload({
   projectId: string
   buildId: string
 }): Promise<SnapshotPayload[]> {
-  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
-  if (!project) {
-    throw ApplicationFailure.nonRetryable(`Project ID ${projectId} not found`)
+  try {
+    const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+    if (!project) {
+      throw ApplicationFailure.nonRetryable(`Project ID ${projectId} not found`)
+    }
+
+    const [build] = await db
+      .select()
+      .from(builds)
+      .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
+      .limit(1)
+    if (!build) {
+      throw ApplicationFailure.nonRetryable(`Build ID ${buildId} not found for Project ID ${projectId}`)
+    }
+
+    const snapshotPayloads = await populateSnapshotsPayload({ project, build })
+
+    return snapshotPayloads
+  } catch (err) {
+    if (err instanceof ApplicationFailure) {
+      throw err
+    }
+
+    console.error(err)
+    throw ApplicationFailure.retryable(`Failed to get snapshot payloads: ${err instanceof Error ? err.message : err}`)
   }
-
-  const [build] = await db
-    .select()
-    .from(builds)
-    .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
-    .limit(1)
-  if (!build) {
-    throw ApplicationFailure.nonRetryable(`Build ID ${buildId} not found for Project ID ${projectId}`)
-  }
-
-  const snapshotPayloads = await populateSnapshotsPayload({ project, build })
-
-  return snapshotPayloads
 }

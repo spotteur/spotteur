@@ -1,7 +1,7 @@
 import { relations, sql } from 'drizzle-orm'
 import { pgTable, text, uuid, timestamp, boolean, index, integer } from 'drizzle-orm/pg-core'
 
-import { projects } from '@/db/schema/project'
+import { projects } from '@/db/schema'
 
 export const users = pgTable('users', {
   id: uuid('id')

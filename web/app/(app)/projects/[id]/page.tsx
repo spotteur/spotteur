@@ -16,7 +16,7 @@ import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { ProjectFormSkeleton } from '@/features/projects/form-skeleton'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function EditProjectPage() {
   const params = useParams<{ id: string }>()
@@ -90,7 +90,7 @@ export default function EditProjectPage() {
                 snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
                 snapshotSelector: data.snapshotSelector,
                 viewports: data.viewports,
-                pagePaths: Array.isArray(data.pagePaths) ? data.pagePaths : [],
+                pagePaths: (data.pagePaths ?? []).join('\n'),
                 token: data.token ?? '',
               }}
               onSubmit={(values) => mutation.mutate(values as ProjectFormInput)}

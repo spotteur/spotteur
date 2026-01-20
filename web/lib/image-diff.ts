@@ -12,8 +12,6 @@ interface ImageDiffInput {
 interface ImageDiffOutput {
   diffPercentage: number
   diffImage: Buffer
-  diffImageFileName: string
-  diffImageMimetype: string
 }
 
 export class ImageDiffDimensionMismatchError extends Error {
@@ -51,7 +49,6 @@ export async function getImageDiff({
   const { data: data2, info: info2 } = await image2.toBuffer({ resolveWithObject: true })
 
   if (info1.width !== info2.width || info1.height !== info2.height || info1.channels !== info2.channels) {
-    // TODO: Add handling when images have different dimensions or channels
     throw new ImageDiffDimensionMismatchError('Image dimensions or channels did not match')
   }
 
@@ -73,7 +70,5 @@ export async function getImageDiff({
   return {
     diffPercentage,
     diffImage: diffPngBuffer,
-    diffImageFileName: `diff-${Date.now()}.png`,
-    diffImageMimetype: 'image/png',
   }
 }

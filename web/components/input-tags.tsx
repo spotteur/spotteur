@@ -13,6 +13,7 @@ import {
   TagsTrigger,
   TagsValue,
 } from '@/components/ui/tags'
+
 export type InputTagTypes = {
   value: string
   label: string

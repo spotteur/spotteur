@@ -20,8 +20,6 @@ services:
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"
-      - "./:/workspace" # Workspace for devcontainer
-      - "webapp_deps:/workspace/web/node_modules/"
   inbucket:
     image: "inbucket/inbucket:sha-6eff554"
     environment:

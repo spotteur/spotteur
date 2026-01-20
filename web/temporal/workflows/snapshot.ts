@@ -7,7 +7,7 @@ import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
 import { screenshotWorkflow } from './screenshot'
 
 const { getSnapshotsPayload } = proxyActivities<typeof ProjectActivities>({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,
@@ -15,7 +15,7 @@ const { getSnapshotsPayload } = proxyActivities<typeof ProjectActivities>({
   },
 })
 const { finalizeBuildSnapshots, notifyBuildReadyForReview } = proxyActivities<typeof BuildActivities>({
-  startToCloseTimeout: '30 minutes',
+  startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,
@@ -33,7 +33,7 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
     const results = await Promise.all(
       snapshotPayloads.map((payload) => {
         return executeChild(screenshotWorkflow, {
-          args: [{ projectId, payload }],
+          args: [{ payload }],
           workflowId: `build-${buildId}-snapshot-${payload.id}-${payload.browser.toString()}`,
         })
       }),

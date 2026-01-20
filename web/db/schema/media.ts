@@ -10,7 +10,7 @@ export const media = pgTable('media', {
   mimeType: varchar('mime_type').notNull(),
   width: integer('width'),
   height: integer('height'),
-  path: varchar('path').notNull(),
+  path: varchar('path').notNull().unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .$onUpdate(() => /* @__PURE__ */ new Date())

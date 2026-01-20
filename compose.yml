@@ -151,6 +151,9 @@ services:
       - "selenium_assets:/opt/selenium/assets"
       - "selenium_tmp:/tmp"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:4444/status || exit 1"]
+      interval: 10s
 volumes:
   selenium_assets:
   selenium_tmp:

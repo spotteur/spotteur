@@ -4,7 +4,7 @@ import { and, asc, count, desc, eq, ilike, inArray, type SQL } from 'drizzle-orm
 import { z } from 'zod'
 
 import db from '@/db/drizzle'
-import { builds, projects, snapshots } from '@/db/schema/project'
+import { builds, projects, snapshots } from '@/db/schema'
 import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
 
 type SortKey = 'name' | 'createdAt' | 'updatedAt' | ''

@@ -7,12 +7,14 @@ import { NextResponse } from 'next/server'
 import { v7 as uuidv7 } from 'uuid'
 
 import { APP_URL } from '@/constants/env'
-import { NOVU_WORKFLOW_BUILD_CREATED } from '@/constants/novu'
-import { BuildStatus } from '@/constants/status-map'
+import { NOVU_WORKFLOW_BUILD_CREATED, NOVU_WORKFLOW_BUILD_FAILED, NOVU_WORKFLOW_BUILD_PASSED } from '@/constants/novu'
+import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, TEMPORAL_QUEUE_NAME } from '@/constants/temporal'
-import db from '@/db/drizzle'
-import { users } from '@/db/schema'
-import { builds, projects } from '@/db/schema/project'
+import db, { type DB, type DBTransaction } from '@/db/drizzle'
+import { snapshots, users } from '@/db/schema'
+import { builds, pageRules, projects } from '@/db/schema'
+import { SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
+import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
 import novu from '@/lib/novu'
 import { temporalClient } from '@/lib/temporal-client'
 import { humanReadableEpoch } from '@/lib/utils'
@@ -87,13 +89,13 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     return { ok: false, error: 'Project not found' } as const
   }
 
-  const [pendingBuilds] = await db
-    .select()
+  const [pendingBuild] = await db
+    .select({ id: builds.id })
     .from(builds)
     .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.pending)))
     .limit(1)
 
-  if (pendingBuilds) {
+  if (pendingBuild) {
     return { ok: false, error: 'Pending build still exists!' } as const
   }
 
@@ -117,6 +119,9 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     workflowId: `build-${build.id}`,
     taskQueue: TEMPORAL_QUEUE_NAME,
     args: [{ projectId: project.id, buildId: build.id }],
+    retry: {
+      maximumAttempts: 3,
+    },
   })
 
   const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
@@ -167,7 +172,11 @@ export async function populateSnapshotsPayload({
     throw new Error(`This project doesn't have any viewports configured`)
   }
 
-  // TODO: Get page rules configurations
+  const pageRuleRows = await db.select().from(pageRules).where(eq(pageRules.projectId, project.id))
+  const pageRulesMap = new Map<string, typeof pageRules.$inferSelect>()
+  for (const pr of pageRuleRows) {
+    pageRulesMap.set(pr.pagePath, pr)
+  }
 
   const snapshotsArray: SnapshotPayload[] = []
   for (const pagePath of project.pagePaths) {
@@ -175,29 +184,147 @@ export async function populateSnapshotsPayload({
       throw new Error(`Invalid URL given for path: ${pagePath} with base URL ${project.baseUrl}`)
     }
 
-    const viewports = project.viewports
-    // TODO: Apply page rules to override viewports if any
+    const projectId = build.projectId
+    const buildId = build.id
+    const pageUrl = new URL(pagePath, build.baseUrl).toString()
 
-    const browsers = project.snapshotBrowsers
-    // TODO: Apply page rules to override browsers if any
+    const pageRule = pageRulesMap.get(pagePath)
 
-    for (const viewport of viewports) {
+    const viewports = pageRule?.viewports ?? project.viewports
+
+    const browsers = pageRule?.snapshotBrowsers ?? project.snapshotBrowsers
+
+    for (const [viewportWidth, viewportHeight] of viewports) {
       for (const browser of browsers) {
+        const snapshotId = uuidv7()
+        const s3Prefix = await generateSnapshotPath({ projectId, buildId, snapshotId })
+        const fileName = await generateSnapshotFileName({ pageUrl, type: 'screenshot' })
+
         snapshotsArray.push({
-          id: uuidv7(),
-          buildId: build.id,
+          id: snapshotId,
+          projectId,
+          buildId,
           pagePath,
-          pageUrl: new URL(pagePath, build.baseUrl).toString(),
+          pageUrl,
           browser,
-          viewportWidth: viewport[0],
-          viewportHeight: viewport[1],
+          viewportWidth,
+          viewportHeight,
           selector: project.snapshotSelector,
+          s3Prefix,
+          fileName,
+          reducedMotion: pageRule?.reducedMotion || false,
+          mediaReset: pageRule?.mediaReset || false,
+          rules: pageRule?.rules,
         } satisfies SnapshotPayload)
       }
     }
   }
 
   return snapshotsArray
+}
+
+export async function syncBuildStatusBasedOnSnapshotApprovals({
+  dbOrTx,
+  build,
+}: {
+  dbOrTx: DB | DBTransaction
+  build: typeof builds.$inferSelect
+}) {
+  const initialBuildStatus = build.status
+
+  // Update build status based on snapshot approvals
+  const [{ totalRejected }] = await dbOrTx
+    .select({ totalRejected: count() })
+    .from(snapshots)
+    .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.rejected)))
+
+  const [{ total }] = await dbOrTx.select({ total: count() }).from(snapshots).where(eq(snapshots.buildId, build.id))
+
+  if (build.status === BuildStatus.waiting_review && totalRejected > 0) {
+    build.status = BuildStatus.failed
+  } else {
+    const [{ totalApproved }] = await dbOrTx
+      .select({ totalApproved: count() })
+      .from(snapshots)
+      .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.approved)))
+    if (build.status === BuildStatus.waiting_review && totalApproved === total) {
+      build.status = BuildStatus.passed
+    }
+  }
+
+  await dbOrTx.update(builds).set({ status: build.status }).where(eq(builds.id, build.id))
+
+  // Find baseline build for the snapshot's build
+  const [latestApprovedBuild] = await dbOrTx
+    .select()
+    .from(builds)
+    .where(and(eq(builds.projectId, build.projectId), eq(builds.status, BuildStatus.passed)))
+    .orderBy(desc(builds.createdAt))
+    .limit(1)
+  if (latestApprovedBuild) {
+    await dbOrTx
+      .update(projects)
+      .set({ baselineBuildId: latestApprovedBuild.id })
+      .where(eq(projects.id, build.projectId))
+  }
+
+  const pagePath = `/projects/${build.projectId}/builds/${build.id}/snapshots` as Route
+  const actionLink = `${APP_URL}${pagePath}`
+
+  if (
+    initialBuildStatus.toString() === BuildStatus.waiting_review.toString() &&
+    build.status.toString() === BuildStatus.passed.toString()
+  ) {
+    for (const subscribers of await getNovuSubscribers()) {
+      await novu.trigger({
+        workflowId: NOVU_WORKFLOW_BUILD_PASSED,
+        to: subscribers,
+        payload: {
+          buildIdentifier: build.identifier,
+          totalSnapshotCount: total,
+          actionLink,
+        },
+      })
+    }
+  }
+
+  if (
+    initialBuildStatus.toString() === BuildStatus.waiting_review.toString() &&
+    build.status.toString() === BuildStatus.failed.toString()
+  ) {
+    for (const subscribers of await getNovuSubscribers()) {
+      await novu.trigger({
+        workflowId: NOVU_WORKFLOW_BUILD_FAILED,
+        to: subscribers,
+        payload: {
+          buildIdentifier: build.identifier,
+          rejectedSnapshotCount: totalRejected,
+          totalSnapshotCount: total,
+          actionLink,
+        },
+      })
+    }
+  }
+}
+
+export async function mergeGlobalVariablesIntoSnapshotPayload({
+  payload,
+  rawVariables,
+}: {
+  payload: SnapshotPayload
+  rawVariables: unknown
+}): Promise<SnapshotPayload> {
+  const { success, data: spotteurGlobalVar } = SpotteurGlobalVariablesSchema.safeParse(rawVariables)
+  if (!success) {
+    return payload
+  }
+
+  payload.reducedMotion = spotteurGlobalVar.options?.reducedMotion || payload.reducedMotion || false
+  payload.mediaReset = spotteurGlobalVar.options?.mediaReset || payload.mediaReset || false
+  payload.rules = spotteurGlobalVar.options?.rules || payload.rules || undefined
+  payload.hooks = spotteurGlobalVar.hooks || payload.hooks || undefined
+
+  return payload
 }
 
 export async function triggerBuildApi({

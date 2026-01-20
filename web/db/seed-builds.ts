@@ -15,7 +15,7 @@ import { builds, media, projects, snapshots } from '@/db/schema'
 import { populateSnapshotsPayload } from '@/features/builds/actions'
 import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
 import { getImageDiff } from '@/lib/image-diff'
-import { uploadScreenshot } from '@/lib/screenshot'
+import { uploadFileFromBuffer } from '@/lib/s3'
 import { humanReadableEpoch, randomElement } from '@/lib/utils'
 
 async function getSeedScreenshotBuffer() {
@@ -119,7 +119,7 @@ async function main() {
           info: { height, width },
         } = await getSeedScreenshotBuffer()
         const fileName = await generateSnapshotFileName({ pageUrl: snapshotPayload.pageUrl, type: 'screenshot' })
-        const s3Path = await uploadScreenshot(screenshotBuffer, prefix + fileName, mimeType)
+        const s3Path = await uploadFileFromBuffer(screenshotBuffer, prefix + fileName, mimeType)
         const mediaId = await createMediaRecord(fileName, screenshotBuffer.length, s3Path, width, height)
 
         // Baseline screenshot
@@ -128,7 +128,7 @@ async function main() {
           pageUrl: snapshotPayload.pageUrl,
           type: 'baseline-screenshot',
         })
-        const baselineS3Path = await uploadScreenshot(baselineScreenshotBuffer, prefix + baselineFileName, mimeType)
+        const baselineS3Path = await uploadFileFromBuffer(baselineScreenshotBuffer, prefix + baselineFileName, mimeType)
         const baselineMediaId = await createMediaRecord(
           baselineFileName,
           baselineScreenshotBuffer.length,
@@ -144,7 +144,7 @@ async function main() {
           threshold: 0.2,
         })
         const diffFileName = await generateSnapshotFileName({ pageUrl: snapshotPayload.pageUrl, type: 'diff' })
-        const diffS3Path = await uploadScreenshot(diffScreenshotBuffer, prefix + diffFileName, mimeType)
+        const diffS3Path = await uploadFileFromBuffer(diffScreenshotBuffer, prefix + diffFileName, mimeType)
         const diffMediaId = await createMediaRecord(
           diffFileName,
           diffScreenshotBuffer.length,
