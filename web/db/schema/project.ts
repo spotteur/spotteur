@@ -5,7 +5,7 @@ import { type z } from 'zod'
 import { type Browser } from '@/constants/enum'
 import { type BuildStatus, type SnapshotApprovalStatus } from '@/constants/status-map'
 import { media } from '@/db/schema/media'
-import { type RulesSchema } from '@/features/page-rules/schema'
+import { type ViewportsSchema, type RulesSchema } from '@/features/page-rules/schema'
 
 export const projects = pgTable('projects', {
   id: uuid('id')
@@ -96,7 +96,7 @@ export const pageRules = pgTable('page_rules', {
     .default(sql`'{}'::text[]`),
   viewports: jsonb('viewports')
     .notNull()
-    .$type<[number, number][]>()
+    .$type<z.infer<typeof ViewportsSchema>>()
     .default(sql`'[]'::jsonb`),
   pagePath: varchar('page_path').notNull(),
   mediaReset: boolean('media_reset').notNull().default(true),

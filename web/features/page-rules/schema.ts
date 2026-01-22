@@ -89,8 +89,8 @@ export const PageRuleUpdateSchema = PageRuleBaseSchema.extend({
 export const SpotteurGlobalVariablesSchema = z.object({
   options: z
     .object({
-      mediaReset: z.optional(MediaResetSchema),
-      reducedMotion: z.optional(ReducedMotionSchema),
+      mediaReset: MediaResetSchema,
+      reducedMotion: ReducedMotionSchema,
       rules: z.optional(RulesSchema),
     })
     .optional(),
