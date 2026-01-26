@@ -1,5 +1,7 @@
 import * as fs from 'node:fs'
+import path from 'node:path'
 
+import { STORAGE_FOLDER } from '@/constants/app'
 import { RuleAttrType } from '@/constants/enum'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
 import { BrowserEngineFactory, BrowserEngineType } from '@/lib/browser-engine'
@@ -47,7 +49,11 @@ export class ScreenshotCapturer {
       // If the result is consistent, we can take its as a final screenshot.
       // Otherwise, we can retry until X times, and throws if its still not consistent.
 
-      const tempPath = `/tmp/${this.payload.id}-${this.payload.browser.toString()}.png`
+      const tempPath = path.join(
+        STORAGE_FOLDER,
+        'screenshots',
+        `${this.payload.id}-${this.payload.browser.toString()}.png`,
+      )
       fs.writeFileSync(tempPath, buffer)
 
       console.log(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`)

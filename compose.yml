@@ -25,6 +25,8 @@ services:
     depends_on:
       temporal:
         condition: "service_healthy"
+    volumes:
+      - "webapp-worker_storage:/storage"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -152,15 +154,14 @@ services:
     volumes:
       - "./selenium/config.toml:/opt/selenium/docker.toml:ro"
       - "selenium_assets:/opt/selenium/assets"
-      - "selenium_tmp:/tmp"
       - "/var/run/docker.sock:/var/run/docker.sock"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://0.0.0.0:4444/status || exit 1"]
       interval: 10s
 volumes:
   selenium_assets:
-  selenium_tmp:
   postgres-temporal_data:
   postgres-webapp_data:
   rustfs_data:
   rustfs_logs:
+  webapp-worker_storage:
