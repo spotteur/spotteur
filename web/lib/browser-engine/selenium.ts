@@ -30,6 +30,7 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   }
 
   public async hideElements(selector: string): Promise<void> {
+    await this.waitForSelector(selector, 5000, true)
     await this.driver.executeScript<void>(`
       const elements = document.querySelectorAll(\`${selector}\`);
       elements.forEach(el => {
@@ -54,6 +55,7 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   }
 
   public async removeElements(selector: string): Promise<void> {
+    await this.waitForSelector(selector, 5000, true)
     await this.driver.executeScript<void>(`
       const elements = document.querySelectorAll(\`${selector}\`)
       elements.forEach((el) => {
@@ -65,6 +67,7 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   }
 
   public async replaceElementInnerText(selector: string, text: string): Promise<void> {
+    await this.waitForSelector(selector, 5000, true)
     await this.driver.executeScript<void>(`
       const elements = document.querySelectorAll(\`${selector}\`);
       elements.forEach(el => {
@@ -76,24 +79,14 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   }
 
   public async resetTimeBasedMedia(): Promise<void> {
-    await this.driver.executeScript<void>(() => {
-      const mediaElements = document.querySelectorAll('video, audio')
-      mediaElements.forEach(async (el) => {
-        if (el instanceof HTMLMediaElement) {
-          el.addEventListener('seeked', (event) => {
-            if (event.target instanceof HTMLMediaElement) {
-              event.target.pause()
-            }
-          })
-          el.addEventListener('play', (event) => {
-            if (event.target instanceof HTMLMediaElement) {
-              event.target.pause()
-            }
-          })
-          el.currentTime = 0
+    await this.driver.executeScript<void>(`
+      const elements = document.querySelectorAll('video, audio');
+      elements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.setProperty('visibility', 'hidden', 'important')
         }
-      })
-    })
+      });
+    `)
   }
 
   public async scrollPageToBottom(): Promise<void> {
@@ -155,8 +148,16 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
     }, timeout)
   }
 
-  public async waitForSelector(selector: string, timeout?: number): Promise<void> {
-    await this.driver.wait(until.elementLocated(By.css(selector)), timeout)
+  public async waitForSelector(selector: string, timeout: number, dontThrow?: boolean): Promise<void> {
+    console.log(`Waiting for selector: ${selector}`)
+    await this.driver.wait(until.elementLocated(By.css(selector)), timeout).catch((err) => {
+      if (dontThrow) {
+        console.warn(`Selector ${selector} not found within ${timeout} ms, but continuing as dontThrow is set.`)
+        return
+      }
+
+      throw err
+    })
   }
 }
 
@@ -189,6 +190,8 @@ export class SeleniumBrowserEngineFactory {
     } else {
       driver = (await builder.build()) as edge.Driver
     }
+
+    driver.manage().setTimeouts({ implicit: 10000, pageLoad: 30000, script: 60000 })
 
     return new SeleniumBrowserEngine(driver)
   }
