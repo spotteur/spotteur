@@ -49,11 +49,7 @@ export class ScreenshotCapturer {
       // If the result is consistent, we can take its as a final screenshot.
       // Otherwise, we can retry until X times, and throws if its still not consistent.
 
-      const tempPath = path.join(
-        STORAGE_FOLDER,
-        'screenshots',
-        `${this.payload.id}-${this.payload.browser.toString()}.png`,
-      )
+      const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
       fs.writeFileSync(tempPath, buffer)
 
       console.log(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`)

@@ -38,3 +38,5 @@ export const NOVU_WS_URL = process.env.NEXT_PUBLIC_NOVU_WS_URL || 'wss://ws.novu
 export const TEMPORAL_ADDRESS = process.env.TEMPORAL_ADDRESS || ''
 
 export const SELENIUM_REMOTE_URL = process.env.SELENIUM_REMOTE_URL || ''
+
+export const TRUSTED_ORIGINS = (process.env.TRUSTED_ORIGINS || APP_URL || '').split(',').map((origin) => origin.trim())
