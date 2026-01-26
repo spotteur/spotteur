@@ -5,6 +5,7 @@ import firefox from 'selenium-webdriver/firefox'
 
 import { Browser } from '@/constants/enum'
 import { SELENIUM_REMOTE_URL } from '@/constants/env'
+import { SELENIUM_IMPLICIT_TIMEOUT, SELENIUM_PAGE_LOAD_TIMEOUT, SELENIUM_SCRIPT_TIMEOUT } from '@/constants/selenium'
 import { type IBrowserEngine } from '@/types/browser-engine'
 import { type SnapshotPayload } from '@/types/screenshot'
 
@@ -183,15 +184,19 @@ export class SeleniumBrowserEngineFactory {
       .usingServer(SELENIUM_REMOTE_URL)
 
     let driver
-    if (browser.toString() === Browser.chrome) {
+    if (browser.toString() === Browser.CHROME) {
       driver = (await builder.build()) as chrome.Driver
-    } else if (browser.toString() === Browser.firefox) {
+    } else if (browser.toString() === Browser.FIREFOX) {
       driver = (await builder.build()) as firefox.Driver
     } else {
       driver = (await builder.build()) as edge.Driver
     }
 
-    driver.manage().setTimeouts({ implicit: 10000, pageLoad: 30000, script: 60000 })
+    driver.manage().setTimeouts({
+      implicit: SELENIUM_IMPLICIT_TIMEOUT,
+      pageLoad: SELENIUM_PAGE_LOAD_TIMEOUT,
+      script: SELENIUM_SCRIPT_TIMEOUT,
+    })
 
     return new SeleniumBrowserEngine(driver)
   }

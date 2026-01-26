@@ -12,7 +12,7 @@ export const DEFAULT_ERROR_MESSAGE = 'Internal Server Error'
 export const DEFAULT_ERROR_DESCRIPTION = 'Something went wrong. Please try again later.'
 export const VALIDATION_ERROR_DESCRIPTION = 'Please review the error and try again.'
 
-export const projectsMenu = (projectId: string) => {
+export const projectsMenu = (projectId: string): NavigationType[] => {
   return [
     {
       label: 'General',
@@ -29,7 +29,7 @@ export const projectsMenu = (projectId: string) => {
   ]
 }
 
-export const snapshotsMenu = (projectId: string, buildId: string) => {
+export const snapshotsMenu = (projectId: string, buildId: string): NavigationType[] => {
   return [
     {
       label: 'Snapshots',
@@ -51,5 +51,5 @@ export const defaultMenu: NavigationType[] = [
 
 export const DEFAULT_SNAPSHOTS_WIDTH = 1920
 export const DEFAULT_SNAPSHOTS_HEIGHT = 1080
-export const DEFAULT_SNAPSHOTS_BROWSER = Browser.chrome
+export const DEFAULT_SNAPSHOTS_BROWSER = Browser.CHROME
 export const DEFAULT_SNAPSHOTS_SELECTOR = 'body'

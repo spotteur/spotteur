@@ -15,7 +15,7 @@ import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/i
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { BrowserOptions } from '@/constants/enum'
+import { BROWSER_OPTIONS } from '@/constants/enum'
 import { ProjectCreateSchema } from '@/features/projects/schema'
 import { setFormErrors } from '@/lib/utils'
 
@@ -203,7 +203,7 @@ export function ProjectForm({
               <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
               <InputTags
                 defaultValue={field.state.value}
-                tags={BrowserOptions}
+                tags={BROWSER_OPTIONS}
                 onRemove={(value) => field.handleChange(value)}
                 onSelect={(value) => field.handleChange(value)}
               />

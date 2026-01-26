@@ -47,9 +47,9 @@ export function SnapshotActionButtons({
         })
 
         const statusMessages = {
-          [SnapshotApprovalStatus.approved]: 'Snapshot approved',
-          [SnapshotApprovalStatus.rejected]: 'Snapshot rejected',
-          [SnapshotApprovalStatus.pending]: 'Review removed',
+          [SnapshotApprovalStatus.APPROVED]: 'Snapshot approved',
+          [SnapshotApprovalStatus.REJECTED]: 'Snapshot rejected',
+          [SnapshotApprovalStatus.PENDING]: 'Review removed',
         }
 
         toast.success(statusMessages[status])
@@ -66,15 +66,15 @@ export function SnapshotActionButtons({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {snapshot.approvalStatus === SnapshotApprovalStatus.pending ? (
+      {snapshot.approvalStatus === SnapshotApprovalStatus.PENDING ? (
         <>
           <Button
             size="sm"
             variant="default"
-            onClick={() => updateStatus(SnapshotApprovalStatus.approved)}
+            onClick={() => updateStatus(SnapshotApprovalStatus.APPROVED)}
             disabled={isPending}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.approved ? (
+            {isPending && pendingStatus === SnapshotApprovalStatus.APPROVED ? (
               <Spinner />
             ) : (
               <CheckCircle2 className="size-4" />
@@ -85,10 +85,10 @@ export function SnapshotActionButtons({
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => updateStatus(SnapshotApprovalStatus.rejected)}
+            onClick={() => updateStatus(SnapshotApprovalStatus.REJECTED)}
             disabled={isPending}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.rejected ? (
+            {isPending && pendingStatus === SnapshotApprovalStatus.REJECTED ? (
               <Spinner />
             ) : (
               <XCircle className="size-4" />
@@ -100,10 +100,10 @@ export function SnapshotActionButtons({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => updateStatus(SnapshotApprovalStatus.pending)}
+          onClick={() => updateStatus(SnapshotApprovalStatus.PENDING)}
           disabled={isPending}
         >
-          {isPending && pendingStatus === SnapshotApprovalStatus.pending ? (
+          {isPending && pendingStatus === SnapshotApprovalStatus.PENDING ? (
             <Spinner />
           ) : (
             <RotateCcw className="size-4" />

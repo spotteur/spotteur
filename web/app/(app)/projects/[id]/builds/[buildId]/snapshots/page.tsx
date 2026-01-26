@@ -30,7 +30,7 @@ export default function BuildDetailSnapshotsPage() {
     queryFn: () => getBuildDetail({ projectId: params.id, buildId: params.buildId }),
     refetchInterval: ({ state }) => {
       const buildStatus = state.data?.status
-      if (buildStatus === BuildStatus.pending || buildStatus === BuildStatus.in_progress) {
+      if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
       }
 

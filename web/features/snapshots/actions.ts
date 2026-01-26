@@ -182,7 +182,7 @@ export async function updateSnapshotApprovalStatus({
   status: SnapshotApprovalStatus
 }) {
   try {
-    const isValidStatus = SnapshotApprovalStatus[status] ?? undefined
+    const isValidStatus = Object.values(SnapshotApprovalStatus).includes(status)
     if (!isValidStatus) {
       return { ok: false, error: 'Invalid approval status' } as const
     }

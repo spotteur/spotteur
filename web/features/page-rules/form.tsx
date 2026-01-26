@@ -16,11 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  BrowserOptions,
+  BROWSER_OPTIONS,
   RULE_ATTR_TYPE_PLACEHOLDER_MAP,
   type RuleAttrType,
-  RuleAttrTypeOptions,
-  RuleAttrTypeWithTrueValueOptions,
+  RULE_ATTR_TYPE_OPTIONS,
+  RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS,
 } from '@/constants/enum'
 import { type projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
@@ -101,7 +101,7 @@ export default function PageRuleForm({
               <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
               <InputTags
                 defaultValue={field.state.value}
-                tags={BrowserOptions}
+                tags={BROWSER_OPTIONS}
                 onRemove={(value) => field.handleChange(value)}
                 onSelect={(value) => field.handleChange(value)}
               />
@@ -280,7 +280,9 @@ export default function PageRuleForm({
                                       name={`rules[${index}].attrs[${i}].name`}
                                       listeners={{
                                         onChange: ({ value }) => {
-                                          return RuleAttrTypeWithTrueValueOptions.find((r) => r.toString() === value)
+                                          return RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
+                                            (r) => r.toString() === value,
+                                          )
                                             ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
                                             : form.setFieldValue(`rules[${index}].attrs[${i}].value`, '')
                                         },
@@ -295,7 +297,7 @@ export default function PageRuleForm({
                                             <SelectValue placeholder="Select rule" />
                                           </SelectTrigger>
                                           <SelectContent>
-                                            {RuleAttrTypeOptions.map(({ value, label }) => (
+                                            {RULE_ATTR_TYPE_OPTIONS.map(({ value, label }) => (
                                               <SelectItem key={value} value={value}>
                                                 {label}
                                               </SelectItem>
@@ -317,7 +319,7 @@ export default function PageRuleForm({
                                             placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
                                             onChange={(e) => field.handleChange(e.target.value)}
                                             readOnly={
-                                              !!RuleAttrTypeWithTrueValueOptions.find(
+                                              !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
                                                 (r) => r.toString() === attrObj.name,
                                               )
                                             }

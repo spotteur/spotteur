@@ -3,6 +3,7 @@
 import { and, asc, count, desc, eq, ilike, inArray, type SQL } from 'drizzle-orm'
 import { z } from 'zod'
 
+import { type Browser } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { builds, projects, snapshots } from '@/db/schema'
 import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
@@ -70,21 +71,19 @@ export async function createProject(input: unknown) {
 
   const data = parsed.data
   const token = data.token && data.token.length > 0 ? data.token : crypto.randomUUID()
-  const insert = {
-    name: data.name,
-    baseUrl: data.baseUrl,
-    token,
-    snapshotBrowsers: data.snapshotBrowsers,
-    snapshotSelector: data.snapshotSelector,
-    viewports: data.viewports,
-    pagePaths: data.pagePaths,
-  }
 
-  const payload = {
-    ...insert,
-    viewports: insert.viewports.map((v) => [v[0], v[1]] as [number, number]),
-  }
-  const [created] = await db.insert(projects).values(payload).returning()
+  const [created] = await db
+    .insert(projects)
+    .values({
+      name: data.name,
+      baseUrl: data.baseUrl,
+      token,
+      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      snapshotSelector: data.snapshotSelector,
+      viewports: data.viewports,
+      pagePaths: data.pagePaths,
+    })
+    .returning()
   return { ok: true, data: created }
 }
 
@@ -96,20 +95,20 @@ export async function updateProject(input: unknown) {
 
   const data = parsed.data
   const token = data.token && data.token.length > 0 ? data.token : crypto.randomUUID()
-  const update = {
-    name: data.name,
-    baseUrl: data.baseUrl,
-    token,
-    snapshotBrowsers: data.snapshotBrowsers,
-    snapshotSelector: data.snapshotSelector,
-    viewports: data.viewports,
-    pagePaths: data.pagePaths,
-  }
-  const payload = {
-    ...update,
-    viewports: update.viewports.map((v) => [v[0], v[1]] as [number, number]),
-  }
-  const [updated] = await db.update(projects).set(payload).where(eq(projects.id, data.id)).returning()
+
+  const [updated] = await db
+    .update(projects)
+    .set({
+      name: data.name,
+      baseUrl: data.baseUrl,
+      token,
+      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      snapshotSelector: data.snapshotSelector,
+      viewports: data.viewports,
+      pagePaths: data.pagePaths,
+    })
+    .where(eq(projects.id, data.id))
+    .returning()
   return { ok: true, data: updated }
 }
 

@@ -92,7 +92,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
   const [pendingBuild] = await db
     .select({ id: builds.id })
     .from(builds)
-    .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.pending)))
+    .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.PENDING)))
     .limit(1)
 
   if (pendingBuild) {
@@ -109,7 +109,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
       projectId: project.id,
       baseUrl: project.baseUrl,
       pagePaths: project.pagePaths,
-      status: BuildStatus.pending,
+      status: BuildStatus.PENDING,
       identifier: buildIdentifier,
       baselineBuildId: project.baselineBuildId,
     })
@@ -236,19 +236,19 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   const [{ totalRejected }] = await dbOrTx
     .select({ totalRejected: count() })
     .from(snapshots)
-    .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.rejected)))
+    .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.REJECTED)))
 
   const [{ total }] = await dbOrTx.select({ total: count() }).from(snapshots).where(eq(snapshots.buildId, build.id))
 
-  if (build.status === BuildStatus.waiting_review && totalRejected > 0) {
-    build.status = BuildStatus.failed
+  if (build.status === BuildStatus.WAITING_REVIEW && totalRejected > 0) {
+    build.status = BuildStatus.FAILED
   } else {
     const [{ totalApproved }] = await dbOrTx
       .select({ totalApproved: count() })
       .from(snapshots)
-      .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.approved)))
-    if (build.status === BuildStatus.waiting_review && totalApproved === total) {
-      build.status = BuildStatus.passed
+      .where(and(eq(snapshots.buildId, build.id), eq(snapshots.approvalStatus, SnapshotApprovalStatus.APPROVED)))
+    if (build.status === BuildStatus.WAITING_REVIEW && totalApproved === total) {
+      build.status = BuildStatus.PASSED
     }
   }
 
@@ -258,7 +258,7 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   const [latestApprovedBuild] = await dbOrTx
     .select()
     .from(builds)
-    .where(and(eq(builds.projectId, build.projectId), eq(builds.status, BuildStatus.passed)))
+    .where(and(eq(builds.projectId, build.projectId), eq(builds.status, BuildStatus.PASSED)))
     .orderBy(desc(builds.createdAt))
     .limit(1)
   if (latestApprovedBuild) {
@@ -272,8 +272,8 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   const actionLink = `${APP_URL}${pagePath}`
 
   if (
-    initialBuildStatus.toString() === BuildStatus.waiting_review.toString() &&
-    build.status.toString() === BuildStatus.passed.toString()
+    initialBuildStatus.toString() === BuildStatus.WAITING_REVIEW.toString() &&
+    build.status.toString() === BuildStatus.PASSED.toString()
   ) {
     for (const subscribers of await getNovuSubscribers()) {
       await novu.trigger({
@@ -289,8 +289,8 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   }
 
   if (
-    initialBuildStatus.toString() === BuildStatus.waiting_review.toString() &&
-    build.status.toString() === BuildStatus.failed.toString()
+    initialBuildStatus.toString() === BuildStatus.WAITING_REVIEW.toString() &&
+    build.status.toString() === BuildStatus.FAILED.toString()
   ) {
     for (const subscribers of await getNovuSubscribers()) {
       await novu.trigger({

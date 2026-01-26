@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
-import { BuildStatus, SnapshotApprovalStatusOptions } from '@/constants/status-map'
+import { BuildStatus, SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
 import { type builds } from '@/db/schema'
 import { listSnapshotsByBuild, type SnapshotListItemRes } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
@@ -41,7 +41,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
     placeholderData: keepPreviousData,
     refetchInterval: () => {
       const buildStatus = build?.status
-      if (buildStatus === BuildStatus.pending || buildStatus === BuildStatus.in_progress) {
+      if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
       }
 
@@ -116,7 +116,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
                 className="w-50 justify-between"
               >
                 {approvalStatus
-                  ? SnapshotApprovalStatusOptions.find((status) => status.value === approvalStatus)?.label
+                  ? SNAPSHOT_APPROVAL_STATUS_OPTIONS.find((status) => status.value === approvalStatus)?.label
                   : 'All statuses'}
                 <ChevronsUpDown className="opacity-50" />
               </Button>
@@ -125,7 +125,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
               <Command>
                 <CommandList>
                   <CommandGroup>
-                    {SnapshotApprovalStatusOptions.map((status) => (
+                    {SNAPSHOT_APPROVAL_STATUS_OPTIONS.map((status) => (
                       <CommandItem
                         key={status.value}
                         value={status.value}

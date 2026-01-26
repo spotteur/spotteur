@@ -82,24 +82,24 @@ export class ScreenshotCapturer {
     for (const rule of this.payload.rules || []) {
       for (const selector of rule.selectors) {
         for (const ruleAttr of rule.attrs) {
-          if (ruleAttr.name === RuleAttrType.remove) {
+          if (ruleAttr.name === RuleAttrType.REMOVE) {
             console.log(`${this.logPrefix} Removing element matching selector: ${selector}`)
             await this.browserEngine.removeElements(selector)
           }
 
-          if (ruleAttr.name === RuleAttrType.hide) {
+          if (ruleAttr.name === RuleAttrType.HIDE) {
             console.log(`${this.logPrefix} Hiding element matching selector: ${selector}`)
             await this.browserEngine.hideElements(selector)
           }
 
-          if (ruleAttr.name === RuleAttrType.custom) {
+          if (ruleAttr.name === RuleAttrType.CUSTOM) {
             console.log(
               `${this.logPrefix} Replace innerText element with user-defined text matching selector: ${selector}`,
             )
             await this.browserEngine.replaceElementInnerText(selector, ruleAttr.value || '')
           }
 
-          if (ruleAttr.name === RuleAttrType.replaceWords) {
+          if (ruleAttr.name === RuleAttrType.REPLACE_WORDS) {
             console.log(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`)
             await this.browserEngine.replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
           }

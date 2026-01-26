@@ -28,7 +28,7 @@ export async function markBuildAsStarted({ buildId }: { buildId: string }) {
       throw ApplicationFailure.nonRetryable(`Build ID ${buildId} not found`)
     }
 
-    await db.update(builds).set({ status: BuildStatus.in_progress }).where(eq(builds.id, buildId))
+    await db.update(builds).set({ status: BuildStatus.IN_PROGRESS }).where(eq(builds.id, buildId))
   } catch (err) {
     if (err instanceof ApplicationFailure) {
       throw err
@@ -79,7 +79,7 @@ export async function finalizeBuildSnapshots({ buildId, isSuccess }: { buildId: 
     }
 
     await db.transaction(async (tx) => {
-      build.status = isSuccess ? BuildStatus.waiting_review : BuildStatus.error
+      build.status = isSuccess ? BuildStatus.WAITING_REVIEW : BuildStatus.ERROR
 
       await tx.update(builds).set({ status: build.status }).where(eq(builds.id, build.id)).returning()
 
@@ -108,7 +108,7 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
       throw ApplicationFailure.nonRetryable(`Build ID ${buildId} not found`)
     }
 
-    if (build.status !== BuildStatus.waiting_review) {
+    if (build.status !== BuildStatus.WAITING_REVIEW) {
       console.log(`Build ID ${buildId} is not in waiting_review status, skipping notification`)
       return
     }

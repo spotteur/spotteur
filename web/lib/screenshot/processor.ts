@@ -124,9 +124,9 @@ export class ScreenshotProcessor {
 
       // TODO: Maybe we can add this to project setting,
       // so user can decide wether auto-approved are allowed or not based on threshold.
-      let approvalStatus = SnapshotApprovalStatus.pending
+      let approvalStatus = SnapshotApprovalStatus.PENDING
       if (diffPercentage === 0) {
-        approvalStatus = SnapshotApprovalStatus.approved
+        approvalStatus = SnapshotApprovalStatus.APPROVED
       }
 
       console.log(`${this.logPrefix} Storing record of snapshot`)
