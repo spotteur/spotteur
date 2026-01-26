@@ -15,11 +15,11 @@ import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/i
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { BrowserLists } from '@/constants/app'
+import { BROWSER_OPTIONS } from '@/constants/enum'
 import { ProjectCreateSchema } from '@/features/projects/schema'
 import { setFormErrors } from '@/lib/utils'
 
-export type ProjectFormInput = z.infer<typeof ProjectCreateSchema> & { id?: string }
+export type ProjectFormInput = z.input<typeof ProjectCreateSchema> & { id?: string }
 
 interface ProjectFormProps {
   defaultValues: ProjectFormInput
@@ -112,7 +112,7 @@ export function ProjectForm({
                 aria-invalid={isInvalid}
               />
               <FieldDescription>
-                The base URL for the project including http:// or https:// (e.g., https://example.com)
+                The base URL with protocol and ended with trailing slash (e.g., https://example.com/)
               </FieldDescription>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
@@ -203,7 +203,7 @@ export function ProjectForm({
               <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
               <InputTags
                 defaultValue={field.state.value}
-                tags={BrowserLists}
+                tags={BROWSER_OPTIONS}
                 onRemove={(value) => field.handleChange(value)}
                 onSelect={(value) => field.handleChange(value)}
               />
@@ -326,12 +326,12 @@ export function ProjectForm({
               <Textarea
                 id="project-pagePaths"
                 name={field.name}
-                value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
+                value={field.state.value}
                 onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value.split(/\r?\n/).map((s) => s.trim()))}
+                onChange={(e) => field.handleChange(e.target.value)}
                 aria-invalid={isInvalid}
               />
-              <FieldDescription>Each path must start with / (e.g., /pricing)</FieldDescription>
+              <FieldDescription>Each path must start with a slash (e.g., /pricing)</FieldDescription>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
           )

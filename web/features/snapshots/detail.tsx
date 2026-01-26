@@ -47,9 +47,9 @@ export function SnapshotActionButtons({
         })
 
         const statusMessages = {
-          [SnapshotApprovalStatus.approved]: 'Snapshot approved',
-          [SnapshotApprovalStatus.rejected]: 'Snapshot rejected',
-          [SnapshotApprovalStatus.pending]: 'Review removed',
+          [SnapshotApprovalStatus.APPROVED]: 'Snapshot approved',
+          [SnapshotApprovalStatus.REJECTED]: 'Snapshot rejected',
+          [SnapshotApprovalStatus.PENDING]: 'Review removed',
         }
 
         toast.success(statusMessages[status])
@@ -66,15 +66,15 @@ export function SnapshotActionButtons({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {snapshot.approvalStatus === SnapshotApprovalStatus.pending ? (
+      {snapshot.approvalStatus === SnapshotApprovalStatus.PENDING ? (
         <>
           <Button
             size="sm"
             variant="default"
-            onClick={() => updateStatus(SnapshotApprovalStatus.approved)}
+            onClick={() => updateStatus(SnapshotApprovalStatus.APPROVED)}
             disabled={isPending}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.approved ? (
+            {isPending && pendingStatus === SnapshotApprovalStatus.APPROVED ? (
               <Spinner />
             ) : (
               <CheckCircle2 className="size-4" />
@@ -85,10 +85,10 @@ export function SnapshotActionButtons({
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => updateStatus(SnapshotApprovalStatus.rejected)}
+            onClick={() => updateStatus(SnapshotApprovalStatus.REJECTED)}
             disabled={isPending}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.rejected ? (
+            {isPending && pendingStatus === SnapshotApprovalStatus.REJECTED ? (
               <Spinner />
             ) : (
               <XCircle className="size-4" />
@@ -100,10 +100,10 @@ export function SnapshotActionButtons({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => updateStatus(SnapshotApprovalStatus.pending)}
+          onClick={() => updateStatus(SnapshotApprovalStatus.PENDING)}
           disabled={isPending}
         >
-          {isPending && pendingStatus === SnapshotApprovalStatus.pending ? (
+          {isPending && pendingStatus === SnapshotApprovalStatus.PENDING ? (
             <Spinner />
           ) : (
             <RotateCcw className="size-4" />
@@ -117,15 +117,19 @@ export function SnapshotActionButtons({
 
 export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
   return (
-    <Tabs defaultValue="comparison" className="space-y-2">
+    <Tabs defaultValue="side-by-side" className="space-y-2">
       <TabsList>
+        <TabsTrigger value="side-by-side">Side by side</TabsTrigger>
         <TabsTrigger value="comparison">Comparison</TabsTrigger>
         <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-        <TabsTrigger value="side-by-side">Side by side</TabsTrigger>
       </TabsList>
 
       <TabsContent value="comparison">
-        {snapshot.baselineScreenshotMedia?.path && snapshot.screenshotMedia?.path ? (
+        {snapshot.baselineScreenshotMedia === null ? (
+          <PreviewFallback message="This snapshot has no baseline image to compare" />
+        ) : snapshot.screenshotMedia === null ? (
+          <PreviewFallback message="This snapshot doesn't have any image yet" />
+        ) : (
           <Card className="bg-muted/40 py-0">
             <Comparison className="aspect-video" mode="hover">
               {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
@@ -144,8 +148,6 @@ export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
               </Badge>
             </Comparison>
           </Card>
-        ) : (
-          <PreviewFallback message="Baseline or current image is missing." />
         )}
       </TabsContent>
       <TabsContent value="heatmap">
@@ -157,11 +159,13 @@ export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
                 alt="Diff heatmap"
                 fill
                 className="object-contain object-top"
-                unoptimized
               />
             </div>
+          ) : snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
+            snapshot.baselineScreenshotMedia?.height !== snapshot.screenshotMedia?.height ? (
+            <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
           ) : (
-            <PreviewFallback label="Diff heatmap" />
+            <PreviewFallback />
           )}
         </div>
       </TabsContent>
@@ -184,9 +188,11 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
 
   return (
     <div className="flex w-full flex-col gap-2">
-      {label ? <span className="text-muted-foreground text-xs">{label}</span> : null}
+      {label ? (
+        <span className="text-muted-foreground text-xs">{`${label} (${media.width}x${media.height})`}</span>
+      ) : null}
       <div className="bg-muted/20 relative w-full overflow-hidden rounded-lg border" style={{ aspectRatio }}>
-        <Image src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" unoptimized />
+        <Image src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
       </div>
     </div>
   )

@@ -1,0 +1,1 @@
+ALTER TABLE "media" ADD CONSTRAINT "media_path_unique" UNIQUE("path");

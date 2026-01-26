@@ -10,11 +10,12 @@ import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { BuildStatus } from '@/constants/status-map'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
 import { SnapshotListCard } from '@/features/snapshots/list'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function BuildDetailSnapshotsPage() {
   const params = useParams<{ id: string; buildId: string }>()
@@ -27,6 +28,14 @@ export default function BuildDetailSnapshotsPage() {
   const { data: buildData, isLoading: isLoadingBuild } = useQuery({
     queryKey: [QUERY_KEY_BUILDS, params.id, params.buildId],
     queryFn: () => getBuildDetail({ projectId: params.id, buildId: params.buildId }),
+    refetchInterval: ({ state }) => {
+      const buildStatus = state.data?.status
+      if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
+        return 10_000
+      }
+
+      return false
+    },
   })
 
   const isLoading = isLoadingProject || isLoadingBuild

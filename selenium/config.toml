@@ -2,9 +2,9 @@
 # Configs have a mapping between the Docker image to use and the capabilities that need to be matched to
 # start a container with the given image.
 configs = [
-    "selenium/standalone-firefox:latest", '{"browserName": "firefox"}',
-    "selenium/standalone-chrome:latest", '{"browserName": "chrome"}',
-    "selenium/standalone-edge:latest", '{"browserName": "MicrosoftEdge"}'
+    "selenium/standalone-firefox:4.39.0-20251202", '{"browserName": "firefox"}',
+    "selenium/standalone-chrome:4.39.0-20251202", '{"browserName": "chrome"}',
+    "selenium/standalone-edge:4.39.0-20251202", '{"browserName": "edge"}'
 ]
 
 # URL for connecting to the docker daemon
@@ -15,7 +15,7 @@ configs = [
 # macOS: install socat and run the following command, socat -4 TCP-LISTEN:2375,fork UNIX-CONNECT:/var/run/docker.sock,
 # then use http://host.docker.internal:2375.
 # Linux: varies from machine to machine, please mount /var/run/docker.sock. If this does not work, please create an issue.
-url = "http://host.docker.internal:2375"
+url = "http://127.0.0.1:2375"
 # Docker image used for video recording
 video-image = "selenium/video:ffmpeg-4.3.1-20230421"
 

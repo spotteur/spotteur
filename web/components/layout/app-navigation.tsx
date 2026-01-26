@@ -10,8 +10,8 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { type NavigationType } from '@/lib/type/app'
 import { cn } from '@/lib/utils'
+import { type NavigationType } from '@/types/app'
 
 export function AppNavigation({ navigations }: { navigations: NavigationType[] }) {
   const isMobile = useIsMobile()

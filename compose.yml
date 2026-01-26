@@ -17,8 +17,16 @@ services:
     depends_on:
       postgres-webapp:
         condition: "service_healthy"
+  webapp-worker:
+    build:
+      context: "web"
+      dockerfile: "Dockerfile.worker"
+    env_file: [".env"]
+    depends_on:
       temporal:
         condition: "service_healthy"
+    volumes:
+      - "webapp-worker_storage:/storage"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -140,12 +148,20 @@ services:
     restart: "on-failure"
   selenium:
     image: "selenium/standalone-docker:4.39.0"
+    environment:
+      SE_NODE_SESSION_TIMEOUT: "600"
+      SE_START_VNC: "false"
     volumes:
-      - "./selenium/config.toml:/opt/bin/config.toml"
-      - "./selenium/assets:/opt/selenium/assets"
+      - "./selenium/config.toml:/opt/selenium/docker.toml:ro"
+      - "selenium_assets:/opt/selenium/assets"
       - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:4444/status || exit 1"]
+      interval: 10s
 volumes:
+  selenium_assets:
   postgres-temporal_data:
   postgres-webapp_data:
   rustfs_data:
   rustfs_logs:
+  webapp-worker_storage:

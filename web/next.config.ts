@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next'
 
-import { type RemotePattern } from './lib/type/app'
+import { type RemotePattern } from './types/app'
 
 function getS3RemotePattern(): RemotePattern {
   const endpoint = process.env.S3_ENDPOINT

@@ -1,3 +1,5 @@
+import * as crypto from 'crypto'
+
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -32,7 +34,12 @@ export function humanReadableEpoch(ts: number = Date.now()): string {
 }
 
 export function humanReadableDecimal(num: number, decimalPlaces: number = 2): string {
-  return num.toFixed(decimalPlaces)
+  const numStr = parseFloat(num.toFixed(decimalPlaces)).toString()
+  if (num > 0 && numStr !== '0') {
+    return numStr
+  }
+
+  return '<0.'.padEnd(decimalPlaces + 2, '0') + '1'
 }
 
 export function setFormErrors<T>(form: AnyFormApi, errors?: $ZodFlattenedError<T>) {
@@ -47,3 +54,6 @@ export function setFormErrors<T>(form: AnyFormApi, errors?: $ZodFlattenedError<T
 export function randomElement<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)]
 }
+
+export const sha256Hex = (input: string) =>
+  crypto.createHash('sha256').update(Buffer.from(input, 'utf-8')).digest('hex')

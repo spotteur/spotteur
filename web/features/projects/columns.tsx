@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { type projects } from '@/db/schema/project'
+import { type projects } from '@/db/schema'
 
 export function getColumns(
   onRequestDelete: (payload: { id: string; name: string }) => void,

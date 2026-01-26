@@ -14,7 +14,7 @@ import { deletePageRule } from '@/features/page-rules/actions'
 import { ConfirmDeletePageRuletDialog } from '@/features/page-rules/confirm-delete-dialog'
 import { PageRuleListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function ProjectPageRulesPage() {
   const queryClient = useQueryClient()

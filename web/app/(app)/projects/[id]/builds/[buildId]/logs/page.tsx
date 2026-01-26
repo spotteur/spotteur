@@ -14,7 +14,7 @@ import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function BuildDetailLogsPage() {
   const params = useParams<{ id: string; buildId: string }>()

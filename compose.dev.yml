@@ -13,6 +13,13 @@ services:
       - "./:/workspace" # Workspace for devcontainer
       - "webapp_deps:/workspace/web/node_modules/"
       - "webapp_next:/workspace/web/.next/"
+  webapp-worker:
+    build:
+      context: "web"
+      dockerfile: "Dockerfile.worker"
+    volumes:
+      - "./web:/app"
+      - "webapp_deps:/app/node_modules/"
   inbucket:
     image: "inbucket/inbucket:sha-6eff554"
     environment:

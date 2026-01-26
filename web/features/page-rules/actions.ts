@@ -1,8 +1,9 @@
 'use server'
 
-import { asc, count, desc, eq } from 'drizzle-orm'
+import { and, asc, count, desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
+import { type Browser } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
@@ -64,21 +65,18 @@ export async function createRule(input: unknown, projectId: string) {
   }
   const data = parsed.data
 
-  const insert = {
-    projectId: projectId,
-    snapshotBrowsers: data.snapshotBrowsers,
-    viewports: data.viewports,
-    mediaReset: data.mediaReset,
-    reducedMotion: data.reducedMotion,
-    pagePath: data.pagePath,
-    rules: data.rules,
-  }
-
-  const payload = {
-    ...insert,
-    viewports: insert.viewports.map((v) => [v[0], v[1]] as [number, number]),
-  }
-  const [created] = await db.insert(pageRules).values(payload).returning()
+  const [created] = await db
+    .insert(pageRules)
+    .values({
+      projectId,
+      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      viewports: data.viewports,
+      mediaReset: data.mediaReset,
+      reducedMotion: data.reducedMotion,
+      pagePath: data.pagePath,
+      rules: data.rules,
+    })
+    .returning()
 
   return { ok: true, data: created }
 }
@@ -90,21 +88,18 @@ export async function updateRule(input: unknown, id: string, projectId: string) 
   }
   const data = parsed.data
 
-  const update = {
-    projectId: projectId,
-    snapshotBrowsers: data.snapshotBrowsers,
-    viewports: data.viewports,
-    mediaReset: data.mediaReset,
-    reducedMotion: data.reducedMotion,
-    pagePath: data.pagePath,
-    rules: data.rules,
-  }
-  const payload = {
-    ...update,
-    viewports: update.viewports.map((v) => [v[0], v[1]] as [number, number]),
-  }
-
-  const [updated] = await db.update(pageRules).set(payload).where(eq(pageRules.id, id)).returning()
+  const [updated] = await db
+    .update(pageRules)
+    .set({
+      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      viewports: data.viewports,
+      mediaReset: data.mediaReset,
+      reducedMotion: data.reducedMotion,
+      pagePath: data.pagePath,
+      rules: data.rules,
+    })
+    .where(and(eq(pageRules.id, id), eq(pageRules.projectId, projectId)))
+    .returning()
 
   return { ok: true, data: updated }
 }

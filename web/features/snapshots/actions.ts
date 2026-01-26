@@ -3,10 +3,13 @@
 import { and, count, asc, desc, eq, ilike, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 
-import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
-import db from '@/db/drizzle'
-import { builds, media, projects, snapshots } from '@/db/schema'
+import { SnapshotApprovalStatus } from '@/constants/status-map'
+import db, { type DB, type DBTransaction } from '@/db/drizzle'
+import { builds, media, snapshots } from '@/db/schema'
+import { syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
 import { getPresignUrl } from '@/lib/s3'
+import { sha256Hex } from '@/lib/utils'
+import { type SnapshotPayload } from '@/types/screenshot'
 
 type SortKey = 'id' | 'diffPercentage' | 'createdAt' | 'updatedAt' | ''
 
@@ -62,6 +65,7 @@ export async function listSnapshotsByBuild({
     .select({
       id: snapshots.id,
       pagePath: snapshots.pagePath,
+      browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
       screenshotMedia: {
@@ -119,6 +123,7 @@ export async function getSnapshotDetail({
     .select({
       id: snapshots.id,
       pagePath: snapshots.pagePath,
+      browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
       screenshotMedia: {
@@ -177,7 +182,7 @@ export async function updateSnapshotApprovalStatus({
   status: SnapshotApprovalStatus
 }) {
   try {
-    const isValidStatus = SnapshotApprovalStatus[status] ?? undefined
+    const isValidStatus = Object.values(SnapshotApprovalStatus).includes(status)
     if (!isValidStatus) {
       return { ok: false, error: 'Invalid approval status' } as const
     }
@@ -189,45 +194,9 @@ export async function updateSnapshotApprovalStatus({
         .where(eq(snapshots.id, snapshotId))
         .returning()
 
-      // Update build status based on snapshot approvals
-      const [{ total: totalRejected }] = await tx
-        .select({ total: count() })
-        .from(snapshots)
-        .where(
-          and(eq(snapshots.buildId, snapshot.buildId), eq(snapshots.approvalStatus, SnapshotApprovalStatus.rejected)),
-        )
+      const [build] = await tx.select().from(builds).where(eq(builds.id, snapshot.buildId)).limit(1)
 
-      let buildStatus = BuildStatus.waiting_review
-      if (totalRejected > 0) {
-        buildStatus = BuildStatus.failed
-      } else {
-        const [{ total }] = await tx
-          .select({ total: count() })
-          .from(snapshots)
-          .where(eq(snapshots.buildId, snapshot.buildId))
-        const [{ total: totalApproved }] = await tx
-          .select({ total: count() })
-          .from(snapshots)
-          .where(
-            and(eq(snapshots.buildId, snapshot.buildId), eq(snapshots.approvalStatus, SnapshotApprovalStatus.approved)),
-          )
-        if (totalApproved === total) {
-          buildStatus = BuildStatus.passed
-        }
-      }
-
-      await tx.update(builds).set({ status: buildStatus }).where(eq(builds.id, snapshot.buildId))
-
-      // Find baseline build for the snapshot's build
-      const [latestApprovedBuild] = await tx
-        .select()
-        .from(builds)
-        .where(and(eq(builds.projectId, snapshot.buildId), eq(builds.status, BuildStatus.passed)))
-        .orderBy(desc(builds.createdAt))
-        .limit(1)
-      if (latestApprovedBuild) {
-        await tx.update(projects).set({ baselineBuildId: latestApprovedBuild.id }).where(eq(snapshots.id, snapshotId))
-      }
+      await syncBuildStatusBasedOnSnapshotApprovals({ dbOrTx: tx, build })
     })
 
     return { ok: true } as const
@@ -235,6 +204,65 @@ export async function updateSnapshotApprovalStatus({
     console.error(error)
     return { ok: false, error: 'Failed to update snapshot approval' } as const
   }
+}
+
+export async function getBaselineSnapshot({
+  dbOrTx,
+  baselineBuildId,
+  payload,
+}: {
+  dbOrTx: DB | DBTransaction
+  baselineBuildId: string
+  payload: SnapshotPayload
+}) {
+  const [baselineSnapshot] = await dbOrTx
+    .select({
+      id: snapshots.id,
+      screenshotMedia: {
+        id: media.id,
+        path: media.path,
+        width: media.width,
+        height: media.height,
+        mimeType: media.mimeType,
+      },
+    })
+    .from(snapshots)
+    .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
+    .where(
+      and(
+        eq(snapshots.buildId, baselineBuildId),
+        eq(snapshots.pagePath, payload.pagePath),
+        eq(snapshots.browser, payload.browser),
+        eq(snapshots.viewportWidth, payload.viewportWidth),
+        eq(snapshots.viewportHeight, payload.viewportHeight),
+      ),
+    )
+    .orderBy(desc(snapshots.createdAt))
+    .limit(1)
+
+  return baselineSnapshot
+}
+
+export async function generateSnapshotFileName({
+  pageUrl,
+  type,
+}: {
+  pageUrl: string
+  type: 'screenshot' | 'baseline-screenshot' | 'diff'
+}) {
+  return `${sha256Hex(pageUrl)}_${type}.png`
+}
+
+export async function generateSnapshotPath({
+  projectId,
+  buildId,
+  snapshotId,
+}: {
+  projectId: string
+  buildId: string
+  snapshotId: string
+}) {
+  return `projects/${projectId}/builds/${buildId}/snapshots/${snapshotId}`
 }
 
 export type SnapshotsListRes = Awaited<ReturnType<typeof listSnapshotsByBuild>>

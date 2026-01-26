@@ -6,17 +6,22 @@ interface ImageDiffInput {
   imgUrl2?: string
   imgBuffer1?: Buffer
   imgBuffer2?: Buffer
-  threshold: number
+  threshold?: number
 }
 
 interface ImageDiffOutput {
   diffPercentage: number
   diffImage: Buffer
-  diffImageFileName: string
-  diffImageMimetype: string
 }
 
-async function bufferFromUrl(url: string): Promise<Buffer> {
+export class ImageDiffDimensionMismatchError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ImageDiffDimensionMismatchError'
+  }
+}
+
+export async function bufferFromUrl(url: string): Promise<Buffer> {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Failed to fetch image from ${url}`)
 
@@ -28,7 +33,7 @@ export async function getImageDiff({
   imgBuffer2,
   imgUrl1,
   imgUrl2,
-  threshold,
+  threshold = 0.2,
 }: ImageDiffInput): Promise<ImageDiffOutput> {
   const buffer1 = imgBuffer1 ?? (imgUrl1 ? await bufferFromUrl(imgUrl1) : undefined)
   const buffer2 = imgBuffer2 ?? (imgUrl2 ? await bufferFromUrl(imgUrl2) : undefined)
@@ -44,8 +49,7 @@ export async function getImageDiff({
   const { data: data2, info: info2 } = await image2.toBuffer({ resolveWithObject: true })
 
   if (info1.width !== info2.width || info1.height !== info2.height || info1.channels !== info2.channels) {
-    // TODO: Add handling when images have different dimensions or channels
-    throw new Error('Image dimensions or channels did not match')
+    throw new ImageDiffDimensionMismatchError('Image dimensions or channels did not match')
   }
 
   const { width, height, channels } = info1
@@ -66,7 +70,5 @@ export async function getImageDiff({
   return {
     diffPercentage,
     diffImage: diffPngBuffer,
-    diffImageFileName: `diff-${Date.now()}.png`,
-    diffImageMimetype: 'image/png',
   }
 }

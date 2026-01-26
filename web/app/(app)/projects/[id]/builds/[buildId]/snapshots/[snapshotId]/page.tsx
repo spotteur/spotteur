@@ -10,12 +10,13 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { snapshotsMenu } from '@/constants/app'
+import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { getProject } from '@/features/projects/actions'
 import { getSnapshotDetail } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
 import { SnapshotViewer, SnapshotActionButtons } from '@/features/snapshots/detail'
-import { type NavigationType } from '@/lib/type/app'
+import { type NavigationType } from '@/types/app'
 
 export default function SnapshotDetailPage() {
   const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
@@ -93,7 +94,11 @@ export default function SnapshotDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {snapshotData ? `Page path ${snapshotData.snapshot.pagePath}` : <Skeleton className="h-7 w-48" />}
+            {snapshotData ? (
+              `Page path ${snapshotData.snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshotData.snapshot.browser]}`
+            ) : (
+              <Skeleton className="h-7 w-48" />
+            )}
           </CardTitle>
           <CardAction>
             {snapshotData ? (

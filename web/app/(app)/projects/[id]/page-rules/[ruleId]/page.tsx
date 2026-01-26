@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { notFound, useParams, useRouter } from 'next/navigation'
+import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { type $ZodFlattenedError } from 'zod/v4/core'
@@ -15,7 +15,6 @@ import { getRule, updateRule } from '@/features/page-rules/actions'
 import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form'
 
 export default function EditRulePage() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
   const params = useParams<{ id: string; ruleId: string }>()
@@ -31,7 +30,6 @@ export default function EditRulePage() {
       if (res.ok) {
         toast.success('Page Rule updated', { description: 'Your rule was successfully saved.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
-        router.push(`/projects/${params.id}/page-rules`)
       } else {
         setFormErrors(res.error)
         toast.error('Rule update failed', { description: 'Please review the error and try again.' })

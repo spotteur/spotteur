@@ -30,7 +30,7 @@ export default function AppHeader() {
           <UserButton size="icon" classNames={{ skeleton: 'size-9', base: 'size-9' }} />
         </div>
       </div>
-      <div className="header-navigations">
+      <div>
         {isLoading && <Skeleton className="h-6 w-48" />}
         {!isLoading && navigations && <AppNavigation navigations={navigations} />}
       </div>
