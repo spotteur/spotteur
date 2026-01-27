@@ -106,6 +106,8 @@ services:
       RUSTFS_TLS_PATH: "/opt/tls"
       RUSTFS_OBJECT_CACHE_ENABLE: true
       RUSTFS_OBJECT_CACHE_TTL_SECS: 300
+    profiles:
+      - rustfs
     volumes:
       - "rustfs_data:/data/rustfs"
       - "rustfs_logs:/app/logs"
@@ -132,6 +134,8 @@ services:
         exit 0
       "
     restart: "no"
+    profiles:
+      - rustfs
   rustfs-init-bucket-helper:
     image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
     env_file: [".env"]
@@ -146,6 +150,8 @@ services:
         exit 0
       "
     restart: "on-failure"
+    profiles:
+      - rustfs
   selenium:
     image: "selenium/standalone-docker:4.39.0"
     environment:
@@ -158,6 +164,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://0.0.0.0:4444/status || exit 1"]
       interval: 10s
+    profiles:
+      - selenium
 volumes:
   selenium_assets:
   postgres-temporal_data:
