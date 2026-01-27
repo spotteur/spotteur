@@ -1,5 +1,3 @@
-import 'server-only'
-
 import winston from 'winston'
 
 const { combine, timestamp, errors, json } = winston.format
