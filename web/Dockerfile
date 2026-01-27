@@ -10,6 +10,8 @@ WORKDIR /app
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 
+RUN sh -c "$(wget -qO- https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -40,12 +42,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# Install dev tools
+RUN apk add --no-cache git
+COPY --from=deps /usr/local/bin/task /usr/local/bin
+
 COPY package.json package-lock.json ./
 COPY --from=deps /app/node_modules ./node_modules
-
-# Install dev tools
-RUN apk add --no-cache git curl
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 # Install dev dependencies
 RUN npm install
@@ -82,6 +84,7 @@ ENV TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS}
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+COPY --from=deps /usr/local/bin/task /usr/local/bin
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -98,8 +101,6 @@ ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public

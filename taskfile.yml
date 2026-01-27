@@ -14,7 +14,7 @@ tasks:
   up:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} up --detach --build --remove-orphans"
-      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
+      - task: "migrate"
   stop:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
@@ -30,3 +30,6 @@ tasks:
   db:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
+  migrate:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-migration-runner task migrate"
