@@ -1,6 +1,7 @@
 import { NativeConnection, Worker } from '@temporalio/worker'
 
 import { TEMPORAL_ADDRESS } from '@/constants/env'
+import { logger } from '@/lib/logger'
 import * as buildActivities from '@/temporal/activities/build'
 import * as projectActivities from '@/temporal/activities/project'
 
@@ -21,6 +22,6 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error(err)
+  logger.error(err)
   process.exit(1)
 })

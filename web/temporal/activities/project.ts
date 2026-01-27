@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm'
 import db from '@/db/drizzle'
 import { builds, projects } from '@/db/schema'
 import { populateSnapshotsPayload } from '@/features/builds/actions'
+import { logger } from '@/lib/logger'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 export async function getSnapshotsPayload({
@@ -36,7 +37,7 @@ export async function getSnapshotsPayload({
       throw err
     }
 
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(`Failed to get snapshot payloads: ${err instanceof Error ? err.message : err}`)
   }
 }

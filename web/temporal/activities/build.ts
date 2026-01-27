@@ -11,6 +11,7 @@ import db from '@/db/drizzle'
 import { builds, snapshots } from '@/db/schema'
 import { getNovuSubscribers, syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
 import { UnsupportedBrowserEngineError } from '@/lib/browser-engine'
+import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { ScreenshotCapturer } from '@/lib/screenshot/capturer'
 import { ScreenshotProcessor } from '@/lib/screenshot/processor'
@@ -34,7 +35,7 @@ export async function markBuildAsStarted({ buildId }: { buildId: string }) {
       throw err
     }
 
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(`Failed to mark build as started: ${err instanceof Error ? err.message : err}`)
   }
 }
@@ -47,7 +48,7 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
       throw ApplicationFailure.nonRetryable(err.message)
     }
 
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(`Failed to capture screenshot: ${err instanceof Error ? err.message : err}`)
   }
 }
@@ -66,7 +67,7 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
 
     return { snapshot }
   } catch (err) {
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(`Failed to process screenshot: ${err instanceof Error ? err.message : err}`)
   }
 }
@@ -90,7 +91,7 @@ export async function finalizeBuildSnapshots({ buildId, isSuccess }: { buildId: 
       throw err
     }
 
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(
       `Failed to finalize build snapshots: ${err instanceof Error ? err.message : err}`,
     )
@@ -109,7 +110,7 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
     }
 
     if (build.status !== BuildStatus.WAITING_REVIEW) {
-      console.log(`Build ID ${buildId} is not in waiting_review status, skipping notification`)
+      logger.info(`Build ID ${buildId} is not in waiting_review status, skipping notification`)
       return
     }
 
@@ -142,7 +143,7 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
       throw err
     }
 
-    console.error(err)
+    logger.error(err)
     throw ApplicationFailure.retryable(`Failed to send notification: ${err instanceof Error ? err.message : err}`)
   }
 }
