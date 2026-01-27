@@ -13,7 +13,7 @@ vars:
 tasks:
   up:
     cmds:
-      - '{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK "rustfs" }}--profile rustfs{{ end }} {{if eq .USE_REMOTE_SELENIUM "true"}}--profile selenium{{ end }} up --detach --build --remove-orphans'
+      - "{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK 'rustfs' }}--profile rustfs{{ end }} {{if eq .USE_REMOTE_SELENIUM 'true'}}--profile selenium{{ end }} up --detach --build --remove-orphans"
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
   down:
     cmds:
@@ -32,4 +32,4 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
   stop:
     cmds:
-      - '{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK "rustfs" }}--profile rustfs{{ end }} {{if eq .USE_REMOTE_SELENIUM "true"}}--profile selenium{{ end }} stop'
+      - "{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK 'rustfs' }}--profile rustfs{{ end }} {{if eq .USE_REMOTE_SELENIUM 'true'}}--profile selenium{{ end }} stop"
