@@ -7,10 +7,12 @@ services:
         NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
         NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
         NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
-        NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
         BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+        NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
+        S3_ENDPOINT: ${S3_ENDPOINT:-}
+        TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
     ports:
-      - "18000:3000"
+      - "${WEBAPP_PORT:-18000}:3000"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000 || exit 1"]
     env_file: [".env"]
@@ -19,6 +21,25 @@ services:
         condition: "service_healthy"
     volumes:
       - "webapp_logs:/app/logs"
+  webapp-migration-runner:
+    build:
+      context: "web"
+      dockerfile: "Dockerfile"
+      target: "builder"
+      args:
+        NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
+        NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
+        NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
+        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+        NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
+        S3_ENDPOINT: ${S3_ENDPOINT:-}
+        TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
+    env_file: [".env"]
+    profiles:
+      - "migration-runner"
+    depends_on:
+      postgres-webapp:
+        condition: "service_healthy"
   webapp-worker:
     build:
       context: "web"
@@ -81,7 +102,7 @@ services:
       TEMPORAL_CORS_ORIGINS: "http://localhost:8233"
       TEMPORAL_UI_PORT: "8233"
     ports:
-      - "18001:8233"
+      - "${TEMPORAL_UI_PORT:-18001}:8233"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://localhost:8233 || exit 1"]
     depends_on:
@@ -92,8 +113,8 @@ services:
     security_opt:
       - "no-new-privileges:true"
     ports:
-      - "18002:9000" # S3 API port
-      - "18003:9001" # Console port
+      - "${RUSTFS_PORT:-18002}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-18003}:9001"
     env_file: [".env"]
     environment:
       RUSTFS_VOLUMES: "/data/rustfs"
@@ -134,7 +155,7 @@ services:
         echo 'Volume permissions fixed' &&
         exit 0
       "
-    restart: "no"
+    restart: "on-failure"
   rustfs-init-bucket-helper:
     image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
     env_file: [".env"]
@@ -150,7 +171,7 @@ services:
       "
     restart: "on-failure"
   selenium:
-    image: "selenium/standalone-docker:4.39.0"
+    image: "selenium/standalone-docker:4.40.0"
     environment:
       SE_NODE_SESSION_TIMEOUT: "600"
       SE_START_VNC: "false"
@@ -159,8 +180,8 @@ services:
       - "selenium_assets:/opt/selenium/assets"
       - "/var/run/docker.sock:/var/run/docker.sock"
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:4444/status || exit 1"]
-      interval: 10s
+      test: ["CMD", "/opt/bin/check-grid.sh"]
+      interval: 5s
 volumes:
   selenium_assets:
   postgres-temporal_data:

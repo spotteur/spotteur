@@ -11,7 +11,7 @@ import { type IBrowserEngine } from '@/types/browser-engine'
 import { type CaptureScreenshotParams, type SnapshotPayload } from '@/types/screenshot'
 
 export class ScreenshotCapturer {
-  private browserEngine!: IBrowserEngine
+  private browserEngine: IBrowserEngine | undefined
   private payload: SnapshotPayload
   private logPrefix: string
 
@@ -57,24 +57,24 @@ export class ScreenshotCapturer {
       return { tempPath }
     } finally {
       logger.info(`${this.logPrefix} Closing browser engine`)
-      await this.browserEngine.quit()
+      await this.browserEngine?.quit()
     }
   }
 
   private async runPreScreenshotHook(): Promise<void> {
     if (this.payload.hooks?.['pre-screenshot']) {
       logger.info(`${this.logPrefix} Executing pre-screenshot hook`)
-      await this.browserEngine.executeScript<void>(this.payload.hooks['pre-screenshot'])
+      await this.browserEngine?.executeScript<void>(this.payload.hooks['pre-screenshot'])
     }
 
     if (this.payload.reducedMotion) {
       logger.info(`${this.logPrefix} Enabling reduced motion`)
-      await this.browserEngine.enableReducedMotion()
+      await this.browserEngine?.enableReducedMotion()
     }
 
     if (this.payload.mediaReset) {
       logger.info(`${this.logPrefix} Resetting time-based media`)
-      await this.browserEngine.resetTimeBasedMedia()
+      await this.browserEngine?.resetTimeBasedMedia()
     }
 
     await this.applyRules()
@@ -86,24 +86,24 @@ export class ScreenshotCapturer {
         for (const ruleAttr of rule.attrs) {
           if (ruleAttr.name === RuleAttrType.REMOVE) {
             logger.info(`${this.logPrefix} Removing element matching selector: ${selector}`)
-            await this.browserEngine.removeElements(selector)
+            await this.browserEngine?.removeElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.HIDE) {
             logger.info(`${this.logPrefix} Hiding element matching selector: ${selector}`)
-            await this.browserEngine.hideElements(selector)
+            await this.browserEngine?.hideElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.CUSTOM) {
             logger.info(
               `${this.logPrefix} Replace innerText element with user-defined text matching selector: ${selector}`,
             )
-            await this.browserEngine.replaceElementInnerText(selector, ruleAttr.value || '')
+            await this.browserEngine?.replaceElementInnerText(selector, ruleAttr.value || '')
           }
 
           if (ruleAttr.name === RuleAttrType.REPLACE_WORDS) {
             logger.info(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`)
-            await this.browserEngine.replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
+            await this.browserEngine?.replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
           }
         }
       }
