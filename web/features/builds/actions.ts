@@ -18,6 +18,7 @@ import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snaps
 import novu from '@/lib/novu'
 import { temporalClient } from '@/lib/temporal-client'
 import { humanReadableEpoch } from '@/lib/utils'
+import { type buildSnapshotsWorkflow } from '@/temporal/workflows/snapshot'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
@@ -115,7 +116,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     })
     .returning()
 
-  await temporalClient.workflow.start(TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, {
+  await temporalClient.workflow.start<typeof buildSnapshotsWorkflow>(TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, {
     workflowId: `build-${build.id}`,
     taskQueue: TEMPORAL_QUEUE_NAME,
     args: [{ projectId: project.id, buildId: build.id }],

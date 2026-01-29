@@ -1,5 +1,6 @@
 import { executeChild, proxyActivities } from '@temporalio/workflow'
 
+import { logger } from '@/lib/logger'
 import type * as BuildActivities from '@/temporal/activities/build'
 import type * as ProjectActivities from '@/temporal/activities/project'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
@@ -45,7 +46,7 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
 
     return `Successfully generated snapshots (${results.length} pages)`
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     await finalizeBuildSnapshots({ buildId, isSuccess: false })
     throw error
   }
