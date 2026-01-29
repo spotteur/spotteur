@@ -1,6 +1,6 @@
 import { executeChild, proxyActivities } from '@temporalio/workflow'
 
-import { logger } from '@/lib/logger'
+import { logger } from '../../lib/logger'
 import type * as BuildActivities from '@/temporal/activities/build'
 import type * as ProjectActivities from '@/temporal/activities/project'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
