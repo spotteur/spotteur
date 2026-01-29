@@ -1,5 +1,7 @@
 import { faker } from '@faker-js/faker'
 
+import { logger } from '@/lib/logger'
+
 import db from './drizzle'
 import { users } from './schema'
 
@@ -14,4 +16,4 @@ async function main() {
   process.exit(0)
 }
 
-main().catch(console.error)
+main().catch(logger.error)

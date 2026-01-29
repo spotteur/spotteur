@@ -15,6 +15,7 @@ import { builds, media, projects, snapshots } from '@/db/schema'
 import { populateSnapshotsPayload } from '@/features/builds/actions'
 import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
 import { getImageDiff } from '@/lib/image-diff'
+import { logger } from '@/lib/logger'
 import { uploadFileFromBuffer } from '@/lib/s3'
 import { humanReadableEpoch, randomElement } from '@/lib/utils'
 
@@ -57,14 +58,14 @@ async function createMediaRecord(
 }
 
 async function main() {
-  console.log('Start seeding builds and snapshots...')
+  logger.info('Start seeding builds and snapshots...')
 
   const existingProjects = await db.select().from(projects).limit(1).orderBy(desc(projects.createdAt))
   let project: typeof projects.$inferSelect
 
   if (existingProjects.length > 0) {
     project = existingProjects[0]
-    console.log('Using existing project:', existingProjects[0].name)
+    logger.info('Using existing project:', existingProjects[0].name)
   } else {
     const [newProject] = await db
       .insert(projects)
@@ -80,7 +81,7 @@ async function main() {
       .returning()
 
     project = newProject
-    console.log('Created new project:', newProject.name)
+    logger.info('Created new project:', newProject.name)
   }
 
   const existingBuilds = await db.select().from(builds).where(eq(builds.projectId, project.id))
@@ -99,7 +100,7 @@ async function main() {
       })
       .returning()
 
-    console.log('Created build:', build.identifier)
+    logger.info('Created build:', build.identifier)
 
     const mimeType = 'image/png'
 
@@ -167,18 +168,18 @@ async function main() {
           diffPercentage,
         })
       } catch (error) {
-        console.error('Error creating snapshot for', snapshotPayload.pagePath, 'Error:', error)
+        logger.error('Error creating snapshot for', snapshotPayload.pagePath, 'Error:', error)
       }
     }
 
-    console.log('')
+    logger.info('')
   }
 
-  console.log('Seed completed successfully!')
+  logger.info('Seed completed successfully!')
   process.exit(0)
 }
 
 main().catch((error) => {
-  console.error('Seed failed:', error)
+  logger.error('Seed failed:', error)
   process.exit(1)
 })
