@@ -14,7 +14,7 @@ tasks:
   up:
     cmds:
       - '{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK "rustfs" }}--profile rustfs{{ end }} {{if eq .USE_EXTERNAL_SELENIUM "false"}}--profile selenium{{ end }} up --detach --build --remove-orphans'
-      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
+      - task: "migrate"
   down:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
