@@ -19,6 +19,8 @@ services:
     depends_on:
       postgres-webapp:
         condition: "service_healthy"
+    volumes:
+      - "webapp_logs:/app/logs"
   webapp-migration-runner:
     build:
       context: "web"
@@ -48,6 +50,7 @@ services:
         condition: "service_healthy"
     volumes:
       - "webapp-worker_storage:/storage"
+      - "webapp_logs:/app/logs"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -186,3 +189,4 @@ volumes:
   rustfs_data:
   rustfs_logs:
   webapp-worker_storage:
+  webapp_logs:

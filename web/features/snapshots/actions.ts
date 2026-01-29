@@ -7,6 +7,7 @@ import { SnapshotApprovalStatus } from '@/constants/status-map'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
 import { builds, media, snapshots } from '@/db/schema'
 import { syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
+import { logger } from '@/lib/logger'
 import { getPresignUrl } from '@/lib/s3'
 import { sha256Hex } from '@/lib/utils'
 import { type SnapshotPayload } from '@/types/screenshot'
@@ -201,7 +202,7 @@ export async function updateSnapshotApprovalStatus({
 
     return { ok: true } as const
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     return { ok: false, error: 'Failed to update snapshot approval' } as const
   }
 }

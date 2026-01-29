@@ -8,6 +8,7 @@ import db from '@/db/drizzle'
 import { builds, media, snapshots } from '@/db/schema'
 import { generateSnapshotFileName, getBaselineSnapshot } from '@/features/snapshots/actions'
 import { bufferFromUrl, getImageDiff, ImageDiffDimensionMismatchError } from '@/lib/image-diff'
+import { logger } from '@/lib/logger'
 import { getPresignUrl, uploadFileFromBuffer } from '@/lib/s3'
 import { type ProcessScreenshotResult, type ProcessScreenshotParams, type SnapshotPayload } from '@/types/screenshot'
 
@@ -24,7 +25,7 @@ export class ScreenshotProcessor {
 
   public async process(): Promise<ProcessScreenshotResult> {
     const { snapshot } = await db.transaction(async (tx) => {
-      console.log(`${this.logPrefix} Processing screenshot from ${this.tempPath}`)
+      logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`)
       const image = sharp(fs.readFileSync(this.tempPath)).ensureAlpha().raw().toFormat('png')
       const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
 
@@ -57,7 +58,7 @@ export class ScreenshotProcessor {
       let diffScreenshotMediaId: string | null = null
       let diffPercentage: number = 100
 
-      console.log(`${this.logPrefix} Checking baseline screenshot`)
+      logger.info(`${this.logPrefix} Checking baseline screenshot`)
       const [build] = await tx.select().from(builds).where(eq(builds.id, this.payload.buildId)).limit(1)
       if (build.baselineBuildId) {
         const baselineSnapshot = await getBaselineSnapshot({
@@ -67,15 +68,15 @@ export class ScreenshotProcessor {
         })
         if (baselineSnapshot && baselineSnapshot.screenshotMedia) {
           try {
-            console.log(`${this.logPrefix} Found baseline screenshot`)
+            logger.info(`${this.logPrefix} Found baseline screenshot`)
 
             baselineScreenshotMediaId = baselineSnapshot.screenshotMedia.id
             const mediaUrl = await getPresignUrl({ key: baselineSnapshot.screenshotMedia.path })
 
-            console.log(`${this.logPrefix} Downloading baseline screenshot`)
+            logger.info(`${this.logPrefix} Downloading baseline screenshot`)
             const baselineBuffer = await bufferFromUrl(mediaUrl)
 
-            console.log(`${this.logPrefix} Calculating image diff`)
+            logger.info(`${this.logPrefix} Calculating image diff`)
             const { diffImage: diffScreenshotBuffer, diffPercentage: diff } = await getImageDiff({
               imgBuffer1: buffer,
               imgBuffer2: baselineBuffer,
@@ -119,7 +120,7 @@ export class ScreenshotProcessor {
       }
 
       if (!baselineScreenshotMediaId) {
-        console.log(`${this.logPrefix} No baseline screenshot found`)
+        logger.info(`${this.logPrefix} No baseline screenshot found`)
       }
 
       // TODO: Maybe we can add this to project setting,
@@ -129,7 +130,7 @@ export class ScreenshotProcessor {
         approvalStatus = SnapshotApprovalStatus.APPROVED
       }
 
-      console.log(`${this.logPrefix} Storing record of snapshot`)
+      logger.info(`${this.logPrefix} Storing record of snapshot`)
       const [snapshot] = await tx
         .insert(snapshots)
         .values({
