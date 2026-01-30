@@ -6,14 +6,14 @@ vars:
   DOCKER_COMPOSE_SCRIPT:
     sh: |
       if [ "{{.APP_ENV}}" = "development" ]; then
-        echo "docker compose -f compose.yml -f compose.dev.yml"
+        echo "docker compose -f compose.yml -f compose.dev.yml{{ if eq .FILESYSTEM_DISK "rustfs" }} --profile rustfs{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} --profile selenium{{ end }}"
       else
-        echo "docker compose -f compose.yml"
+        echo "docker compose -f compose.yml{{ if eq .FILESYSTEM_DISK "rustfs" }} --profile rustfs{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} --profile selenium{{ end }}"
       fi
 tasks:
   up:
     cmds:
-      - '{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK "rustfs" }}--profile rustfs{{ end }} {{if eq .USE_EXTERNAL_SELENIUM "false"}}--profile selenium{{ end }} up --detach --build --remove-orphans'
+      - "{{.DOCKER_COMPOSE_SCRIPT}} up --detach --build --remove-orphans"
       - task: "migrate"
   down:
     cmds:
@@ -32,7 +32,7 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
   stop:
     cmds:
-      - '{{.DOCKER_COMPOSE_SCRIPT}} {{ if eq .FILESYSTEM_DISK "rustfs" }}--profile rustfs{{ end }} {{if eq .USE_EXTERNAL_SELENIUM "false"}}--profile selenium{{ end }} stop'
+      - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
   migrate:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-migration-runner task migrate"

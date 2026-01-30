@@ -14,7 +14,10 @@ services:
     ports:
       - "${WEBAPP_PORT:-18000}:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000 || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
     env_file: [".env"]
     depends_on:
       postgres-webapp:
@@ -25,7 +28,7 @@ services:
     build:
       context: "web"
       dockerfile: "Dockerfile"
-      target: "builder"
+      target: "development"
       args:
         NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
         NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}

@@ -1,22 +1,27 @@
 # syntax=docker/dockerfile:1
 # check=skip=SecretsUsedInArgOrEnv
 
-FROM node:24-alpine AS base
+ARG NODE_VERSION=24
+FROM node:${NODE_VERSION}-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 
-RUN sh -c "$(wget -qO- https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+apt-get install -y --no-install-recommends curl ca-certificates && \
+rm -rf /var/lib/apt/lists/*
+
+RUN sh -c "$(curl -fsSL https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
 
-FROM base AS development
+FROM deps AS development
 WORKDIR /app
 
 # Environment variables must be present at build time
@@ -43,11 +48,10 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Install dev tools
-RUN apk add --no-cache git
-COPY --from=deps /usr/local/bin/task /usr/local/bin
-
-COPY package.json package-lock.json ./
-COPY --from=deps /app/node_modules ./node_modules
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install dev dependencies
 RUN npm install
@@ -91,7 +95,7 @@ COPY . .
 RUN npm run build
 
 
-FROM base AS production
+FROM node:${NODE_VERSION}-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production

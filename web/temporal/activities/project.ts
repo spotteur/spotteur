@@ -32,12 +32,16 @@ export async function getSnapshotsPayload({
     const snapshotPayloads = await populateSnapshotsPayload({ project, build })
 
     return snapshotPayloads
-  } catch (err) {
-    if (err instanceof ApplicationFailure) {
-      throw err
+  } catch (error) {
+    if (error instanceof ApplicationFailure) {
+      throw error
     }
 
-    logger.error(err)
-    throw ApplicationFailure.retryable(`Failed to get snapshot payloads: ${err instanceof Error ? err.message : err}`)
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to get snapshot payloads: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
   }
 }
