@@ -6,7 +6,6 @@ import firefox from 'selenium-webdriver/firefox'
 import { Browser } from '@/constants/enum'
 import { SELENIUM_REMOTE_URL } from '@/constants/env'
 import { SELENIUM_IMPLICIT_TIMEOUT, SELENIUM_PAGE_LOAD_TIMEOUT, SELENIUM_SCRIPT_TIMEOUT } from '@/constants/selenium'
-import { logger } from '@/lib/logger'
 import { type IBrowserEngine } from '@/types/browser-engine'
 import { type SnapshotPayload } from '@/types/screenshot'
 
@@ -151,10 +150,8 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   }
 
   public async waitForSelector(selector: string, timeout: number, dontThrow?: boolean): Promise<void> {
-    logger.info(`Waiting for selector: ${selector}`)
     await this.driver.wait(until.elementLocated(By.css(selector)), timeout).catch((err) => {
       if (dontThrow) {
-        logger.warn(`Selector ${selector} not found within ${timeout} ms, but continuing as dontThrow is set.`)
         return
       }
 

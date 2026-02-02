@@ -4,7 +4,7 @@ import type * as Activities from '@/temporal/activities/build'
 import { type ScreenshotWorkflowResult, type ScreenshotWorkflowParams } from '@/types/screenshot'
 
 const { takeScreenshot, processScreenshot, markBuildAsStarted } = proxyActivities<typeof Activities>({
-  startToCloseTimeout: '15 minutes',
+  startToCloseTimeout: '30 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,

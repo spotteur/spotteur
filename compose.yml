@@ -15,15 +15,15 @@ services:
       - "${WEBAPP_PORT:-18000}:3000"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 15
+      retries: 30
     env_file: [".env"]
     depends_on:
       postgres-webapp:
         condition: "service_healthy"
     volumes:
-      - "webapp_logs:/app/logs"
+      - "./web/logs:/app/logs"
   webapp-migration-runner:
     build:
       context: "web"
@@ -49,11 +49,13 @@ services:
       dockerfile: "Dockerfile.worker"
     env_file: [".env"]
     depends_on:
+      postgres-webapp:
+        condition: "service_healthy"
       temporal:
         condition: "service_healthy"
     volumes:
       - "webapp-worker_storage:/storage"
-      - "webapp_logs:/app/logs"
+      - "./web/logs:/app/logs"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -62,9 +64,9 @@ services:
       POSTGRES_DB: "${DB_NAME:-}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-} -d ${DB_NAME:-}"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 15
+      retries: 30
     volumes:
       - "postgres-webapp_data:/var/lib/postgresql"
   postgres-temporal:
@@ -75,9 +77,9 @@ services:
       POSTGRES_DB: "temporal"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U temporal -d temporal"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 15
+      retries: 30
     volumes:
       - "postgres-temporal_data:/var/lib/postgresql"
   temporal:
@@ -92,9 +94,9 @@ services:
       TEMPORAL_CLI_ADDRESS: "temporal:7233"
     healthcheck:
       test: ["CMD-SHELL", "temporal operator cluster health"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 15
+      retries: 30
     depends_on:
       postgres-temporal:
         condition: "service_healthy"
@@ -104,6 +106,7 @@ services:
       TEMPORAL_ADDRESS: "temporal:7233"
       TEMPORAL_CORS_ORIGINS: "http://localhost:8233"
       TEMPORAL_UI_PORT: "8233"
+      TEMPORAL_HIDE_LOGS: "true" # Don't re-print logs from Temporal service
     ports:
       - "${TEMPORAL_UI_PORT:-18001}:8233"
     healthcheck:
@@ -124,7 +127,7 @@ services:
       RUSTFS_ADDRESS: "0.0.0.0:9000"
       RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
       RUSTFS_CONSOLE_ENABLE: true
-      RUSTFS_EXTERNAL_ADDRESS: ":18002"
+      RUSTFS_EXTERNAL_ADDRESS: ":${RUSTFS_PORT:-18002}"
       RUSTFS_CORS_ALLOWED_ORIGINS: "*"
       RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
       RUSTFS_ACCESS_KEY: "${RUSTFS_INITIAL_ACCESS_KEY:-}"
@@ -144,10 +147,9 @@ services:
           "CMD-SHELL",
           "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health",
         ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      interval: 3s
+      timeout: 5s
+      retries: 30
   # RustFS volume permissions fixer service
   rustfs-volume-permission-helper:
     image: "alpine"
@@ -200,4 +202,3 @@ volumes:
   rustfs_data:
   rustfs_logs:
   webapp-worker_storage:
-  webapp_logs:

@@ -35,6 +35,11 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
         return executeChild(screenshotWorkflow, {
           args: [{ payload }],
           workflowId: `build-${buildId}-snapshot-${payload.id}-${payload.browser.toString()}`,
+          retry: {
+            initialInterval: '500 ms',
+            maximumAttempts: 3,
+            backoffCoefficient: 1.5,
+          },
         })
       }),
     )
