@@ -30,26 +30,34 @@ export async function markBuildAsStarted({ buildId }: { buildId: string }) {
     }
 
     await db.update(builds).set({ status: BuildStatus.IN_PROGRESS }).where(eq(builds.id, buildId))
-  } catch (err) {
-    if (err instanceof ApplicationFailure) {
-      throw err
+  } catch (error) {
+    if (error instanceof ApplicationFailure) {
+      throw error
     }
 
-    logger.error(err)
-    throw ApplicationFailure.retryable(`Failed to mark build as started: ${err instanceof Error ? err.message : err}`)
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to mark build as started: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
   }
 }
 
 export async function takeScreenshot(params: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
   try {
     return await new ScreenshotCapturer(params).capture()
-  } catch (err) {
-    if (err instanceof UnsupportedBrowserEngineError) {
-      throw ApplicationFailure.nonRetryable(err.message)
+  } catch (error) {
+    if (error instanceof UnsupportedBrowserEngineError) {
+      throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 
-    logger.error(err)
-    throw ApplicationFailure.retryable(`Failed to capture screenshot: ${err instanceof Error ? err.message : err}`)
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to capture screenshot: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
   }
 }
 
@@ -57,7 +65,7 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
   try {
     fs.accessSync(params.tempPath, fs.constants.R_OK)
   } catch {
-    throw ApplicationFailure.nonRetryable(`Screenshot file not found: ${params.tempPath}`)
+    throw ApplicationFailure.nonRetryable(`Screenshot file not found: ${params.tempPath}`, 'FileNotFound')
   }
 
   try {
@@ -66,9 +74,13 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
     fs.rmSync(params.tempPath, { force: true })
 
     return { snapshot }
-  } catch (err) {
-    logger.error(err)
-    throw ApplicationFailure.retryable(`Failed to process screenshot: ${err instanceof Error ? err.message : err}`)
+  } catch (error) {
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to process screenshot: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
   }
 }
 
@@ -86,14 +98,16 @@ export async function finalizeBuildSnapshots({ buildId, isSuccess }: { buildId: 
 
       await syncBuildStatusBasedOnSnapshotApprovals({ dbOrTx: tx, build })
     })
-  } catch (err) {
-    if (err instanceof ApplicationFailure) {
-      throw err
+  } catch (error) {
+    if (error instanceof ApplicationFailure) {
+      throw error
     }
 
-    logger.error(err)
+    logger.error(error)
     throw ApplicationFailure.retryable(
-      `Failed to finalize build snapshots: ${err instanceof Error ? err.message : err}`,
+      `Failed to finalize build snapshots: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
     )
   }
 }
@@ -138,12 +152,16 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
         },
       })
     }
-  } catch (err) {
-    if (err instanceof ApplicationFailure) {
-      throw err
+  } catch (error) {
+    if (error instanceof ApplicationFailure) {
+      throw error
     }
 
-    logger.error(err)
-    throw ApplicationFailure.retryable(`Failed to send notification: ${err instanceof Error ? err.message : err}`)
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to send notification: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
   }
 }
