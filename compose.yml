@@ -24,7 +24,7 @@ services:
         condition: "service_healthy"
     volumes:
       - "./web/logs:/app/logs"
-  webapp-migration-runner:
+  webapp-script-runner:
     build:
       context: "web"
       dockerfile: "Dockerfile"
@@ -39,7 +39,7 @@ services:
         TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
     env_file: [".env"]
     profiles:
-      - "migration-runner"
+      - "script-runner"
     depends_on:
       postgres-webapp:
         condition: "service_healthy"
