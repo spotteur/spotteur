@@ -35,3 +35,5 @@ export const TEMPORAL_ADDRESS = process.env.TEMPORAL_ADDRESS || ''
 export const SELENIUM_REMOTE_URL = process.env.SELENIUM_REMOTE_URL || ''
 
 export const TRUSTED_ORIGINS = (process.env.TRUSTED_ORIGINS || APP_URL || '').split(',').map((origin) => origin.trim())
+
+export const DISABLE_REGISTRATION = process.env.NEXT_PUBLIC_DISABLE_REGISTRATION === 'true'

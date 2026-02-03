@@ -12,3 +12,6 @@ tasks:
   auth:schema:generate:
     cmds:
       - 'npx -y @better-auth/cli generate --output=./db/schema/auth.ts'
+  create-user:
+    cmds:
+      - 'npx -y tsx commands/create-user.ts'

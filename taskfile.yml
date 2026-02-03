@@ -35,4 +35,7 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
   migrate:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-migration-runner task migrate"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-script-runner task migrate"
+  create-user:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-script-runner task create-user"
