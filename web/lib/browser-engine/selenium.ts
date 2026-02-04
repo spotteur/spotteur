@@ -96,6 +96,12 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
     })
   }
 
+  public async scrollPageToTop(): Promise<void> {
+    await this.driver.executeScript<void>(() => {
+      window.scrollTo(0, 0)
+    })
+  }
+
   public async enableReducedMotion(): Promise<void> {
     await this.driver.executeScript<void>(() => {
       const style = document.createElement('style')
