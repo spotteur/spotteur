@@ -59,7 +59,6 @@ export default function ProjectPageRulesPage() {
         toast.error('Page rules update failed', { description: (
            <ul>
             {res.error && Object.values(res.error.fieldErrors).map((row, index) => {
-              console.log(row)
               return (
                 <li key={index}>
                   {row && Array.isArray(row) ? (
@@ -74,29 +73,6 @@ export default function ProjectPageRulesPage() {
     },
     onError: () => {
       toast.error('Page rules update failed', { description: 'Something went wrong. Please try again later.' })
-    },
-  })
-
-  const exportMutation = useMutation({
-    mutationFn: async () => {
-      const res = await existingPageRules()
-
-      return res
-    },
-    onSuccess: (response) => {
-      const blob = new Blob([response], { type: 'text/yaml' })
-      const url = URL.createObjectURL(blob)
-
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'page-rules.yaml'
-      a.click()
-
-      URL.revokeObjectURL(url)
-      toast.success('Page rules exported', { description: 'The page rules were successfully exported.' })
-    },
-    onError: () => {
-      toast.error('Page rules export failed', { description: 'Something went wrong. Please try again later.' })
     },
   })
 

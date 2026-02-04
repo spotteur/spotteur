@@ -4,7 +4,7 @@ import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
 import { parse } from 'yaml'
 import { z } from 'zod'
 
-import { type Browser } from '@/constants/enum'
+import { Browser, RuleAttrType } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
 import { PageRuleCreateSchema, PageRulesUpsertSchema } from '@/features/page-rules/schema'
@@ -128,7 +128,6 @@ export async function upsertPageRules(schema: string, projectId: string) {
   const parsed = parse(schema)
   const payload = await PageRulesUpsertSchema.safeParseAsync(parsed)
   if (payload.error) {
-    console.log('error =>', payload.error)
     return {ok: false, error: z.flattenError(payload.error)}
   }
 
@@ -169,7 +168,25 @@ export async function existingPageRules() {
   const doc: any = new YAML.Document(exportedRules);
   exportedRules.forEach((_, pageIndex) => {
     ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as any).commentBefore =
-      'Possible values: chrome, firefox, edge'
+      `Possible values: ${Object.values(Browser).join(', ')}`
+
+    ;(doc.getIn([pageIndex, 'rules'], true) as any).commentBefore =
+      'An array of rules to dynamically apply `data-spt-*` attributes'
+
+      exportedRules[pageIndex].rules.forEach((_, ruleIndex) => {
+
+        ;(doc.getIn(
+          [pageIndex, 'rules', ruleIndex, 'selectors'],
+          true
+        ) as any).commentBefore =
+          `Array of CSS selectors to target elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
+
+        ;(doc.getIn(
+          [pageIndex, 'rules', ruleIndex, 'attrs'],
+          true
+        ) as any).commentBefore =
+          'Object containing the `data-spt-*` attributes to apply to the matched elements.'
+      })
   })
 
   return doc.toString()
