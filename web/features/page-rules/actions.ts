@@ -72,9 +72,9 @@ export async function createRule(input: unknown, projectId: string) {
     return {
       ok: false,
       error: {
-        formErrors: [], // error global bisa kosong
+        formErrors: [],
         fieldErrors: {
-          pagePath: ['This page path already exists'] // <-- sesuai fieldErrors
+          pagePath: ['This page path already exists'] 
         }
       }
     }
