@@ -145,12 +145,12 @@ export async function upsertPageRules(schema: string, projectId: string) {
   const [data] = await db.insert(pageRules).values(pageRulesToInsert).onConflictDoUpdate({
     target: pageRules.id,
     set: {
-      snapshotBrowsers: sql.raw('excluded.snapshot_browsers'),
-      viewports: sql.raw('excluded.viewports'),
-      mediaReset: sql.raw('excluded.media_reset'),
-      reducedMotion: sql.raw('excluded.reduce_motion'),
-      pagePath: sql.raw('excluded.page_path'),
-      rules: sql.raw('excluded.rules'),
+      snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
+      viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
+      mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
+      reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
+      pagePath: sql.raw(`excluded.${pageRules.pagePath.name}`),
+      rules: sql.raw(`excluded.${pageRules.rules.name}`),
     },
   }).returning()
   
