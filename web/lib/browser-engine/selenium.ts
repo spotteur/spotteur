@@ -1,4 +1,4 @@
-import { Builder, By, until } from 'selenium-webdriver'
+import { Builder, By, until, Browser as SeleniumBrowser } from 'selenium-webdriver'
 import chrome from 'selenium-webdriver/chrome'
 import edge from 'selenium-webdriver/edge'
 import firefox from 'selenium-webdriver/firefox'
@@ -174,20 +174,18 @@ export class SeleniumBrowserEngineFactory {
 
     const browser = payload.browser
 
-    const builder = new Builder()
-      .forBrowser(browser.toString())
-      .setChromeOptions(chromeOpts)
-      .setFirefoxOptions(firefoxOpts)
-      .setEdgeOptions(edgeOpts)
-      .usingServer(SELENIUM_REMOTE_URL)
+    const builder = new Builder().usingServer(SELENIUM_REMOTE_URL)
 
     let driver
     if (browser.toString() === Browser.CHROME) {
-      driver = (await builder.build()) as chrome.Driver
+      driver = (await builder.forBrowser(SeleniumBrowser.CHROME).setChromeOptions(chromeOpts).build()) as chrome.Driver
     } else if (browser.toString() === Browser.FIREFOX) {
-      driver = (await builder.build()) as firefox.Driver
+      driver = (await builder
+        .forBrowser(SeleniumBrowser.FIREFOX)
+        .setFirefoxOptions(firefoxOpts)
+        .build()) as firefox.Driver
     } else {
-      driver = (await builder.build()) as edge.Driver
+      driver = (await builder.forBrowser(SeleniumBrowser.EDGE).setEdgeOptions(edgeOpts).build()) as edge.Driver
     }
 
     driver.manage().setTimeouts({

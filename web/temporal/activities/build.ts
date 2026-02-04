@@ -44,6 +44,24 @@ export async function markBuildAsStarted({ buildId }: { buildId: string }) {
   }
 }
 
+export async function getExistingSnapshot({
+  snapshotId,
+}: {
+  snapshotId: string
+}): Promise<typeof snapshots.$inferSelect | null> {
+  try {
+    const [snapshot] = await db.select().from(snapshots).where(eq(snapshots.id, snapshotId)).limit(1)
+    return snapshot
+  } catch (error) {
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to get existing snapshot: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
+  }
+}
+
 export async function takeScreenshot(params: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
   try {
     return await new ScreenshotCapturer(params).capture()

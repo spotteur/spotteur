@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npx -y concurrently \"next dev\" \"email dev --port=3001 --dir=./emails\" \"novu dev --port 3000 --studio-host 0.0.0.0 --studio-port 3002 --headless\"",
+    "dev": "concurrently \"next dev\" \"email dev --port=3001 --dir=./emails\" \"novu dev --port 3000 --studio-host 0.0.0.0 --studio-port 3002 --headless\"",
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "worker:dev": "tsx watch ./temporal/worker.ts",
@@ -81,6 +81,7 @@
     "@types/react-dom": "^19",
     "@types/selenium-webdriver": "^4.35.5",
     "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.0.10",

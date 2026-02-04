@@ -14,7 +14,10 @@ const { getSnapshotsPayload } = proxyActivities<typeof ProjectActivities>({
     backoffCoefficient: 1.5,
   },
 })
-const { finalizeBuildSnapshots, notifyBuildReadyForReview } = proxyActivities<typeof BuildActivities>({
+
+const { markBuildAsStarted, finalizeBuildSnapshots, notifyBuildReadyForReview } = proxyActivities<
+  typeof BuildActivities
+>({
   startToCloseTimeout: '10 minutes',
   retry: {
     initialInterval: '500 ms',
@@ -29,8 +32,11 @@ const { finalizeBuildSnapshots, notifyBuildReadyForReview } = proxyActivities<ty
  */
 export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSnapshotsWorkflowParams) {
   try {
+    await markBuildAsStarted({ buildId })
+
     const snapshotPayloads = await getSnapshotsPayload({ projectId, buildId })
-    const results = await Promise.all(
+
+    await Promise.all(
       snapshotPayloads.map((payload) => {
         return executeChild(screenshotWorkflow, {
           args: [{ payload }],
@@ -48,7 +54,7 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
 
     await notifyBuildReadyForReview({ projectId, buildId })
 
-    return `Successfully generated snapshots (${results.length} pages)`
+    return `Successfully generated snapshots (${snapshotPayloads.length} pages)`
   } catch (error) {
     await finalizeBuildSnapshots({ buildId, isSuccess: false })
     throw error
