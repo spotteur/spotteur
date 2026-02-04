@@ -33,7 +33,7 @@ export async function sendEmail(to: string, subject: string, html: string, text:
     })
     return info
   } catch (error) {
-    logger.error('Failed to send email', error)
+    logger.error(`Failed to send email: ${error instanceof Error ? error.message : error}`)
     throw error
   }
 }
