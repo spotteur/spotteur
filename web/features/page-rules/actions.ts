@@ -12,7 +12,6 @@ import YAML from 'yaml'
 import { defaultValuePageRule } from '@/features/page-rules/template'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
-type PageRuleInsert = typeof pageRules.$inferInsert;
 
 const sortColumn = (key: SortKey) => {
   switch (key) {
@@ -127,14 +126,14 @@ export async function deletePageRule(id: string) {
 
 export async function upsertPageRules(schema: string, projectId: string) {
   const parsed = parse(schema)
-  const zodSchema = PageRulesUpsertSchema.safeParseAsync(parsed)
-  const payload = await zodSchema
+  const payload = await PageRulesUpsertSchema.safeParseAsync(parsed)
   if (payload.error) {
-    throw new Error(JSON.stringify(payload.error))
+    console.log('error =>', payload.error)
+    return {ok: false, error: z.flattenError(payload.error)}
   }
 
-  // Upsert the imported page rules
-  const pageRulesToInsert = parsed.map((rule: PageRuleInsert) => {
+  // Upsert the bulk data page rules
+  const pageRulesToInsert = parsed.map((rule: typeof pageRules.$inferInsert) => {
     const snapshotBrowsers = rule.snapshotBrowsers as Browser[]
     return ({
       ...rule,
@@ -143,7 +142,7 @@ export async function upsertPageRules(schema: string, projectId: string) {
     })
   })
 
-  const [imported] = await db.insert(pageRules).values(pageRulesToInsert).onConflictDoUpdate({
+  const [data] = await db.insert(pageRules).values(pageRulesToInsert).onConflictDoUpdate({
     target: pageRules.id,
     set: {
       snapshotBrowsers: sql.raw('excluded.snapshot_browsers'),
@@ -155,7 +154,7 @@ export async function upsertPageRules(schema: string, projectId: string) {
     },
   }).returning()
   
-  return { ok: true, data: imported }
+  return { ok: true, data }
 }
 
 export async function isPagePathExists(path: string) {
@@ -167,14 +166,11 @@ export async function existingPageRules() {
   const rules = await db.select().from(pageRules)
 
   const exportedRules = rules.length ? rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest) : defaultValuePageRule
+  const doc: any = new YAML.Document(exportedRules);
+  exportedRules.forEach((_, pageIndex) => {
+    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as any).commentBefore =
+      'Possible values: chrome, firefox, edge'
+  })
 
-  return YAML.stringify(exportedRules)
-}
-
-export async function countPageRules(projectId: string) {
-  const baseCountQuery = db.select({ total: count() }).from(pageRules).where(eq(pageRules.projectId, projectId))
-
-  
-  const result = await baseCountQuery
-  return Number(result[0]?.total || 0)
+  return doc.toString()
 }

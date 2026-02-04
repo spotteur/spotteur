@@ -58,7 +58,6 @@
     "nuqs": "^2.8.6",
     "pg": "^8.16.3",
     "pixelmatch": "^7.1.0",
-    "radix-ui": "^1.4.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "selenium-webdriver": "^4.39.0",
