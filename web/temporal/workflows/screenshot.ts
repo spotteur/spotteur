@@ -7,7 +7,7 @@ const { getExistingSnapshot, takeScreenshot, processScreenshot } = proxyActiviti
   startToCloseTimeout: '30 minutes',
   retry: {
     initialInterval: '500 ms',
-    maximumAttempts: 3,
+    maximumAttempts: 10,
     backoffCoefficient: 1.5,
   },
 })

@@ -10,7 +10,7 @@ import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, snapshots } from '@/db/schema'
 import { getNovuSubscribers, syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
-import { UnsupportedBrowserEngineError } from '@/lib/browser-engine'
+import { UnsupportedBrowserEngineError, UnsupportedBrowserTypeError } from '@/lib/browser-engine'
 import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { ScreenshotCapturer } from '@/lib/screenshot/capturer'
@@ -67,6 +67,10 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
     return await new ScreenshotCapturer(params).capture()
   } catch (error) {
     if (error instanceof UnsupportedBrowserEngineError) {
+      throw ApplicationFailure.nonRetryable(error.message, error.name)
+    }
+
+    if (error instanceof UnsupportedBrowserTypeError) {
       throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 

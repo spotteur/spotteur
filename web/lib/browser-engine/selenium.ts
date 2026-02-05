@@ -24,7 +24,7 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
     const { width } = await this.driver.manage().window().getRect()
     // Here we are adding extra 20% height to handle any fixed elements
     const fullPageHeight = await this.driver.executeScript<number>(() => {
-      return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) * 1.2
+      return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
     })
 
     await this.driver.manage().window().setRect({ width: width, height: fullPageHeight })
@@ -92,7 +92,7 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
 
   public async scrollPageToBottom(): Promise<void> {
     await this.driver.executeScript<void>(() => {
-      window.scrollTo(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) * 1.2)
+      window.scrollTo(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight))
     })
   }
 
@@ -174,9 +174,17 @@ export class SeleniumBrowserEngineFactory {
     const firefoxOpts = new firefox.Options()
     const edgeOpts = new edge.Options()
 
-    chromeOpts.windowSize(windowSize).addArguments('--headless')
-    firefoxOpts.windowSize(windowSize).addArguments('--headless')
-    edgeOpts.windowSize(windowSize).addArguments('--headless')
+    // Ref: https://stackoverflow.com/a/52340526
+    chromeOpts
+      .windowSize(windowSize)
+      .addArguments('--headless')
+      .addArguments('--no-sandbox') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-dev-shm-usage') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-dev-shm-usage') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-browser-side-navigation') //https://stackoverflow.com/a/49123152/1689770
+      .addArguments('--disable-gpu') //https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
+    firefoxOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
+    edgeOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
 
     const browser = payload.browser
 

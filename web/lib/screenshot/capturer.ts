@@ -40,20 +40,21 @@ export class ScreenshotCapturer {
       await this.runAfterPageLoadHook()
 
       await this.browserEngine.scrollPageToBottom()
+      await this.browserEngine.scrollPageToTop()
       await this.browserEngine.fitWindowToContentHeight()
+
       await this.browserEngine.waitForNetworkIdle(30000)
       await this.browserEngine.waitForSelector(this.payload.selector, 30000)
 
       await this.runBeforeScreenshotHook()
 
-      // Re-adjust the window height after applying rules and hooks
-      await this.browserEngine.fitWindowToContentHeight()
+      await this.browserEngine.scrollPageToBottom()
       await this.browserEngine.scrollPageToTop()
 
       logger.info(`${this.logPrefix} Capturing screenshot`)
       const buffer = await this.takeConsistentScreenshot({
-        maxAttempts: 6,
-        delayMs: 5000,
+        maxAttempts: 5,
+        delayMs: 3000,
         consistentCount: 3,
       })
 
