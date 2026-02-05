@@ -179,13 +179,13 @@ export async function existingPageRules() {
           [pageIndex, 'rules', ruleIndex, 'selectors'],
           true
         ) as any).commentBefore =
-          `Array of CSS selectors to target elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
+          `Array of CSS selectors to target elements`
 
         ;(doc.getIn(
           [pageIndex, 'rules', ruleIndex, 'attrs'],
           true
         ) as any).commentBefore =
-          'Object containing the `data-spt-*` attributes to apply to the matched elements.'
+          `Object containing the \`data-spt-*\` attributes to apply to the matched elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
       })
   })
 
