@@ -9,7 +9,7 @@ export const RuleAttrSchema = z.object({
   }),
 })
 
-export const SelectorSchema = z.string().optional()
+export const SelectorSchema = z.string().nonempty('Provide at least 1 selector')
 
 export const RuleSchema = z.object({
   selectors: z.array(SelectorSchema),

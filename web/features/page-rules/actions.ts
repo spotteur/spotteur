@@ -112,8 +112,7 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
       projectId,
       ...data,
       snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-    })
-    .onConflictDoUpdate({
+    }).onConflictDoUpdate({
       target: pageRules.id,
       set: {
         snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
