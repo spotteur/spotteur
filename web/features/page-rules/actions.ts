@@ -7,7 +7,8 @@ import { type Browser } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
-import { PageRuleFormInput } from './form'
+
+import { type PageRuleFormInput } from './form'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
 
@@ -88,7 +89,7 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
 
-  const {createdAt, updatedAt, ...data} = input
+  const { createdAt, updatedAt, ...data } = input
 
   const [upsert] = await db
     .insert(pageRules)
@@ -97,16 +98,16 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
       ...data,
       snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
     }).onConflictDoUpdate({
-    target: pageRules.id,
-    set: {
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-      viewports: data.viewports,
-      mediaReset: data.mediaReset,
-      reducedMotion: data.reducedMotion,
-      pagePath: data.pagePath,
-      rules: data.rules,
-    },
-  })
+      target: pageRules.id,
+      set: {
+        snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+        viewports: data.viewports,
+        mediaReset: data.mediaReset,
+        reducedMotion: data.reducedMotion,
+        pagePath: data.pagePath,
+        rules: data.rules,
+      },
+    })
     .returning()
 
   return { ok: true, data: upsert }
@@ -141,7 +142,11 @@ export async function deletePageRule(id: string) {
 }
 
 export async function pageRuleByPath(projectId: string, path: string) {
-  const [row] = await db.select().from(pageRules).where(and(eq(pageRules.projectId, projectId), eq(pageRules.pagePath, path))).limit(1)
+  const [row] = await db
+    .select()
+    .from(pageRules)
+    .where(and(eq(pageRules.projectId, projectId), eq(pageRules.pagePath, path)))
+    .limit(1)
   return row
 }
 
