@@ -89,36 +89,42 @@ export class ScreenshotCapturer {
 
       screenshots.push(buffer)
 
-      if (screenshots.length >= consistentCount) {
-        const lastScreenshots = screenshots.slice(-consistentCount)
-        const allConsistent = lastScreenshots.every((screenshot) => {
-          const first = lastScreenshots[0]
-          return screenshot.length === first.length && screenshot.equals(first)
-        })
+      // Need more screenshots before checking consistency
+      if (screenshots.length < consistentCount) {
+        await this.browserEngine?.sleep(delayMs)
+        continue
+      }
 
-        if (allConsistent) {
-          logger.info(`${this.logPrefix} Screenshot are consistent in the last ${consistentCount} attempts`)
-          return lastScreenshots[lastScreenshots.length - 1]
-        } else {
-          logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`)
-          if (attempt < maxAttempts) {
-            await this.browserEngine?.sleep(delayMs)
-          }
-        }
-      } else {
+      // Check if last N screenshots are consistent
+      if (this.areScreenshotsConsistent(screenshots, consistentCount)) {
+        logger.info(`${this.logPrefix} Screenshot are consistent in the last ${consistentCount} attempts`)
+        return screenshots[screenshots.length - 1]
+      }
+
+      // Not consistent yet, wait before next attempt
+      logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`)
+      if (attempt < maxAttempts) {
         await this.browserEngine?.sleep(delayMs)
       }
     }
 
-    const lastScreenshot = screenshots.pop()
-    if (!lastScreenshot) {
-      throw new Error('Failed to capture screenshot')
-    }
-
+    // Return last screenshot if we couldn't achieve consistency
     logger.info(
       `${this.logPrefix} Unable to capture consistent screenshot after ${maxAttempts} attempts, last captured screenshot used`,
     )
-    return lastScreenshot
+
+    return screenshots[screenshots.length - 1]
+  }
+
+  private areScreenshotsConsistent(screenshots: Buffer[], count: number): boolean {
+    // Take the last N screenshots
+    const lastNScreenshots = screenshots.slice(-count)
+    const firstScreenshot = lastNScreenshots[0]
+
+    return lastNScreenshots.every(
+      // Make sure all screenshots are identical, by verifying buffer size and buffer content
+      (screenshot) => screenshot.length === firstScreenshot.length && screenshot.equals(firstScreenshot),
+    )
   }
 
   private async runAfterPageLoadHook(): Promise<void> {
