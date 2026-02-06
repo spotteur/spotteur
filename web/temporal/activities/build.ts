@@ -52,6 +52,16 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
       throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 
+    if (error instanceof Error && error.message.includes('429 Too Many Requests')) {
+      throw ApplicationFailure.create({
+        message: 'Browserless concurrency limit exceeded',
+        type: error.name,
+        cause: error,
+        nonRetryable: false,
+        nextRetryDelay: 30000,
+      })
+    }
+
     logger.error(error)
     throw ApplicationFailure.retryable(
       `Failed to capture screenshot: ${error instanceof Error ? error.message : error}`,

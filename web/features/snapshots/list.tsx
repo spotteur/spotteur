@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
-import { Check, ChevronsUpDown, Search, X } from 'lucide-react'
+import { Check, ChevronsUpDown, Globe, LinkIcon, Proportions, Search, X } from 'lucide-react'
 import { type Route } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -190,7 +190,7 @@ export function SnapshotItemCard({
         <div className="bg-muted/90 relative h-56 w-full shrink-0 overflow-hidden rounded-t-xl">
           {snapshot.screenshotMedia ? (
             <>
-              <Image src={snapshot.screenshotMedia.path} alt="" fill className="object-cover" />
+              <Image src={snapshot.screenshotMedia.path} alt="" fill className="object-cover object-top-left" />
               <div className="absolute top-3 right-3 space-x-2">
                 <SnapshotApprovalStatusBadge status={snapshot.approvalStatus} />
                 <SnapshotDiffBadge diffPercentage={snapshot.diffPercentage} />
@@ -204,11 +204,22 @@ export function SnapshotItemCard({
         </div>
       </CardContent>
       <CardHeader>
-        <CardTitle className="truncate">Page path {snapshot.pagePath}</CardTitle>
-        <CardDescription className="truncate">
-          <div>Page full URL {new URL(snapshot.pagePath, build.baseUrl).toString()}</div>
-          <div>Browser {BROWSER_LABEL_MAP[snapshot.browser]}</div>
-        </CardDescription>
+        <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <Globe className="text-muted-foreground h-4 w-4" />
+            <span className="font-medium">{BROWSER_LABEL_MAP[snapshot.browser]}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Proportions className="text-muted-foreground h-4 w-4" />
+            <span className="font-medium">
+              {snapshot.viewportWidth} x {snapshot.viewportHeight}
+            </span>
+          </div>
+          <div className="col-span-2 flex items-center gap-2">
+            <LinkIcon className="text-muted-foreground h-4 w-4" />
+            <span className="font-medium">{new URL(snapshot.pagePath, build.baseUrl).toString()}</span>
+          </div>
+        </div>
       </CardHeader>
     </Card>
   )
