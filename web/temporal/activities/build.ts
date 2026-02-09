@@ -10,7 +10,7 @@ import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, snapshots } from '@/db/schema'
 import { getNovuSubscribers, syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
-import { UnsupportedBrowserEngineError } from '@/lib/browser-engine'
+import { UnsupportedBrowserEngineError, UnsupportedBrowserTypeError } from '@/lib/browser-engine'
 import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { ScreenshotCapturer } from '@/lib/screenshot/capturer'
@@ -44,11 +44,33 @@ export async function markBuildAsStarted({ buildId }: { buildId: string }) {
   }
 }
 
+export async function getExistingSnapshot({
+  snapshotId,
+}: {
+  snapshotId: string
+}): Promise<typeof snapshots.$inferSelect | null> {
+  try {
+    const [snapshot] = await db.select().from(snapshots).where(eq(snapshots.id, snapshotId)).limit(1)
+    return snapshot
+  } catch (error) {
+    logger.error(error)
+    throw ApplicationFailure.retryable(
+      `Failed to get existing snapshot: ${error instanceof Error ? error.message : error}`,
+      error instanceof Error ? error.name : 'UnknownError',
+      [{ error }],
+    )
+  }
+}
+
 export async function takeScreenshot(params: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
   try {
     return await new ScreenshotCapturer(params).capture()
   } catch (error) {
     if (error instanceof UnsupportedBrowserEngineError) {
+      throw ApplicationFailure.nonRetryable(error.message, error.name)
+    }
+
+    if (error instanceof UnsupportedBrowserTypeError) {
       throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 

@@ -4,6 +4,7 @@ services:
       context: "web"
       target: "production"
       args:
+        NEXT_PUBLIC_DISABLE_REGISTRATION: ${NEXT_PUBLIC_DISABLE_REGISTRATION:-}
         NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
         NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
         NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
@@ -14,7 +15,7 @@ services:
     ports:
       - "${WEBAPP_PORT:-18000}:3000"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
+      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000"]
       interval: 3s
       timeout: 5s
       retries: 30
@@ -30,6 +31,7 @@ services:
       dockerfile: "Dockerfile"
       target: "development"
       args:
+        NEXT_PUBLIC_DISABLE_REGISTRATION: ${NEXT_PUBLIC_DISABLE_REGISTRATION:-}
         NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
         NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
         NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
@@ -185,6 +187,7 @@ services:
     image: "selenium/standalone-docker:4.40.0"
     environment:
       SE_NODE_SESSION_TIMEOUT: "600"
+      SE_SESSION_REQUEST_TIMEOUT: "900"
       SE_START_VNC: "false"
     volumes:
       - "./selenium/config.toml:/opt/selenium/docker.toml:ro"

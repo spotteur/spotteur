@@ -20,14 +20,12 @@ export class PlaywrightBrowserEngine implements IBrowserEngine {
   }
 
   public async executeScript<T>(script: string): Promise<T> {
-    // return await this.page.evaluate<T>(script)
     return await this.page.evaluate<T>(new Function(`"use strict"; ${script}`) as () => T)
   }
 
   public async fitWindowToContentHeight(): Promise<void> {
     const width = this.page.viewportSize()?.width
 
-    // Here we are adding extra 20% height to handle any fixed elements
     await this.page.setViewportSize({
       width: width || 1280,
       height: await this.page.evaluate(() =>

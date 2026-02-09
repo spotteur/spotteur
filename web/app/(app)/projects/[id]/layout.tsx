@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { type Metadata, type ResolvingMetadata } from 'next'
+import { type Metadata } from 'next'
 import { type ReactNode } from 'react'
 
 import db from '@/db/drizzle'
@@ -10,7 +10,7 @@ type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export async function generateMetadata({ params, searchParams }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [project] = await db
     .select()
     .from(projects)

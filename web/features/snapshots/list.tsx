@@ -10,7 +10,7 @@ import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'

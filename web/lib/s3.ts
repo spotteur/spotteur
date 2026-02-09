@@ -4,7 +4,6 @@ import { NodeHttpHandler } from '@smithy/node-http-handler'
 
 import { S3_PRESIGN_TIMEOUT } from '@/constants/app'
 import { S3_ACCESS_KEY, S3_BUCKET, S3_ENDPOINT, S3_REGION, S3_SECRET_KEY } from '@/constants/env'
-import { logger } from '@/lib/logger'
 
 const s3 = new S3Client({
   endpoint: S3_ENDPOINT,
@@ -29,8 +28,6 @@ export async function getPresignUrl({ key }: { key: string }) {
 }
 
 export async function uploadFileFromBuffer(buffer: Buffer, key: string, mimeType: string) {
-  logger.info('Uploading file to', key)
-
   await s3.send(
     new PutObjectCommand({
       Bucket: S3_BUCKET,
@@ -39,8 +36,6 @@ export async function uploadFileFromBuffer(buffer: Buffer, key: string, mimeType
       ContentType: mimeType,
     }),
   )
-
-  logger.info('File uploaded to', key)
 
   return key
 }

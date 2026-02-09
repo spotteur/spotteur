@@ -1,4 +1,4 @@
-import { Builder, By, until } from 'selenium-webdriver'
+import { Builder, By, until, Browser as SeleniumBrowser } from 'selenium-webdriver'
 import chrome from 'selenium-webdriver/chrome'
 import edge from 'selenium-webdriver/edge'
 import firefox from 'selenium-webdriver/firefox'
@@ -10,7 +10,7 @@ import { type IBrowserEngine } from '@/types/browser-engine'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 export class SeleniumBrowserEngine implements IBrowserEngine {
-  private driver: chrome.Driver | firefox.Driver | edge.Driver
+  protected driver: chrome.Driver | firefox.Driver | edge.Driver
 
   constructor(driver: chrome.Driver | firefox.Driver | edge.Driver) {
     this.driver = driver
@@ -22,9 +22,8 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
 
   public async fitWindowToContentHeight(): Promise<void> {
     const { width } = await this.driver.manage().window().getRect()
-    // Here we are adding extra 20% height to handle any fixed elements
     const fullPageHeight = await this.driver.executeScript<number>(() => {
-      return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) * 1.2
+      return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
     })
 
     await this.driver.manage().window().setRect({ width: width, height: fullPageHeight })
@@ -92,7 +91,13 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
 
   public async scrollPageToBottom(): Promise<void> {
     await this.driver.executeScript<void>(() => {
-      window.scrollTo(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) * 1.2)
+      window.scrollTo(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight))
+    })
+  }
+
+  public async scrollPageToTop(): Promise<void> {
+    await this.driver.executeScript<void>(() => {
+      window.scrollTo(0, 0)
     })
   }
 
@@ -168,26 +173,32 @@ export class SeleniumBrowserEngineFactory {
     const firefoxOpts = new firefox.Options()
     const edgeOpts = new edge.Options()
 
-    chromeOpts.windowSize(windowSize).addArguments('--headless')
-    firefoxOpts.windowSize(windowSize).addArguments('--headless')
-    edgeOpts.windowSize(windowSize).addArguments('--headless')
+    // Ref: https://stackoverflow.com/a/52340526
+    chromeOpts
+      .windowSize(windowSize)
+      .addArguments('--headless')
+      .addArguments('--no-sandbox') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-dev-shm-usage') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-dev-shm-usage') //https://stackoverflow.com/a/50725918/1689770
+      .addArguments('--disable-browser-side-navigation') //https://stackoverflow.com/a/49123152/1689770
+      .addArguments('--disable-gpu') //https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
+    firefoxOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
+    edgeOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
 
     const browser = payload.browser
 
-    const builder = new Builder()
-      .forBrowser(browser.toString())
-      .setChromeOptions(chromeOpts)
-      .setFirefoxOptions(firefoxOpts)
-      .setEdgeOptions(edgeOpts)
-      .usingServer(SELENIUM_REMOTE_URL)
+    const builder = new Builder().usingServer(SELENIUM_REMOTE_URL)
 
     let driver
     if (browser.toString() === Browser.CHROME) {
-      driver = (await builder.build()) as chrome.Driver
+      driver = (await builder.forBrowser(SeleniumBrowser.CHROME).setChromeOptions(chromeOpts).build()) as chrome.Driver
     } else if (browser.toString() === Browser.FIREFOX) {
-      driver = (await builder.build()) as firefox.Driver
+      driver = (await builder
+        .forBrowser(SeleniumBrowser.FIREFOX)
+        .setFirefoxOptions(firefoxOpts)
+        .build()) as firefox.Driver
     } else {
-      driver = (await builder.build()) as edge.Driver
+      driver = (await builder.forBrowser(SeleniumBrowser.EDGE).setEdgeOptions(edgeOpts).build()) as edge.Driver
     }
 
     driver.manage().setTimeouts({
