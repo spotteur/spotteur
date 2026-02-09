@@ -11,12 +11,11 @@ import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { createRule, manageRule } from '@/features/page-rules/actions'
+import { manageRule } from '@/features/page-rules/actions'
 import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form'
 import { getProject } from '@/features/projects/actions'
 
 export default function ManagePageRule() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
   const params = useParams<{ id: string }>()
@@ -32,7 +31,6 @@ export default function ManagePageRule() {
       if (res.ok) {
         toast.success('Page Rule managed', { description: 'Your rule was successfully managed.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
-        router.push(`/projects/${data?.id}/page-rules`)
       } else {
         setFormErrors(res.error)
         toast.error('Rule management failed', { description: 'Please review the error and try again.' })
