@@ -1,8 +1,14 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
-import { Globe, MoreHorizontal, Plus, Settings } from 'lucide-react'
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import { Globe, MoreHorizontal, Settings } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
 
@@ -12,6 +18,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { type pageRules } from '@/db/schema'
 import { listPageRulesByProject } from '@/features/page-rules/actions'
@@ -55,7 +62,7 @@ export function PageRuleListCard({
           data &&
           data.data.length > 0 && (
             <Link href={`/projects/${projectId}/page-rules/manage` as Route} className="cursor-pointer">
-              <Button size="sm" className='cursor-pointer'>
+              <Button size="sm" className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 Manage
               </Button>
@@ -83,7 +90,7 @@ export function PageRuleListCard({
         )}
       </CardContent>
       <CardFooter className="justify-center">
-        <DataTablePagination table={table} pageSizeOptions={[6]} />
+        <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
       </CardFooter>
     </Card>
   )
@@ -99,31 +106,32 @@ export function PageRuleItemCard({
   return (
     <>
       <Card className="hover:border-primary h-full transition">
-        <CardHeader className="space-y-2">
-          <div className="flex items-start justify-between gap-3">
-            <Link href={`/projects/${rule.projectId}/page-rules/${rule.id}` as Route}>
-              <CardTitle className="word-wrap text-lg font-semibold">{rule.pagePath}</CardTitle>
-            </Link>
-            <div className="flex items-center justify-end gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => onRequestDelete({ id: rule.id, path: rule.pagePath })}
-                    variant="destructive"
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <Link href={`/projects/${rule.projectId}/page-rules/manage?id=${rule.id}` as Route}>
+          <CardHeader className="space-y-2">
+            <div className="flex items-start justify-between gap-3">
+              <CardTitle className="word-wrap w-full text-lg font-semibold">{rule.pagePath}</CardTitle>
+              <div className="flex items-center justify-end gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.preventDefault()
+                        onRequestDelete({ id: rule.id, path: rule.pagePath })
+                      }}
+                      variant="destructive"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <Link href={`/projects/${rule.projectId}/page-rules/${rule.id}` as Route}>
+          </CardHeader>
           <CardContent className="text-muted-foreground space-y-3 text-sm">
             <div className="flex items-center gap-2">
               <Globe className="size-4" />

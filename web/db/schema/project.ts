@@ -105,6 +105,8 @@ export const pageRules = pgTable('page_rules', {
     .notNull()
     .$type<z.infer<typeof RulesSchema>>()
     .default(sql`'[]'::jsonb`),
+  hookAfterPageLoad: text('hook_after_page_load'),
+  hookBeforeScreenshot: text('hook_before_screenshot'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

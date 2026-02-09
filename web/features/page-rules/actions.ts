@@ -104,6 +104,7 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, ...data } = input
 
   const [upsert] = await db
@@ -112,7 +113,8 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
       projectId,
       ...data,
       snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-    }).onConflictDoUpdate({
+    })
+    .onConflictDoUpdate({
       target: pageRules.id,
       set: {
         snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
@@ -121,6 +123,8 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
         reducedMotion: data.reducedMotion,
         pagePath: data.pagePath,
         rules: data.rules,
+        hookAfterPageLoad: data.hookAfterPageLoad,
+        hookBeforeScreenshot: data.hookBeforeScreenshot,
       },
     })
     .returning()
@@ -206,11 +210,12 @@ export async function isPagePathExists(path: string) {
   return !!row
 }
 
-export async function existingPageRules() {
-  const rules = await db.select().from(pageRules)
+export async function existingPageRules(projectId: string) {
+  const rules = await db.select().from(pageRules).where(eq(pageRules.projectId, projectId))
 
   const exportedRules = rules.length
-    ? rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest)
+    ? // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest)
     : defaultValuePageRule
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc: any = new YAML.Document(exportedRules)
@@ -233,4 +238,20 @@ export async function existingPageRules() {
   })
 
   return doc.toString()
+}
+
+export async function unUsedPagePath(projectId: string) {
+  const rule = await db
+    .select({ pagePath: pageRules.pagePath })
+    .from(pageRules)
+    .where(eq(pageRules.projectId, projectId))
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+
+  const projectPaths = project.pagePaths
+  const usedPathSet = new Set(rule.map((p) => p.pagePath))
+  const unusedPaths = projectPaths.filter((path) => !usedPathSet.has(path))
+
+  if (unusedPaths.length < 1) return null
+
+  return unusedPaths[0]
 }

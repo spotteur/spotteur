@@ -132,7 +132,16 @@ export default function SnapshotDetailPage() {
 
       <Card>
         <CardContent>
-          {snapshotData ? <SnapshotViewer snapshot={snapshotData.snapshot} /> : <Skeleton className="h-150 w-full" />}
+          {snapshotData ? (
+            <SnapshotViewer
+              snapshot={snapshotData.snapshot}
+              action={snapshotData.action}
+              projectId={params.id}
+              buildId={params.buildId}
+            />
+          ) : (
+            <Skeleton className="h-150 w-full" />
+          )}
         </CardContent>
       </Card>
     </div>

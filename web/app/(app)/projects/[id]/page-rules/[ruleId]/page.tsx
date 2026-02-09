@@ -7,12 +7,14 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { type $ZodFlattenedError } from 'zod/v4/core'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
+import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { getRule, updateRule } from '@/features/page-rules/actions'
 import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form'
+import { type NavigationType } from '@/types/app'
 
 export default function EditRulePage() {
   const queryClient = useQueryClient()
@@ -73,6 +75,9 @@ export default function EditRulePage() {
     [data, params.id, params.ruleId],
   )
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
+  const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
+  useHeaderNavigations(navigations)
 
   if (!isLoading && !data) {
     notFound()
