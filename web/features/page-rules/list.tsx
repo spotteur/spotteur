@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
-import { Globe, MoreHorizontal, Plus, Settings } from 'lucide-react'
+import { Globe, MoreHorizontal, Settings } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
 
@@ -55,7 +55,7 @@ export function PageRuleListCard({
           data &&
           data.data.length > 0 && (
             <Link href={`/projects/${projectId}/page-rules/manage` as Route} className="cursor-pointer">
-              <Button size="sm" className='cursor-pointer'>
+              <Button size="sm" className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 Manage
               </Button>

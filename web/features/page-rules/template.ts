@@ -1,16 +1,16 @@
 export const defaultValuePageRule = [
   {
-    snapshotBrowsers: ["chrome"],
+    snapshotBrowsers: ['chrome'],
     viewports: [[1920, 1080]],
     mediaReset: true,
     reducedMotion: true,
-    pagePath: "/",
+    pagePath: '/',
     rules: [
       {
         attrs: [
           {
-            name: "data-spt-replace-words",
-            value: "15",
+            name: 'data-spt-replace-words',
+            value: '15',
           },
         ],
         selectors: ['[data-component="SummaryHero"] h2'],
@@ -18,14 +18,12 @@ export const defaultValuePageRule = [
       {
         attrs: [
           {
-            name: "data-spt-hide",
-            value: "true",
+            name: 'data-spt-hide',
+            value: 'true',
           },
         ],
-        selectors: [
-          '[data-component="SlideShowCarousel"] > div > div > button[aria-label="Slide button"]',
-        ],
+        selectors: ['[data-component="SlideShowCarousel"] > div > div > button[aria-label="Slide button"]'],
       },
     ],
-  }
+  },
 ]

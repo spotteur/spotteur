@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { notFound, useParams, useRouter } from 'next/navigation'
+import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { type $ZodFlattenedError } from 'zod/v4/core'

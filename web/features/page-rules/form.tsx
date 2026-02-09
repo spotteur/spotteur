@@ -3,9 +3,10 @@
 import { useForm } from '@tanstack/react-form'
 import { Plus, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { type z } from 'zod'
 
+import InputTag from '@/components/input-tag'
 import InputTags from '@/components/input-tags'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -25,10 +26,14 @@ import {
 import { type projects } from '@/db/schema'
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
-import { pageRuleByPath } from './actions'
-import InputTag from '@/components/input-tag'
 
-export type PageRuleFormInput = z.infer<typeof PageRuleCreateSchema> & { id?: string, createdAt?: Date, updatedAt?: Date }
+import { pageRuleByPath } from './actions'
+
+export type PageRuleFormInput = z.infer<typeof PageRuleCreateSchema> & {
+  id?: string
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 interface PageRuleFormProps {
   defaultValues: PageRuleFormInput
@@ -82,7 +87,10 @@ export default function PageRuleForm({
         name="pagePath"
         children={(field) => {
           const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-          const paths = submitLabel !== 'Update' ? project.pagePaths.map((opt) => ({ label: opt, value: opt })) : [{label: field.state.value, value: field.state.value}]
+          const paths =
+            submitLabel !== 'Update'
+              ? project.pagePaths.map((opt) => ({ label: opt, value: opt }))
+              : [{ label: field.state.value, value: field.state.value }]
           return (
             <Field data-invalid={isInvalid}>
               <FieldLabel htmlFor="pageRules-pagePath">Page Path</FieldLabel>
@@ -250,151 +258,156 @@ export default function PageRuleForm({
         {(rulesField) => {
           const isInvalid = rulesField.state.meta.isTouched && !rulesField.state.meta.isValid
           return (
-          <div>
-            <Field data-invalid={isInvalid} className="flex flex-col gap-3 space-y-3">
-              <label className="text-base font-medium">Rules</label>
+            <div>
+              <Field data-invalid={isInvalid} className="flex flex-col gap-3 space-y-3">
+                <label className="text-base font-medium">Rules</label>
 
-              {rulesField.state.value && rulesField.state.value.map((_, index) => (
-                <div key={index} className="flex items-start justify-between gap-3">
-                  <Card className="w-full">
-                    <CardContent className="flex flex-col gap-3">
-                      <form.Field name={`rules[${index}].selectors`}>
-                        {(field) => {
-                          const isInvalidSelectors = field.state.meta.isTouched && !field.state.meta.isValid
-                          return (
-                            <div>
-                              <Field data-invalid={isInvalidSelectors} className="flex flex-col gap-3">
-                                <FieldLabel htmlFor="pageRule-rules-selectors">Selectors</FieldLabel>
-                                <Textarea
-                                  id="pageRule-rules-selectors"
-                                  name={field.name}
-                                  value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
-                                  onBlur={field.handleBlur}
-                                  onChange={(e) => field.handleChange(e.target.value.split(/\r?\n/).map((s) => s.trim()))}
-                                  aria-invalid={isInvalidSelectors}
-                                />
-                              </Field>
-                              {isInvalidSelectors && <FieldError errors={field.state.meta.errors} />}
-                            </div>
-                          )
-                        }}
-                      </form.Field>
-                      <div className="flex flex-col gap-3 py-3">
-                        <FieldLabel htmlFor="pageRule-rules-attribute">Attributes</FieldLabel>
-                        <form.Field name={`rules[${index}].attrs`}>
-                          {(attrsField) => (
-                            <div id="pageRule-rules-attribute" className="flex flex-1 flex-col gap-3 space-y-2">
-                              {attrsField.state.value &&
-                                attrsField.state.value.map((attrObj, i) => (
-                                  <div key={i} className="flex items-start justify-between gap-3">
-                                    <div className="flex w-1/2 flex-col gap-3">
-                                      <form.Field
-                                        name={`rules[${index}].attrs[${i}].name`}
-                                        listeners={{
-                                          onChange: ({ value }) => {
-                                            return RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-                                              (r) => r.toString() === value,
-                                            )
-                                              ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
-                                              : form.setFieldValue(`rules[${index}].attrs[${i}].value`, '')
-                                          },
-                                        }}
-                                      >
-                                        {(field) => (
-                                          <Select
-                                            value={field.state.value}
-                                            onValueChange={(value) => field.handleChange(value as RuleAttrType)}
-                                          >
-                                            <SelectTrigger id="pageRule-rules-attribute-name" className="w-full">
-                                              <SelectValue placeholder="Select rule" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {RULE_ATTR_TYPE_OPTIONS.map(({ value, label }) => (
-                                                <SelectItem key={value} value={value}>
-                                                  {label}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        )}
-                                      </form.Field>
-                                    </div>
-
-                                    {attrObj.name && (
-                                      <div className="flex flex-col gap-3">
-                                        <form.Field name={`rules[${index}].attrs[${i}].value`}>
-                                          {(field) => (
-                                            <Input
-                                              id={`pageRule-rules[${index}]-attrs[${i}]-value`}
-                                              value={field.state.value}
-                                              onBlur={field.handleBlur}
-                                              placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
-                                              onChange={(e) => field.handleChange(e.target.value)}
-                                              readOnly={
-                                                !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-                                                  (r) => r.toString() === attrObj.name,
-                                                )
-                                              }
-                                            />
-                                          )}
-                                        </form.Field>
-                                      </div>
-                                    )}
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      onClick={() =>
-                                        attrsField.handleChange((old) => old && old.filter((_, idx) => idx !== i))
+                {rulesField.state.value &&
+                  rulesField.state.value.map((_, index) => (
+                    <div key={index} className="flex items-start justify-between gap-3">
+                      <Card className="w-full">
+                        <CardContent className="flex flex-col gap-3">
+                          <form.Field name={`rules[${index}].selectors`}>
+                            {(field) => {
+                              const isInvalidSelectors = field.state.meta.isTouched && !field.state.meta.isValid
+                              return (
+                                <div>
+                                  <Field data-invalid={isInvalidSelectors} className="flex flex-col gap-3">
+                                    <FieldLabel htmlFor="pageRule-rules-selectors">Selectors</FieldLabel>
+                                    <Textarea
+                                      id="pageRule-rules-selectors"
+                                      name={field.name}
+                                      value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
+                                      onBlur={field.handleBlur}
+                                      onChange={(e) =>
+                                        field.handleChange(e.target.value.split(/\r?\n/).map((s) => s.trim()))
                                       }
-                                      className="self-center"
-                                    >
-                                      <X />
-                                    </Button>
-                                  </div>
-                                ))}
+                                      aria-invalid={isInvalidSelectors}
+                                    />
+                                  </Field>
+                                  {isInvalidSelectors && <FieldError errors={field.state.meta.errors} />}
+                                </div>
+                              )
+                            }}
+                          </form.Field>
+                          <div className="flex flex-col gap-3 py-3">
+                            <FieldLabel htmlFor="pageRule-rules-attribute">Attributes</FieldLabel>
+                            <form.Field name={`rules[${index}].attrs`}>
+                              {(attrsField) => (
+                                <div id="pageRule-rules-attribute" className="flex flex-1 flex-col gap-3 space-y-2">
+                                  {attrsField.state.value &&
+                                    attrsField.state.value.map((attrObj, i) => (
+                                      <div key={i} className="flex items-start justify-between gap-3">
+                                        <div className="flex w-1/2 flex-col gap-3">
+                                          <form.Field
+                                            name={`rules[${index}].attrs[${i}].name`}
+                                            listeners={{
+                                              onChange: ({ value }) => {
+                                                return RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
+                                                  (r) => r.toString() === value,
+                                                )
+                                                  ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
+                                                  : form.setFieldValue(`rules[${index}].attrs[${i}].value`, '')
+                                              },
+                                            }}
+                                          >
+                                            {(field) => (
+                                              <Select
+                                                value={field.state.value}
+                                                onValueChange={(value) => field.handleChange(value as RuleAttrType)}
+                                              >
+                                                <SelectTrigger id="pageRule-rules-attribute-name" className="w-full">
+                                                  <SelectValue placeholder="Select rule" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  {RULE_ATTR_TYPE_OPTIONS.map(({ value, label }) => (
+                                                    <SelectItem key={value} value={value}>
+                                                      {label}
+                                                    </SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            )}
+                                          </form.Field>
+                                        </div>
 
-                              {/* ADD ATTR */}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() =>
-                                  attrsField.handleChange((old) => old && [...old, { name: '' as RuleAttrType, value: '' }])
-                                }
-                              >
-                                <Plus /> Add attribute
-                              </Button>
-                            </div>
-                          )}
-                        </form.Field>
-                      </div>
-                    </CardContent>
-                  </Card>
+                                        {attrObj.name && (
+                                          <div className="flex flex-col gap-3">
+                                            <form.Field name={`rules[${index}].attrs[${i}].value`}>
+                                              {(field) => (
+                                                <Input
+                                                  id={`pageRule-rules[${index}]-attrs[${i}]-value`}
+                                                  value={field.state.value}
+                                                  onBlur={field.handleBlur}
+                                                  placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
+                                                  onChange={(e) => field.handleChange(e.target.value)}
+                                                  readOnly={
+                                                    !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
+                                                      (r) => r.toString() === attrObj.name,
+                                                    )
+                                                  }
+                                                />
+                                              )}
+                                            </form.Field>
+                                          </div>
+                                        )}
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          onClick={() =>
+                                            attrsField.handleChange((old) => old && old.filter((_, idx) => idx !== i))
+                                          }
+                                          className="self-center"
+                                        >
+                                          <X />
+                                        </Button>
+                                      </div>
+                                    ))}
 
-                  {/* REMOVE RULE */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => rulesField.handleChange((old) => old && old.filter((_, i) => i !== index))}
-                    className="self-center"
-                  >
-                    <X />
-                  </Button>
-                </div>
-              ))}
+                                  {/* ADD ATTR */}
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() =>
+                                      attrsField.handleChange(
+                                        (old) => old && [...old, { name: '' as RuleAttrType, value: '' }],
+                                      )
+                                    }
+                                  >
+                                    <Plus /> Add attribute
+                                  </Button>
+                                </div>
+                              )}
+                            </form.Field>
+                          </div>
+                        </CardContent>
+                      </Card>
 
-              {/* ADD RULE */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => rulesField.handleChange((old) => old && [...old, { attrs: [], selectors: [] }])}
-                className="ml-3"
-              >
-                <Plus /> Add Rules
-              </Button>
-            </Field>
-            {isInvalid && <FieldError errors={rulesField.state.meta.errors} />}
-          </div>
-        )
+                      {/* REMOVE RULE */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => rulesField.handleChange((old) => old && old.filter((_, i) => i !== index))}
+                        className="self-center"
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  ))}
+
+                {/* ADD RULE */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => rulesField.handleChange((old) => old && [...old, { attrs: [], selectors: [] }])}
+                  className="ml-3"
+                >
+                  <Plus /> Add Rules
+                </Button>
+              </Field>
+              {isInvalid && <FieldError errors={rulesField.state.meta.errors} />}
+            </div>
+          )
         }}
       </form.Field>
 

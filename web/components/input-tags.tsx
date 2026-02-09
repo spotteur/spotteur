@@ -1,6 +1,5 @@
 'use client'
 import { CheckIcon } from 'lucide-react'
-import { useState } from 'react'
 
 import {
   Tags,
@@ -26,7 +25,6 @@ export interface InputTagsInterface {
   onSelect: (value: string[]) => void
 }
 const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagsInterface) => {
-  const [selected, setSelected] = useState<string[]>(defaultValue)
   const handleRemove = (value: string) => {
     onRemove(defaultValue.filter((v) => v !== value))
     onSelect(defaultValue.filter((v) => v !== value))

@@ -35,11 +35,7 @@ const InputTag = ({ defaultValue, tags, onSelect, isInvalid }: InputTagInterface
   return (
     <Tags>
       <TagsTrigger className={cn(isInvalid ? '!border-destructive' : '')}>
-       {selected && (
-        <TagsValue>
-          {selected}
-        </TagsValue>
-       )}
+        {selected && <TagsValue>{selected}</TagsValue>}
       </TagsTrigger>
       <TagsContent>
         <TagsInput placeholder="Search..." />
