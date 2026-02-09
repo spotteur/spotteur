@@ -64,7 +64,6 @@ export default function PageRuleForm({
   const handleSelect = async (value: string) => {
     const rule = await pageRuleByPath(project.id, value)
     if (rule) {
-      console.log('rules =>', rule)
       form.reset(rule)
     } else {
       form.reset({ ...defaultValues, pagePath: value })
