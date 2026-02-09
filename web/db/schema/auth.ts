@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, text, uuid, timestamp, boolean, index, integer } from 'drizzle-orm/pg-core'
+import { pgTable, text, uuid, timestamp, boolean, index, integer, varchar, numeric } from 'drizzle-orm/pg-core'
 
 import { projects } from '@/db/schema'
 
@@ -12,6 +12,10 @@ export const users = pgTable('users', {
   emailVerified: boolean('email_verified').default(false).notNull(),
   image: text('image'),
   itemPerPage: integer('item_per_page').default(25).notNull(),
+  role: varchar('role').default('user').notNull(),
+  banned: boolean('banned').default(false).notNull(),
+  banReason: text('ban_reason'),
+  banExpires: numeric('ban_expires'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -33,6 +37,7 @@ export const sessions = pgTable(
       .notNull(),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
+    impersonatedBy: uuid('impersonated_by'),
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

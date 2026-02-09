@@ -1,8 +1,9 @@
 import { render, toPlainText } from '@react-email/render'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { admin } from 'better-auth/plugins'
 
-import { BETTER_AUTH_SECRET, TRUSTED_ORIGINS } from '@/constants/env'
+import { BETTER_AUTH_SECRET, DISABLE_REGISTRATION, TRUSTED_ORIGINS } from '@/constants/env'
 import db from '@/db/drizzle'
 import { accounts, sessions, users, verifications } from '@/db/schema'
 import ResetPasswordEmail from '@/emails/reset-password'
@@ -23,6 +24,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    disableSignUp: DISABLE_REGISTRATION,
     requireEmailVerification: false,
     sendResetPassword: async ({ user, url }) => {
       const htmlEmail = await render(ResetPasswordEmail({ actionLink: url }))
@@ -43,4 +45,5 @@ export const auth = betterAuth({
       },
     },
   },
+  plugins: [admin()],
 })

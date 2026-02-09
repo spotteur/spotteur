@@ -23,7 +23,7 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} ps --format 'table {{\"{{.Name}}\"}}\t{{\"{{.Image}}\"}}\t{{\"{{.Status}}\"}}' --all"
   logs:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100 {{.CLI_ARGS}}"
   lint:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp npm run lint"
@@ -35,4 +35,10 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
   migrate:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-migration-runner task migrate"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-script-runner task migrate"
+  ssh:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-script-runner bash"
+  create-user:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --build --rm webapp-script-runner task create-user"

@@ -120,7 +120,8 @@ export const SpotteurGlobalVariablesSchema = z.object({
     .optional(),
   hooks: z
     .object({
-      'pre-screenshot': z.string().optional(),
+      'after-page-load': z.string().optional(),
+      'before-screenshot': z.string().optional(),
     })
     .optional(),
 })

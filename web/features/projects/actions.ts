@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 import { type Browser } from '@/constants/enum'
 import db from '@/db/drizzle'
-import { builds, projects, snapshots } from '@/db/schema'
+import { builds, pageRules, projects, snapshots } from '@/db/schema'
 import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
 
 type SortKey = 'name' | 'createdAt' | 'updatedAt' | ''
@@ -116,6 +116,7 @@ export async function deleteProject(id: string) {
   const buildIds = (await db.select({ id: builds.id }).from(builds).where(eq(builds.projectId, id))).map((b) => b.id)
   await db.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
   await db.delete(builds).where(inArray(builds.id, buildIds))
+  await db.delete(pageRules).where(eq(pageRules.projectId, id))
   await db.delete(projects).where(eq(projects.id, id))
   return { ok: true } as const
 }
