@@ -10,6 +10,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { useState } from 'react'
 import { type ReactNode } from 'react'
 
+import { DISABLE_REGISTRATION } from '@/constants/env'
 import { authClient } from '@/lib/auth-client'
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -33,6 +34,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 {children}
               </Link>
             )}
+            signUp={!DISABLE_REGISTRATION}
             additionalFields={{
               itemPerPage: {
                 label: 'Items per page',

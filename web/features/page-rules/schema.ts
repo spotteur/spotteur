@@ -80,6 +80,31 @@ export const PageRuleBaseSchema = z.object({
 })
 
 export const PageRuleCreateSchema = PageRuleBaseSchema
+export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {
+    const map = new Map<string, number[]>()
+
+    items.forEach((item, index) => {
+      const key = item.pagePath
+
+      if (!map.has(key)) {
+        map.set(key, [index])
+      } else {
+        map.get(key)!.push(index)
+      }
+    });
+
+    map.forEach((indexes, path) => {
+      if (indexes.length > 1) {
+        indexes.forEach((index) => {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate path "${path}"`,
+            path: [index, "path"],
+          });
+        });
+      }
+    });
+  });
 
 export const PageRuleUpdateSchema = PageRuleBaseSchema.extend({
   id: z.uuid('Invalid id'),
@@ -95,7 +120,8 @@ export const SpotteurGlobalVariablesSchema = z.object({
     .optional(),
   hooks: z
     .object({
-      'pre-screenshot': z.string().optional(),
+      'after-page-load': z.string().optional(),
+      'before-screenshot': z.string().optional(),
     })
     .optional(),
 })

@@ -17,6 +17,7 @@ export interface IBrowserEngine {
   replaceElementInnerText(selector: string, text: string): Promise<void>
   resetTimeBasedMedia(): Promise<void>
   scrollPageToBottom(): Promise<void>
+  scrollPageToTop(): Promise<void>
   sleep(timeout: number): Promise<void>
   takeScreenshot(): Promise<Buffer>
   visit(url: string): Promise<void>

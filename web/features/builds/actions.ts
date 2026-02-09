@@ -179,6 +179,8 @@ export async function populateSnapshotsPayload({
     pageRulesMap.set(pr.pagePath, pr)
   }
 
+  const existingSnapshotRows = await db.select().from(snapshots).where(eq(snapshots.buildId, build.id))
+
   const snapshotsArray: SnapshotPayload[] = []
   for (const pagePath of project.pagePaths) {
     if (!URL.canParse(pagePath, project.baseUrl)) {
@@ -197,7 +199,18 @@ export async function populateSnapshotsPayload({
 
     for (const [viewportWidth, viewportHeight] of viewports) {
       for (const browser of browsers) {
-        const snapshotId = uuidv7()
+        const existingSnapshot = existingSnapshotRows.find((s) => {
+          if (
+            s.pagePath === pagePath &&
+            s.browser === browser &&
+            s.viewportWidth === viewportWidth &&
+            s.viewportHeight === viewportHeight
+          ) {
+            return true
+          }
+          return false
+        })
+        const snapshotId = existingSnapshot ? existingSnapshot.id : uuidv7()
         const s3Prefix = await generateSnapshotPath({ projectId, buildId, snapshotId })
         const fileName = await generateSnapshotFileName({ pageUrl, type: 'screenshot' })
 
