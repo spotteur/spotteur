@@ -65,7 +65,7 @@ async function main() {
 
   if (existingProjects.length > 0) {
     project = existingProjects[0]
-    logger.info('Using existing project:', existingProjects[0].name)
+    logger.info(`Using existing project: ${existingProjects[0].name}`)
   } else {
     const [newProject] = await db
       .insert(projects)
@@ -81,7 +81,7 @@ async function main() {
       .returning()
 
     project = newProject
-    logger.info('Created new project:', newProject.name)
+    logger.info(`Created new project: ${newProject.name}`)
   }
 
   const existingBuilds = await db.select().from(builds).where(eq(builds.projectId, project.id))
@@ -100,7 +100,7 @@ async function main() {
       })
       .returning()
 
-    logger.info('Created build:', build.identifier)
+    logger.info(`Created build: ${build.identifier}`)
 
     const mimeType = 'image/png'
 

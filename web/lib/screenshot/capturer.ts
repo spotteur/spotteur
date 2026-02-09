@@ -21,7 +21,6 @@ export class ScreenshotCapturer {
   }
 
   public async capture(): Promise<{ tempPath: string }> {
-    logger.info(`${this.logPrefix} Capturing screenshot of ${this.payload.pageUrl}`)
     try {
       logger.info(`${this.logPrefix} Launching browser engine`)
       this.browserEngine = await BrowserEngineFactory.create(BrowserEngineType.selenium, this.payload)
@@ -31,24 +30,33 @@ export class ScreenshotCapturer {
 
       logger.info(`${this.logPrefix} Waiting for page to completely load`)
       await this.browserEngine.waitForPageLoad(30000)
-      await this.browserEngine.fitWindowToContentHeight()
-      await this.browserEngine.scrollPageToBottom()
-      await this.browserEngine.waitForNetworkIdle(30000)
-      await this.browserEngine.waitForSelector(this.payload.selector, 30000)
 
       const rawVariables = await this.browserEngine.executeScript<unknown>('return window.spotteur || {}')
       this.payload = await mergeGlobalVariablesIntoSnapshotPayload({
         payload: this.payload,
-        rawVariables: rawVariables,
+        rawVariables,
       })
 
-      await this.runPreScreenshotHook()
+      await this.runAfterPageLoadHook()
+
+      await this.browserEngine.scrollPageToBottom()
+      await this.browserEngine.scrollPageToTop()
+      await this.browserEngine.fitWindowToContentHeight()
+
+      await this.browserEngine.waitForNetworkIdle(30000)
+      await this.browserEngine.waitForSelector(this.payload.selector, 30000)
+
+      await this.runBeforeScreenshotHook()
+
+      await this.browserEngine.scrollPageToBottom()
+      await this.browserEngine.scrollPageToTop()
 
       logger.info(`${this.logPrefix} Capturing screenshot`)
-      const buffer = await this.browserEngine.takeScreenshot()
-      // TODO: Maybe we can take screenshot multiple times to ensure consistent results.
-      // If the result is consistent, we can take its as a final screenshot.
-      // Otherwise, we can retry until X times, and throws if its still not consistent.
+      const buffer = await this.takeConsistentScreenshot({
+        maxAttempts: 5,
+        delayMs: 3000,
+        consistentCount: 3,
+      })
 
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
       fs.writeFileSync(tempPath, buffer)
@@ -61,10 +69,75 @@ export class ScreenshotCapturer {
     }
   }
 
-  private async runPreScreenshotHook(): Promise<void> {
-    if (this.payload.hooks?.['pre-screenshot']) {
-      logger.info(`${this.logPrefix} Executing pre-screenshot hook`)
-      await this.browserEngine?.executeScript<void>(this.payload.hooks['pre-screenshot'])
+  private async takeConsistentScreenshot({
+    maxAttempts,
+    delayMs,
+    consistentCount,
+  }: {
+    maxAttempts: number
+    delayMs: number
+    consistentCount: number
+  }): Promise<Buffer> {
+    const screenshots: Buffer[] = []
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      logger.info(`${this.logPrefix} Taking screenshot attempt ${attempt}/${maxAttempts}`)
+      const buffer = await this.browserEngine?.takeScreenshot()
+      if (!buffer) {
+        throw new Error('Failed to capture screenshot')
+      }
+
+      screenshots.push(buffer)
+
+      // Need more screenshots before checking consistency
+      if (screenshots.length < consistentCount) {
+        await this.browserEngine?.sleep(delayMs)
+        continue
+      }
+
+      // Check if last N screenshots are consistent
+      if (this.areScreenshotsConsistent(screenshots, consistentCount)) {
+        logger.info(`${this.logPrefix} Screenshot are consistent in the last ${consistentCount} attempts`)
+        return screenshots[screenshots.length - 1]
+      }
+
+      // Not consistent yet, wait before next attempt
+      logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`)
+      if (attempt < maxAttempts) {
+        await this.browserEngine?.sleep(delayMs)
+      }
+    }
+
+    // Return last screenshot if we couldn't achieve consistency
+    logger.info(
+      `${this.logPrefix} Unable to capture consistent screenshot after ${maxAttempts} attempts, last captured screenshot used`,
+    )
+
+    return screenshots[screenshots.length - 1]
+  }
+
+  private areScreenshotsConsistent(screenshots: Buffer[], count: number): boolean {
+    // Take the last N screenshots
+    const lastNScreenshots = screenshots.slice(-count)
+    const firstScreenshot = lastNScreenshots[0]
+
+    return lastNScreenshots.every(
+      // Make sure all screenshots are identical, by verifying buffer size and buffer content
+      (screenshot) => screenshot.length === firstScreenshot.length && screenshot.equals(firstScreenshot),
+    )
+  }
+
+  private async runAfterPageLoadHook(): Promise<void> {
+    if (this.payload.hooks?.['after-page-load']) {
+      logger.info(`${this.logPrefix} Executing after-page-load hook`)
+      await this.browserEngine?.executeScript<void>(this.payload.hooks['after-page-load'])
+    }
+  }
+
+  private async runBeforeScreenshotHook(): Promise<void> {
+    if (this.payload.hooks?.['before-screenshot']) {
+      logger.info(`${this.logPrefix} Executing before-screenshot hook`)
+      await this.browserEngine?.executeScript<void>(this.payload.hooks['before-screenshot'])
     }
 
     if (this.payload.reducedMotion) {

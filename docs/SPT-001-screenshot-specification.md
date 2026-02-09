@@ -49,24 +49,21 @@ Spotteur supports special `data-spt-*` attributes to change how they look in scr
 
 ### Logic
 
-The runner looks for these attributes in your page and applies changes after the `pre-screenshot` hook runs.
+The runner looks for these attributes in your page and applies changes after the `before-screenshot` hook runs.
 
 ### API Definition
 
 - `data-spt-hide`
-
   - Value: `true` or leave it empty.
   - Effect: Hides the element but keeps its empty space on the page. The implementation will add inline style `visibility: hidden !important` to the DOM.
   - Example: `<h1 data-spt-hide>Test</h1>`
 
 - `data-spt-remove`
-
   - Value: `true` or leave it empty.
   - Effect: Removes the element completely from the page. The implementation will add inline style `display: none !important` to the DOM.
   - Example: `<h1 data-spt-remove>Test</h1>`
 
 - `data-spt-replace-words`
-
   - Value: A number (min 1, max 500).
   - Effect: Replaces the text inside the element with consistent placeholder text (Lorem Ipsum) based on the specified amount.
   - Example: `<h1 data-spt-replace-words="5">Test</h1>`
@@ -85,13 +82,11 @@ To ensure deterministic screenshots, all time-based media can be reset to a stat
 
 ### Logic
 
-The runner executes a script to check these settings. If enabled, it locates all `<video>` and `<audio>` elements and forces them to a paused state at the beginning of the timeline.
+The runner executes a script to check these settings. If enabled, it locates all `<video>` and `<audio>` elements and add inline style `visibility: hidden !important` to the DOM.
 
 ```javascript
 const hasOption = window.spotteur?.options?.mediaReset === true;
-const hasAttribute = document.querySelector(
-  "html[data-spt-media-reset], body[data-spt-media-reset]"
-);
+const hasAttribute = document.querySelector("[data-spt-media-reset]");
 
 if (hasOption || hasAttribute) {
   const mediaElements = document.querySelectorAll("video, audio");
@@ -128,7 +123,7 @@ Additionally, the runner executes a script to check these settings. If enabled, 
 ```javascript
 const hasOption = window.spotteur?.options?.reducedMotion === true;
 const hasAttribute = document.querySelector(
-  "html[data-spt-reduced-motion], body[data-spt-reduced-motion]"
+  "[data-spt-reduced-motion]",
 );
 
 if (hasOption || hasAttribute) {
@@ -161,7 +156,10 @@ Spotteur supports a global hook system allowing the target page to define custom
 
 ### Logic
 
-The runner must detect the presence of a global `spotteur.hooks` object on the global `window` variable. For now, the only available event is `pre-screenshot` that will be executed before the screenshot is taken.
+The runner must detect the presence of a global `spotteur.hooks` object on the global `window` variable. The available events are:
+
+- `after-page-load`: This event will be executed after page load.
+- `before-screenshot`: This event will be executed before the screenshot is taken.
 
 Each hook should be an async function and return a promise. The runner will invoke & resolve that function.
 
@@ -173,7 +171,13 @@ window.spotteur = {
     /**
      * @returns {Promise<void>}
      */
-    "pre-screenshot": async () => {
+    "after-page-load": async () => {
+      // Custom logic
+    },
+    /**
+     * @returns {Promise<void>}
+     */
+    "before-screenshot": async () => {
       // Custom logic
     },
   },
