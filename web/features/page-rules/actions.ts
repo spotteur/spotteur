@@ -1,12 +1,15 @@
 'use server'
 
-import { and, asc, count, desc, eq } from 'drizzle-orm'
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
+import { parse } from 'yaml'
 import { z } from 'zod'
 
-import { type Browser } from '@/constants/enum'
+import { Browser, RuleAttrType } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
-import { PageRuleCreateSchema } from '@/features/page-rules/schema'
+import { PageRuleCreateSchema, PageRulesUpsertSchema } from '@/features/page-rules/schema'
+import YAML from 'yaml'
+import { defaultValuePageRule } from '@/features/page-rules/template'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
 
@@ -63,6 +66,18 @@ export async function createRule(input: unknown, projectId: string) {
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
+  const isExists = await isPagePathExists(parsed.data.pagePath)
+  if (isExists) {
+    return {
+      ok: false,
+      error: {
+        formErrors: [],
+        fieldErrors: {
+          pagePath: ['This page path already exists'] 
+        }
+      }
+    }
+  }
   const data = parsed.data
 
   const [created] = await db
@@ -107,4 +122,72 @@ export async function updateRule(input: unknown, id: string, projectId: string) 
 export async function deletePageRule(id: string) {
   await db.delete(pageRules).where(eq(pageRules.id, id))
   return { ok: true }
+}
+
+export async function upsertPageRules(schema: string, projectId: string) {
+  const parsed = parse(schema)
+  const payload = await PageRulesUpsertSchema.safeParseAsync(parsed)
+  if (payload.error) {
+    return {ok: false, error: z.flattenError(payload.error)}
+  }
+
+  // Upsert the bulk data page rules
+  const pageRulesToInsert = parsed.map((rule: typeof pageRules.$inferInsert) => {
+    const snapshotBrowsers = rule.snapshotBrowsers as Browser[]
+    return ({
+      ...rule,
+      projectId,
+      snapshotBrowsers,
+    })
+  })
+
+  const [data] = await db.insert(pageRules).values(pageRulesToInsert).onConflictDoUpdate({
+    target: pageRules.id,
+    set: {
+      snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
+      viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
+      mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
+      reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
+      pagePath: sql.raw(`excluded.${pageRules.pagePath.name}`),
+      rules: sql.raw(`excluded.${pageRules.rules.name}`),
+    },
+  }).returning()
+  
+  return { ok: true, data }
+}
+
+export async function isPagePathExists(path: string) {
+  const [row] = await db.select().from(pageRules).where(eq(pageRules.pagePath, path)).limit(1)
+  return !!row
+}
+
+export async function existingPageRules() {
+  const rules = await db.select().from(pageRules)
+
+  const exportedRules = rules.length ? rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest) : defaultValuePageRule
+  const doc: any = new YAML.Document(exportedRules);
+  exportedRules.forEach((_, pageIndex) => {
+    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as any).commentBefore =
+      `Possible values: ${Object.values(Browser).join(', ')}`
+
+    ;(doc.getIn([pageIndex, 'rules'], true) as any).commentBefore =
+      'An array of rules to dynamically apply `data-spt-*` attributes'
+
+      exportedRules[pageIndex].rules.forEach((_, ruleIndex) => {
+
+        ;(doc.getIn(
+          [pageIndex, 'rules', ruleIndex, 'selectors'],
+          true
+        ) as any).commentBefore =
+          `Array of CSS selectors to target elements`
+
+        ;(doc.getIn(
+          [pageIndex, 'rules', ruleIndex, 'attrs'],
+          true
+        ) as any).commentBefore =
+          `Object containing the \`data-spt-*\` attributes to apply to the matched elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
+      })
+  })
+
+  return doc.toString()
 }
