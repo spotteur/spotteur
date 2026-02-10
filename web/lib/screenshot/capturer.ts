@@ -3,6 +3,7 @@ import path from 'node:path'
 
 import { STORAGE_FOLDER } from '@/constants/app'
 import { RuleAttrType } from '@/constants/enum'
+import { BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
 import { BrowserEngineFactory, BrowserEngineType } from '@/lib/browser-engine'
 import { getLoremIpsumWords } from '@/lib/lipsum'
@@ -23,7 +24,10 @@ export class ScreenshotCapturer {
   public async capture(): Promise<{ tempPath: string }> {
     try {
       logger.info(`${this.logPrefix} Launching browser engine`)
-      this.browserEngine = await BrowserEngineFactory.create(BrowserEngineType.selenium, this.payload)
+      this.browserEngine = await BrowserEngineFactory.create(
+        BROWSER_ENGINE_TYPE || BrowserEngineType.SELENIUM,
+        this.payload,
+      )
 
       logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`)
       await this.browserEngine.visit(this.payload.pageUrl)

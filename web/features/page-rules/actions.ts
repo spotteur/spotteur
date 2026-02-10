@@ -214,18 +214,17 @@ export async function existingPageRules() {
     ? // eslint-disable-next-line @typescript-eslint/no-unused-vars
       rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest)
     : defaultValuePageRule
-
   const doc = new YAML.Document(exportedRules)
   exportedRules.forEach((_, pageIndex) => {
-    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as YAML.Node).commentBefore =
+    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as YAML.Document).commentBefore =
       `Possible values: ${Object.values(Browser).join(', ')}`
-    ;(doc.getIn([pageIndex, 'rules'], true) as YAML.Node).commentBefore =
+    ;(doc.getIn([pageIndex, 'rules'], true) as YAML.Document).commentBefore =
       'An array of rules to dynamically apply `data-spt-*` attributes'
 
     exportedRules[pageIndex].rules?.forEach((_, ruleIndex) => {
-      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'selectors'], true) as YAML.Node).commentBefore =
+      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'selectors'], true) as YAML.Document).commentBefore =
         `Array of CSS selectors to target elements`
-      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'attrs'], true) as YAML.Node).commentBefore =
+      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'attrs'], true) as YAML.Document).commentBefore =
         `Object containing the \`data-spt-*\` attributes to apply to the matched elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
     })
   })
