@@ -82,30 +82,30 @@ export const PageRuleBaseSchema = z.object({
 
 export const PageRuleCreateSchema = PageRuleBaseSchema
 export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {
-    const map = new Map<string, number[]>()
+  const map = new Map<string, number[]>()
 
-    items.forEach((item, index) => {
-      const key = item.pagePath
+  items.forEach((item, index) => {
+    const key = item.pagePath
 
-      if (!map.has(key)) {
-        map.set(key, [index])
-      } else {
-        map.get(key)!.push(index)
-      }
-    });
+    if (!map.has(key)) {
+      map.set(key, [index])
+    } else {
+      map.get(key)!.push(index)
+    }
+  })
 
-    map.forEach((indexes, path) => {
-      if (indexes.length > 1) {
-        indexes.forEach((index) => {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Duplicate path "${path}"`,
-            path: [index, "path"],
-          });
-        });
-      }
-    });
-  });
+  map.forEach((indexes, path) => {
+    if (indexes.length > 1) {
+      indexes.forEach((index) => {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Duplicate path "${path}"`,
+          path: [index, 'path'],
+        })
+      })
+    }
+  })
+})
 
 export const PageRuleUpdateSchema = PageRuleBaseSchema.extend({
   id: z.uuid('Invalid id'),

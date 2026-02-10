@@ -13,11 +13,11 @@ import { Button } from '@/components/ui/button'
 import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deletePageRule, existingPageRules, upsertPageRules } from '@/features/page-rules/actions'
+import { BulkEditDialog } from '@/features/page-rules/bulk-edit-dialog'
 import { ConfirmDeletePageRuletDialog } from '@/features/page-rules/confirm-delete-dialog'
 import { PageRuleListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
-import { BulkEditDialog } from '@/features/page-rules/bulk-edit-dialog'
 
 export default function ProjectPageRulesPage() {
   const queryClient = useQueryClient()
@@ -31,7 +31,7 @@ export default function ProjectPageRulesPage() {
     queryFn: () => getProject(params.id),
   })
 
-  const {data: existingPageRulesData} = useQuery({
+  const { data: existingPageRulesData } = useQuery({
     queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
     queryFn: () => existingPageRules(),
     enabled: !!params.id,
@@ -56,19 +56,26 @@ export default function ProjectPageRulesPage() {
         toast.success('Page rules updated', { description: 'The page rules were successfully updated.' })
         setOpenBulkEdit(false)
       } else {
-        toast.error('Page rules update failed', { description: (
-           <ul>
-            {res.error && Object.values(res.error.fieldErrors).map((row, index) => {
-              return (
-                <li key={index}>
-                  {row && Array.isArray(row) ? (
-                    row.map((message, i) => <p key={i}>{index + 1} - {message}</p>)
-                  ) : row}
-                </li>
-              )
-            })}
-          </ul>
-        ) })
+        toast.error('Page rules update failed', {
+          description: (
+            <ul>
+              {res.error &&
+                Object.values(res.error.fieldErrors).map((row, index) => {
+                  return (
+                    <li key={index}>
+                      {row && Array.isArray(row)
+                        ? row.map((message, i) => (
+                            <p key={i}>
+                              {index + 1} - {message}
+                            </p>
+                          ))
+                        : row}
+                    </li>
+                  )
+                })}
+            </ul>
+          ),
+        })
       }
     },
     onError: () => {
