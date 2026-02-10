@@ -1,13 +1,17 @@
 'use client'
 
 import Image from 'next/image'
+import { useMemo } from 'react'
 
-import { useHeaderNavigations } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { Button } from '@/components/ui/button'
 import { defaultMenu } from '@/constants/app'
+import { type NavigationType } from '@/types/app'
 
 export default function Home() {
-  useHeaderNavigations(defaultMenu)
+  const navigations = useMemo<NavigationType[]>(() => defaultMenu(), [])
+  useHeaderNavigations(navigations)
+  useHeaderBreadcrumbs(null, !navigations)
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">

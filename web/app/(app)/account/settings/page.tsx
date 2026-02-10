@@ -11,7 +11,7 @@ import {
 } from '@daveyplate/better-auth-ui'
 import { useEffect, useMemo, useState } from 'react'
 
-import { useHeaderNavigations } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { defaultMenu } from '@/constants/app'
 import { authClient } from '@/lib/auth-client'
 import { type NavigationType } from '@/types/app'
@@ -31,8 +31,9 @@ export default function SettingsPage() {
     process()
   }, [])
 
-  const defaultNavigations = useMemo<NavigationType[]>(() => defaultMenu, [])
-  useHeaderNavigations(defaultNavigations)
+  const navigations = useMemo<NavigationType[]>(() => defaultMenu(), [])
+  useHeaderNavigations(navigations)
+  useHeaderBreadcrumbs(null, !navigations)
 
   return (
     <div className="flex flex-col gap-6">

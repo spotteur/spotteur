@@ -20,6 +20,7 @@ import { getColumns } from '@/features/projects/columns'
 import { ConfirmDeleteProjectDialog } from '@/features/projects/confirm-delete-dialog'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
+import { type NavigationType } from '@/types/app'
 
 export default function ProjectsPage() {
   const queryClient = useQueryClient()
@@ -66,7 +67,8 @@ export default function ProjectsPage() {
     [],
   )
   useHeaderBreadcrumbs(breadcrumbs)
-  useHeaderNavigations(defaultMenu)
+  const navigations = useMemo<NavigationType[]>(() => defaultMenu(), [])
+  useHeaderNavigations(navigations)
 
   const handleSearchChange = useCallback(
     (value: string) => {
