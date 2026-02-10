@@ -33,7 +33,7 @@ export default function ProjectPageRulesPage() {
 
   const { data: existingPageRulesData } = useQuery({
     queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
-    queryFn: () => existingPageRules(),
+    queryFn: () => existingPageRules(params.id),
     enabled: !!params.id,
   })
 

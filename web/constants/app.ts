@@ -55,3 +55,5 @@ export const DEFAULT_SNAPSHOTS_WIDTH = 1920
 export const DEFAULT_SNAPSHOTS_HEIGHT = 1080
 export const DEFAULT_SNAPSHOTS_BROWSER = Browser.CHROME
 export const DEFAULT_SNAPSHOTS_SELECTOR = 'body'
+
+export const PAGE_SIZE_OPTIONS = [6, 12, 24, 48]

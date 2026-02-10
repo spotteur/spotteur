@@ -1,6 +1,6 @@
 'use server'
 
-import { and, count, asc, desc, eq, ilike, type SQL } from 'drizzle-orm'
+import { and, count, asc, desc, eq, ilike, type SQL, lt, gt } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 
 import { SnapshotApprovalStatus } from '@/constants/status-map'
@@ -46,7 +46,10 @@ export async function listSnapshotsByBuild({
 }) {
   const offset = (page - 1) * pageSize
   const column = sortColumn(sortBy)
+  const orders: SQL[] = []
   const order = sortDir === 'asc' ? asc(column) : desc(column)
+  orders.push(order)
+  orders.push(desc(snapshots.id))
 
   const filters = [eq(snapshots.buildId, buildId)] as SQL[]
 
@@ -78,10 +81,11 @@ export async function listSnapshotsByBuild({
         height: media.height,
         mimeType: media.mimeType,
       },
+      createdAt: snapshots.createdAt,
     })
     .from(snapshots)
     .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
-    .orderBy(order)
+    .orderBy(...orders)
     .limit(pageSize)
     .offset(offset)
   const baseCountQuery = db.select({ total: count() }).from(snapshots)
@@ -174,7 +178,12 @@ export async function getSnapshotDetail({
     snapshot.diffScreenshotMedia = { ...snapshot.diffScreenshotMedia, path }
   }
 
-  return { build, snapshot }
+  const action: { prev: string; next: string } = {
+    prev: await getPrevSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
+    next: await getNextSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
+  }
+
+  return { build, snapshot, action }
 }
 
 export async function updateSnapshotApprovalStatus({
@@ -268,9 +277,34 @@ export async function generateSnapshotPath({
   return `projects/${projectId}/builds/${buildId}/snapshots/${snapshotId}`
 }
 
+export async function getPrevSnapshot({ buildId, snapshotId }: { buildId: string; snapshotId: string }) {
+  const [prev] = await db
+    .select({ id: snapshots.id })
+    .from(snapshots)
+    .where(and(eq(snapshots.buildId, buildId), gt(snapshots.id, snapshotId)))
+    .orderBy(asc(snapshots.id))
+    .limit(1)
+
+  if (!prev) return ''
+  return prev.id
+}
+
+export async function getNextSnapshot({ buildId, snapshotId }: { buildId: string; snapshotId: string }) {
+  const [next] = await db
+    .select({ id: snapshots.id })
+    .from(snapshots)
+    .where(and(eq(snapshots.buildId, buildId), lt(snapshots.id, snapshotId)))
+    .orderBy(desc(snapshots.id))
+    .limit(1)
+
+  if (!next) return ''
+  return next.id
+}
+
 export type SnapshotsListRes = Awaited<ReturnType<typeof listSnapshotsByBuild>>
 export type SnapshotListItemRes = SnapshotsListRes['data'][number]
 
 export type GetSnapshotDetailRes = Awaited<ReturnType<typeof getSnapshotDetail>>
 export type SnapshotDetailRes = NonNullable<GetSnapshotDetailRes>['snapshot']
 export type MediaDetailRes = NonNullable<SnapshotDetailRes['screenshotMedia']>
+export type SnapshotActionRes = { prev: string; next: string }

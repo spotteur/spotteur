@@ -70,6 +70,10 @@ export const MediaResetSchema = z.boolean().optional()
 
 export const ReducedMotionSchema = z.boolean().optional()
 
+export const hookAfterPageLoadSchema = z.string().nullable().optional()
+
+export const hookBeforeScreenshotSchema = z.string().nullable().optional()
+
 export const PageRuleBaseSchema = z.object({
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,
@@ -77,6 +81,8 @@ export const PageRuleBaseSchema = z.object({
   reducedMotion: ReducedMotionSchema,
   pagePath: PagePathSchema,
   rules: RulesSchema,
+  hookAfterPageLoad: hookAfterPageLoadSchema,
+  hookBeforeScreenshot: hookBeforeScreenshotSchema,
 })
 
 export const PageRuleCreateSchema = PageRuleBaseSchema

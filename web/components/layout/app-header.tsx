@@ -31,7 +31,11 @@ export default function AppHeader() {
         </div>
       </div>
       <div>
-        {isLoading && <Skeleton className="h-6 w-48" />}
+        {isLoading && (
+          <div className="px-5 py-1.75">
+            <Skeleton className="h-6 w-48" />
+          </div>
+        )}
         {!isLoading && navigations && <AppNavigation navigations={navigations} />}
       </div>
     </div>

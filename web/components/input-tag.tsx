@@ -27,15 +27,11 @@ export interface InputTagInterface {
   isInvalid: boolean
 }
 const InputTag = ({ defaultValue, tags, onSelect, isInvalid }: InputTagInterface) => {
-  const [selected, setSelected] = useState<string>(defaultValue)
-  const handleSelect = (value: string) => {
-    setSelected(value)
-    onSelect(value)
-  }
+  const [open, setOpen] = useState(false)
   return (
-    <Tags>
-      <TagsTrigger className={cn(isInvalid ? '!border-destructive' : '')}>
-        {selected && <TagsValue>{selected}</TagsValue>}
+    <Tags open={open} onOpenChange={setOpen}>
+      <TagsTrigger className={cn(isInvalid ? 'border-destructive!' : '')}>
+        {defaultValue && <TagsValue>{defaultValue}</TagsValue>}
       </TagsTrigger>
       <TagsContent>
         <TagsInput placeholder="Search..." />
@@ -43,9 +39,16 @@ const InputTag = ({ defaultValue, tags, onSelect, isInvalid }: InputTagInterface
           <TagsEmpty />
           <TagsGroup>
             {tags.map((tag) => (
-              <TagsItem key={tag.value} onSelect={handleSelect} value={tag.value}>
+              <TagsItem
+                key={tag.value}
+                onSelect={() => {
+                  onSelect(tag.value)
+                  setOpen(false)
+                }}
+                value={tag.value}
+              >
                 {tag.label}
-                {selected === tag.value && <CheckIcon className="text-muted-foreground" size={14} />}
+                {defaultValue === tag.value && <CheckIcon className="text-muted-foreground" size={14} />}
               </TagsItem>
             ))}
           </TagsGroup>

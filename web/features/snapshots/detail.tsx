@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
-import { type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { type SnapshotActionRes, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
 
 export function SnapshotActionButtons({
@@ -115,14 +116,38 @@ export function SnapshotActionButtons({
   )
 }
 
-export function SnapshotViewer({ snapshot }: { snapshot: SnapshotDetailRes }) {
+export function SnapshotViewer({
+  snapshot,
+  action,
+  projectId,
+  buildId,
+}: {
+  snapshot: SnapshotDetailRes
+  action: SnapshotActionRes
+  projectId: string
+  buildId: string
+}) {
   return (
     <Tabs defaultValue="side-by-side" className="space-y-2">
-      <TabsList>
-        <TabsTrigger value="side-by-side">Side by side</TabsTrigger>
-        <TabsTrigger value="comparison">Comparison</TabsTrigger>
-        <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-      </TabsList>
+      <div className="flex justify-between">
+        <TabsList>
+          <TabsTrigger value="side-by-side">Side by side</TabsTrigger>
+          <TabsTrigger value="comparison">Comparison</TabsTrigger>
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+        </TabsList>
+        <div className="flex gap-5">
+          {action.prev ? (
+            <Button asChild variant="outline">
+              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.prev}`}>Previous</Link>
+            </Button>
+          ) : null}
+          {action.next ? (
+            <Button asChild variant="outline">
+              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.next}`}>Next</Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
 
       <TabsContent value="comparison">
         {snapshot.baselineScreenshotMedia === null ? (

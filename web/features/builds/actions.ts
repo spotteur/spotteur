@@ -229,6 +229,10 @@ export async function populateSnapshotsPayload({
           reducedMotion: pageRule?.reducedMotion || false,
           mediaReset: pageRule?.mediaReset || false,
           rules: pageRule?.rules,
+          hooks: {
+            'after-page-load': pageRule?.hookAfterPageLoad ?? undefined,
+            'before-screenshot': pageRule?.hookBeforeScreenshot ?? undefined,
+          },
         } satisfies SnapshotPayload)
       }
     }

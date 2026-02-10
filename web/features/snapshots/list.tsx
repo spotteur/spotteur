@@ -16,6 +16,7 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus, SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
@@ -171,7 +172,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
             </div>
           )}
         </div>
-        <DataTablePagination table={table} pageSizeOptions={[6]} />
+        <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
       </CardContent>
     </Card>
   )
