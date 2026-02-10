@@ -1,6 +1,5 @@
 'use client'
 import { CheckIcon } from 'lucide-react'
-import { useState } from 'react'
 
 import {
   Tags,
@@ -14,35 +13,33 @@ import {
   TagsValue,
 } from '@/components/ui/tags'
 
-export type InputTagTypes = {
+export type InputTagsTypes = {
   value: string
   label: string
 }
 
-export interface InputTagInterface {
+export interface InputTagsInterface {
   defaultValue: string[]
-  tags: InputTagTypes[]
+  tags: InputTagsTypes[]
   onRemove: (value: string[]) => void
   onSelect: (value: string[]) => void
 }
-const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagInterface) => {
-  const [selected, setSelected] = useState<string[]>(defaultValue)
+const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagsInterface) => {
   const handleRemove = (value: string) => {
-    setSelected((prev) => prev.filter((v) => v !== value))
-    onRemove(selected.filter((v) => v !== value))
+    onRemove(defaultValue.filter((v) => v !== value))
+    onSelect(defaultValue.filter((v) => v !== value))
   }
   const handleSelect = (value: string) => {
-    if (selected.includes(value)) {
+    if (defaultValue.includes(value)) {
       handleRemove(value)
       return
     }
-    setSelected((prev) => [...prev, value])
-    onSelect([...selected, value])
+    onSelect([...defaultValue, value])
   }
   return (
     <Tags>
       <TagsTrigger>
-        {selected.map((tag) => (
+        {defaultValue.map((tag) => (
           <TagsValue key={tag} onRemove={() => handleRemove(tag)}>
             {tags.find((t) => t.value === tag)?.label}
           </TagsValue>
@@ -56,7 +53,7 @@ const InputTags = ({ defaultValue, tags, onRemove, onSelect }: InputTagInterface
             {tags.map((tag) => (
               <TagsItem key={tag.value} onSelect={handleSelect} value={tag.value}>
                 {tag.label}
-                {selected.includes(tag.value) && <CheckIcon className="text-muted-foreground" size={14} />}
+                {defaultValue.includes(tag.value) && <CheckIcon className="text-muted-foreground" size={14} />}
               </TagsItem>
             ))}
           </TagsGroup>

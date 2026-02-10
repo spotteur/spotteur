@@ -11,6 +11,8 @@ import { pageRules, projects } from '@/db/schema'
 import { PageRuleCreateSchema, PageRulesUpsertSchema } from '@/features/page-rules/schema'
 import { defaultValuePageRule } from '@/features/page-rules/template'
 
+import { type PageRuleFormInput } from './form'
+
 type SortKey = 'createdAt' | 'updatedAt' | ''
 
 const sortColumn = (key: SortKey) => {
@@ -96,6 +98,37 @@ export async function createRule(input: unknown, projectId: string) {
   return { ok: true, data: created }
 }
 
+export async function manageRule(input: PageRuleFormInput, projectId: string) {
+  const parsed = PageRuleCreateSchema.safeParse(input)
+  if (!parsed.success) {
+    return { ok: false, error: z.flattenError(parsed.error) }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { createdAt, updatedAt, ...data } = input
+
+  const [upsert] = await db
+    .insert(pageRules)
+    .values({
+      projectId,
+      ...data,
+      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+    })
+    .onConflictDoUpdate({
+      target: pageRules.id,
+      set: {
+        snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+        viewports: data.viewports,
+        mediaReset: data.mediaReset,
+        reducedMotion: data.reducedMotion,
+        pagePath: data.pagePath,
+        rules: data.rules,
+      },
+    })
+    .returning()
+
+  return { ok: true, data: upsert }
+}
+
 export async function updateRule(input: unknown, id: string, projectId: string) {
   const parsed = PageRuleCreateSchema.safeParse(input)
   if (!parsed.success) {
@@ -160,6 +193,15 @@ export async function upsertPageRules(schema: string, projectId: string) {
   return { ok: true, data }
 }
 
+export async function pageRuleByPath(projectId: string, path: string) {
+  const [row] = await db
+    .select()
+    .from(pageRules)
+    .where(and(eq(pageRules.projectId, projectId), eq(pageRules.pagePath, path)))
+    .limit(1)
+  return row
+}
+
 export async function isPagePathExists(path: string) {
   const [row] = await db.select().from(pageRules).where(eq(pageRules.pagePath, path)).limit(1)
   return !!row
@@ -179,7 +221,7 @@ export async function existingPageRules() {
     ;(doc.getIn([pageIndex, 'rules'], true) as YAML.Document).commentBefore =
       'An array of rules to dynamically apply `data-spt-*` attributes'
 
-    exportedRules[pageIndex].rules.forEach((_, ruleIndex) => {
+    exportedRules[pageIndex].rules?.forEach((_, ruleIndex) => {
       ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'selectors'], true) as YAML.Document).commentBefore =
         `Array of CSS selectors to target elements`
       ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'attrs'], true) as YAML.Document).commentBefore =

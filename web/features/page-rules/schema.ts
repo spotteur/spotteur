@@ -9,15 +9,14 @@ export const RuleAttrSchema = z.object({
   }),
 })
 
-export const SelectorSchema = z.string().nonempty('Selector is required')
+export const SelectorSchema = z.string().nonempty('Provide at least 1 selector')
 
 export const RuleSchema = z.object({
-  selectors: z.array(SelectorSchema).nonempty('Provide at least 1 selector'),
+  selectors: z.array(SelectorSchema),
   attrs: z.array(RuleAttrSchema),
 })
 
-export const RulesSchema = z.array(RuleSchema).nonempty('Provide at least 1 rule')
-
+export const RulesSchema = z.array(RuleSchema).optional()
 export const PagePathSchema = z
   .string()
   .nonempty('Page path is required')
