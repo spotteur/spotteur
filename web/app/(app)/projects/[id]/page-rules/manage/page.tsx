@@ -31,16 +31,16 @@ export default function ManagePageRule() {
     mutationFn: async (values: PageRuleFormInput) => manageRule(values, data ? data.id : ''),
     onSuccess: (res) => {
       if (res.ok) {
-        toast.success('Page Rule managed', { description: 'Your rule was successfully managed.' })
+        toast.success('Page Rule updated', { description: 'Your rule was successfully updated.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
       } else {
         setFormErrors(res.error)
-        toast.error('Rule management failed', { description: 'Please review the error and try again.' })
+        toast.error('Failed to update page rule', { description: 'Please review the error and try again.' })
       }
     },
     onError: (error) => {
-      console.error('Rule management error:', error)
-      toast.error('Rule management failed', {
+      console.error('Failed to update page rule:', error)
+      toast.error('Failed to update page rule', {
         description: 'Something went wrong. Please try again later.',
       })
     },

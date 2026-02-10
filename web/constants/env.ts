@@ -37,3 +37,12 @@ export const SELENIUM_REMOTE_URL = process.env.SELENIUM_REMOTE_URL || ''
 export const TRUSTED_ORIGINS = (process.env.TRUSTED_ORIGINS || APP_URL || '').split(',').map((origin) => origin.trim())
 
 export const DISABLE_REGISTRATION = process.env.NEXT_PUBLIC_DISABLE_REGISTRATION === 'true'
+
+export const BROWSER_ENGINE_TYPE = process.env.BROWSER_ENGINE_TYPE || ''
+
+export const BROWSERLESS_WS_ENDPOINT = process.env.BROWSERLESS_WS_ENDPOINT || ''
+export const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || ''
+
+export const PLAYWRIGHT_CHROME_URL = process.env.PLAYWRIGHT_CHROME_URL || ''
+export const PLAYWRIGHT_EDGE_URL = process.env.PLAYWRIGHT_EDGE_URL || ''
+export const PLAYWRIGHT_FIREFOX_URL = process.env.PLAYWRIGHT_FIREFOX_URL || ''

@@ -1,13 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
 import { Globe, MoreHorizontal, Settings } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'

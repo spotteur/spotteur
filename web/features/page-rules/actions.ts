@@ -103,7 +103,6 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, ...data } = input
 
@@ -217,22 +216,17 @@ export async function existingPageRules(projectId: string) {
     ? // eslint-disable-next-line @typescript-eslint/no-unused-vars
       rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest)
     : defaultValuePageRule
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const doc: any = new YAML.Document(exportedRules)
+  const doc = new YAML.Document(exportedRules)
   exportedRules.forEach((_, pageIndex) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as any).commentBefore =
+    ;(doc.getIn([pageIndex, 'snapshotBrowsers'], true) as YAML.Document).commentBefore =
       `Possible values: ${Object.values(Browser).join(', ')}`
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(doc.getIn([pageIndex, 'rules'], true) as any).commentBefore =
+    ;(doc.getIn([pageIndex, 'rules'], true) as YAML.Document).commentBefore =
       'An array of rules to dynamically apply `data-spt-*` attributes'
 
     exportedRules[pageIndex].rules?.forEach((_, ruleIndex) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'selectors'], true) as any).commentBefore =
+      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'selectors'], true) as YAML.Document).commentBefore =
         `Array of CSS selectors to target elements`
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'attrs'], true) as any).commentBefore =
+      ;(doc.getIn([pageIndex, 'rules', ruleIndex, 'attrs'], true) as YAML.Document).commentBefore =
         `Object containing the \`data-spt-*\` attributes to apply to the matched elements. Possible values: ${Object.values(RuleAttrType).join(', ')}`
     })
   })

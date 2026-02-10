@@ -10,7 +10,7 @@ import { type IBrowserEngine } from '@/types/browser-engine'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 export class SeleniumBrowserEngine implements IBrowserEngine {
-  private driver: chrome.Driver | firefox.Driver | edge.Driver
+  protected driver: chrome.Driver | firefox.Driver | edge.Driver
 
   constructor(driver: chrome.Driver | firefox.Driver | edge.Driver) {
     this.driver = driver
@@ -22,7 +22,6 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
 
   public async fitWindowToContentHeight(): Promise<void> {
     const { width } = await this.driver.manage().window().getRect()
-    // Here we are adding extra 20% height to handle any fixed elements
     const fullPageHeight = await this.driver.executeScript<number>(() => {
       return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
     })

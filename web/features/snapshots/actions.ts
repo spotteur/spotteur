@@ -70,6 +70,8 @@ export async function listSnapshotsByBuild({
       id: snapshots.id,
       pagePath: snapshots.pagePath,
       browser: snapshots.browser,
+      viewportWidth: snapshots.viewportWidth,
+      viewportHeight: snapshots.viewportHeight,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
       screenshotMedia: {
