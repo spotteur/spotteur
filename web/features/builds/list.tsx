@@ -14,7 +14,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 import { type builds } from '@/db/schema'
 import { listBuildsByProject, triggerBuild } from '@/features/builds/actions'
@@ -127,7 +127,7 @@ export function BuildListCard({ projectId }: { projectId?: string }) {
                 )
               })}
             </div>
-            <DataTablePagination table={table} pageSizeOptions={[6]} />
+            <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
           </>
         )}
       </CardContent>

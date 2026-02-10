@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { type pageRules } from '@/db/schema'
@@ -77,7 +78,7 @@ export function PageRuleListCard({
           </div>
         ) : (
           <EmptySection
-            url={`/projects/${projectId}/page-rules/create` as Route}
+            url={`/projects/${projectId}/page-rules/manage` as Route}
             label="Add page rule"
             title="Page rule"
           />
@@ -103,7 +104,14 @@ export function PageRuleItemCard({
         <Link href={`/projects/${rule.projectId}/page-rules/manage?id=${rule.id}` as Route}>
           <CardHeader className="space-y-2">
             <div className="flex items-start justify-between gap-3">
-              <CardTitle className="word-wrap w-full text-lg font-semibold">{rule.pagePath}</CardTitle>
+              <CardTitle className="word-wrap w-full text-lg font-semibold">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="line-clamp-2 w-max max-w-87.5 truncate break-all">{rule.pagePath}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>{rule.pagePath}</TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <div className="flex items-center justify-end gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
