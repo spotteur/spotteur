@@ -17,7 +17,7 @@ const HeaderContext = createContext<HeaderContextValue | null>(null)
 
 export function HeaderProvider({ children }: { children: React.ReactNode }) {
   const [breadcrumbs, setBreadcrumbs] = useState<React.ReactNode | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [navigations, setNavigations] = useState<NavigationType[] | null>(null)
 
   const value = useMemo(

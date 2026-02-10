@@ -87,10 +87,13 @@ export default function PageRuleForm({
   }, [errors, form])
 
   useEffect(() => {
+    // Reset the value back manually after continuing or discarding the changes from the dialog
     if (isManualReset.current) {
       isManualReset.current = false
       return
     }
+
+    // Populate the value when the parameter is exist
     if (data && ruleId) {
       form.reset(data)
     } else {
@@ -102,7 +105,9 @@ export default function PageRuleForm({
   }, [data, form, ruleId, defaultValues, selectedPath])
 
   useEffect(() => {
+    // Populate the data when the page is accessed without parameters and without any state
     if (!isManualReset.current && !data && !ruleId) {
+      // Find unused paths from page rules as the default value.
       const findUnusedPath = async () => {
         const unusedPath = await unUsedPagePath(project.id)
 
@@ -112,6 +117,7 @@ export default function PageRuleForm({
             pagePath: unusedPath,
           })
         } else {
+          // Use the first rule as the default value if all paths already exist.
           const rule = await pageRuleByPath(project.id, project.pagePaths[0])
           if (rule) {
             setRuleId(rule.id)
@@ -124,6 +130,7 @@ export default function PageRuleForm({
   }, [data, defaultValues, form, project, ruleId, setRuleId])
 
   const handleSelect = async (value: string) => {
+    // Populate the value when manually triggered from the pagePath field
     isManualReset.current = true
     const applyChange = async () => {
       const rule = await pageRuleByPath(project.id, value)
@@ -136,6 +143,7 @@ export default function PageRuleForm({
         setSelectedPath(value)
       }
     }
+    // Show the dialog if the current data has already changed
     if (form.state.isDirty) {
       pendingActions.current.push(applyChange)
       setOpenDialog(true)

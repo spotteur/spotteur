@@ -84,7 +84,7 @@ export function PageRuleListCard({
           />
         )}
       </CardContent>
-      <CardFooter className="justify-center">
+      <CardFooter className="justify-end">
         <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
       </CardFooter>
     </Card>
