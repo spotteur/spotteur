@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { type $ZodFlattenedError } from 'zod/v4/core'
 
-import { useHeaderBreadcrumbs } from '@/components/layout/header-context'
+import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import {
   DEFAULT_ERROR_DESCRIPTION,
@@ -15,11 +15,13 @@ import {
   DEFAULT_SNAPSHOTS_BROWSER,
   DEFAULT_SNAPSHOTS_HEIGHT,
   DEFAULT_SNAPSHOTS_WIDTH,
+  defaultMenu,
   VALIDATION_ERROR_DESCRIPTION,
 } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
+import { type NavigationType } from '@/types/app'
 
 const DEFAULT_SNAPSHOT_SELECTOR = 'body'
 
@@ -65,7 +67,9 @@ export default function NewProjectPage() {
     ),
     [],
   )
-  useHeaderBreadcrumbs(breadcrumbs)
+  useHeaderBreadcrumbs(breadcrumbs, false)
+  const navigations = useMemo<NavigationType[]>(() => defaultMenu(), [])
+  useHeaderNavigations(navigations)
 
   return (
     <div className="max-w-2xl p-4">
