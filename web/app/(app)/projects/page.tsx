@@ -66,7 +66,7 @@ export default function ProjectsPage() {
     ),
     [],
   )
-  useHeaderBreadcrumbs(breadcrumbs)
+  useHeaderBreadcrumbs(breadcrumbs, false)
   const navigations = useMemo<NavigationType[]>(() => defaultMenu(), [])
   useHeaderNavigations(navigations)
 
