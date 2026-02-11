@@ -1,6 +1,8 @@
 export interface IBrowserEngine {
   enableReducedMotion(): Promise<void>
   executeScript<T>(script: string): Promise<T>
+  getViewportSize(): Promise<{ width: number; height: number }>
+  setViewportSize(width: number, height: number): Promise<void>
   /**
    * Adjust the browser window height to fit the content height.
    */

@@ -20,6 +20,16 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
     return await this.driver.executeScript<T>(script)
   }
 
+  public async getViewportSize(): Promise<{ width: number; height: number }> {
+    const { width, height } = await this.driver.manage().window().getRect()
+
+    return { width, height }
+  }
+
+  public async setViewportSize(width: number, height: number): Promise<void> {
+    await this.driver.manage().window().setRect({ width, height })
+  }
+
   public async fitWindowToContentHeight(): Promise<void> {
     const { width } = await this.driver.manage().window().getRect()
     const fullPageHeight = await this.driver.executeScript<number>(() => {

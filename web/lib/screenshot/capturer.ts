@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 
-import { STORAGE_FOLDER } from '@/constants/app'
+import { DEFAULT_SNAPSHOTS_HEIGHT, DEFAULT_SNAPSHOTS_WIDTH, STORAGE_FOLDER } from '@/constants/app'
 import { RuleAttrType } from '@/constants/enum'
 import { BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
@@ -45,7 +45,8 @@ export class ScreenshotCapturer {
 
       await this.browserEngine.scrollPageToBottom()
       await this.browserEngine.scrollPageToTop()
-      await this.browserEngine.fitWindowToContentHeight()
+      // await this.browserEngine.fitWindowToContentHeight()
+      await this.fitWindowToContentHeight()
 
       await this.browserEngine.waitForNetworkIdle(30000)
       await this.browserEngine.waitForSelector(this.payload.selector, 30000)
@@ -54,6 +55,7 @@ export class ScreenshotCapturer {
 
       await this.browserEngine.scrollPageToBottom()
       await this.browserEngine.scrollPageToTop()
+      await this.fitWindowToContentHeight()
 
       logger.info(`${this.logPrefix} Capturing screenshot`)
       const buffer = await this.takeConsistentScreenshot({
@@ -136,6 +138,24 @@ export class ScreenshotCapturer {
       logger.info(`${this.logPrefix} Executing after-page-load hook`)
       await this.browserEngine?.executeScript<void>(this.payload.hooks['after-page-load'])
     }
+  }
+
+  private async fitWindowToContentHeight(): Promise<void> {
+    const viewportSize = await this.browserEngine?.getViewportSize()
+    const width = viewportSize?.width || DEFAULT_SNAPSHOTS_WIDTH
+    const height = viewportSize?.height || DEFAULT_SNAPSHOTS_HEIGHT
+    console.log(`Viewport size before fitting: ${width}x${height}`)
+
+    const fullPageHeight = await this.browserEngine?.executeScript<number>(
+      // The first part gets the full height of the page content
+      // The second part adds the difference between outerHeight and innerHeight to respect browser window size
+      'return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) + (window.outerHeight - window.innerHeight)',
+    )
+
+    const newHeight = fullPageHeight || height
+    console.log(`Viewport size after fitting: ${width}x${newHeight}`)
+
+    await this.browserEngine?.setViewportSize(width, newHeight)
   }
 
   private async runBeforeScreenshotHook(): Promise<void> {
