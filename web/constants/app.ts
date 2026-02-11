@@ -44,12 +44,14 @@ export const snapshotsMenu = (projectId: string, buildId: string): NavigationTyp
   ]
 }
 
-export const defaultMenu: NavigationType[] = [
-  {
-    label: 'Projects',
-    url: '/projects',
-  },
-]
+export const defaultMenu = (): NavigationType[] => {
+  return [
+    {
+      label: 'Projects',
+      url: '/projects',
+    },
+  ]
+}
 
 export const DEFAULT_SNAPSHOTS_WIDTH = 1920
 export const DEFAULT_SNAPSHOTS_HEIGHT = 1080
