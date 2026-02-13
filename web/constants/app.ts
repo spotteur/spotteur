@@ -21,8 +21,8 @@ export const projectsMenu = (projectId: string): NavigationType[] => {
       url: `/projects/${projectId}` as Route,
     },
     {
-      label: 'Page Rules',
-      url: `/projects/${projectId}/page-rules` as Route,
+      label: 'Pages',
+      url: `/projects/${projectId}/pages` as Route,
     },
     {
       label: 'Builds',

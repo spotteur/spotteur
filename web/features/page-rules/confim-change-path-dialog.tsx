@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-export function ConfirmChangePath({
+export function ConfirmChangePathDialog({
   open,
   onConfirm,
   onCancel,

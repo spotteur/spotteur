@@ -13,13 +13,13 @@ import { Button } from '@/components/ui/button'
 import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deletePageRule, existingPageRules, upsertPageRules } from '@/features/page-rules/actions'
-import { BulkEditDialog } from '@/features/page-rules/bulk-edit-dialog'
-import { ConfirmDeletePageRuletDialog } from '@/features/page-rules/confirm-delete-dialog'
-import { PageRuleListCard } from '@/features/page-rules/list'
+import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialog'
+import { ConfirmDeletePageDialog } from '@/features/page-rules/confirm-delete-path-dialog'
+import { PageListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
-export default function ProjectPageRulesPage() {
+export default function ManagePagesPage() {
   const queryClient = useQueryClient()
   const [pendingDelete, setPendingDelete] = useState<{ id: string; path: string } | null>(null)
   const [openBulkEdit, setOpenBulkEdit] = useState<boolean>(false)
@@ -31,7 +31,7 @@ export default function ProjectPageRulesPage() {
     queryFn: () => getProject(params.id),
   })
 
-  const { data: existingPageRulesData } = useQuery({
+  const { data: existingPagesData } = useQuery({
     queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
     queryFn: () => existingPageRules(params.id),
     enabled: !!params.id,
@@ -41,10 +41,10 @@ export default function ProjectPageRulesPage() {
     mutationFn: (id: string) => deletePageRule(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
-      toast.success('Page rule deleted', { description: 'The page rule was successfully deleted.' })
+      toast.success('Page deleted', { description: 'The page was successfully deleted.' })
     },
     onError: () => {
-      toast.error('Page rule deletion failed', { description: 'Something went wrong. Please try again later.' })
+      toast.error('Failed to delete page', { description: 'Something went wrong. Please try again later.' })
     },
   })
 
@@ -53,10 +53,10 @@ export default function ProjectPageRulesPage() {
     onSuccess: (res) => {
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id] })
-        toast.success('Page rules updated', { description: 'The page rules were successfully updated.' })
+        toast.success('Pages updated', { description: 'Pages were successfully updated.' })
         setOpenBulkEdit(false)
       } else {
-        toast.error('Page rules update failed', {
+        toast.error('Failed to update pages', {
           description: (
             <ul>
               {res.error &&
@@ -79,7 +79,7 @@ export default function ProjectPageRulesPage() {
       }
     },
     onError: () => {
-      toast.error('Page rules update failed', { description: 'Something went wrong. Please try again later.' })
+      toast.error('Failed to update pages', { description: 'Something went wrong. Please try again later.' })
     },
   })
 
@@ -100,7 +100,7 @@ export default function ProjectPageRulesPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Page Rules</BreadcrumbPage>
+            <BreadcrumbPage>Pages</BreadcrumbPage>
           </BreadcrumbItem>
         </>
       ) : null,
@@ -118,16 +118,14 @@ export default function ProjectPageRulesPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="flex justify-end gap-3">
-        <Button type="button" variant="default" onClick={() => setOpenBulkEdit(true)}>
-          <Edit />
-          Bulk Edit
-        </Button>
-      </div>
-      <PageRuleListCard projectId={data?.id} onRequestDelete={(val) => setPendingDelete(val)} />
-      <ConfirmDeletePageRuletDialog
+      <PageListCard
+        projectId={data?.id}
+        onRequestDelete={(val) => setPendingDelete(val)}
+        onBulkEditTrigger={() => setOpenBulkEdit(true)}
+      />
+      <ConfirmDeletePageDialog
         open={!!pendingDelete}
-        pathRule={pendingDelete?.path ?? ''}
+        pagePath={pendingDelete?.path ?? ''}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
           if (pendingDelete) {
@@ -137,19 +135,17 @@ export default function ProjectPageRulesPage() {
         }}
       />
 
-      {openBulkEdit && (
-        <BulkEditDialog
-          open={openBulkEdit}
-          codeYaml={existingPageRulesData || pendingUpdate}
-          onImport={(code) => {
-            if (code) {
-              setPendingUpdate(code)
-              importMutation.mutate(code)
-            }
-          }}
-          onCancel={() => setOpenBulkEdit(false)}
-        />
-      )}
+      <BulkEditPagesDialog
+        open={openBulkEdit}
+        codeYaml={existingPagesData || pendingUpdate}
+        onImport={(code) => {
+          if (code) {
+            setPendingUpdate(code)
+            importMutation.mutate(code)
+          }
+        }}
+        onCancel={() => setOpenBulkEdit(false)}
+      />
     </div>
   )
 }

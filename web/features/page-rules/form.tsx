@@ -32,7 +32,7 @@ import { getRule, pageRuleByPath, unUsedPagePath } from '@/features/page-rules/a
 import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
 
-import { ConfirmChangePath } from './confim-change-path'
+import { ConfirmChangePathDialog } from './confim-change-path-dialog'
 
 export type PageRuleFormInput = z.infer<typeof PageRuleCreateSchema> & {
   id?: string
@@ -291,7 +291,7 @@ export default function PageRuleForm({
               <Field data-invalid={isInvalid}>
                 <div className="flex items-start gap-3">
                   <Checkbox
-                    id="mediaReset"
+                    id="pageRule-mediaReset"
                     checked={field.state.value}
                     onCheckedChange={(checked) => field.handleChange(checked === true)}
                   />
@@ -315,7 +315,7 @@ export default function PageRuleForm({
               <Field data-invalid={isInvalid}>
                 <div className="flex items-start gap-3">
                   <Checkbox
-                    id="reducedMotion"
+                    id="pageRule-reducedMotion"
                     checked={field.state.value}
                     onCheckedChange={(checked) => field.handleChange(checked === true)}
                   />
@@ -351,9 +351,9 @@ export default function PageRuleForm({
                                 return (
                                   <div>
                                     <Field data-invalid={isInvalidSelectors} className="flex flex-col gap-3">
-                                      <FieldLabel htmlFor="pageRule-rules-selectors">Selectors</FieldLabel>
+                                      <FieldLabel htmlFor={`pageRule-rules-selectors-${index}`}>Selectors</FieldLabel>
                                       <Textarea
-                                        id="pageRule-rules-selectors"
+                                        id={`pageRule-rules-selectors-${index}`}
                                         name={field.name}
                                         value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
                                         onBlur={field.handleBlur}
@@ -551,12 +551,12 @@ export default function PageRuleForm({
               submitLabel
             )}
           </Button>
-          <Link href={`/projects/${project.id}/page-rules`} className="cursor-pointer">
+          <Link href={`/projects/${project.id}/pages`} className="cursor-pointer">
             <Button variant="secondary">Cancel</Button>
           </Link>
         </div>
       </form>
-      <ConfirmChangePath
+      <ConfirmChangePathDialog
         open={openDialog}
         onConfirm={async () => {
           for (const action of pendingActions.current) {

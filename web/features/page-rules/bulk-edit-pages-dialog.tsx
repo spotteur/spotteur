@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-export function BulkEditDialog({
+export function BulkEditPagesDialog({
   open,
   codeYaml,
   onImport,
@@ -21,14 +21,14 @@ export function BulkEditDialog({
 
   return (
     <Dialog open={open}>
-      <DialogContent onPointerDownOutside={onCancel} onEscapeKeyDown={onCancel} className="!max-w-3xl">
+      <DialogContent showCloseButton={false} className="max-w-6xl!">
         <DialogHeader>
-          <DialogTitle>Bulk edit page rules</DialogTitle>
+          <DialogTitle>Bulk Edit Pages</DialogTitle>
         </DialogHeader>
         <div className="py-5">
           <Editor
             width="100%"
-            height="400px"
+            height="70vh"
             language="yaml"
             value={codeYaml}
             onChange={(value) => setCode(value || '')}

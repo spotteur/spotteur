@@ -17,7 +17,7 @@ import PageRuleForm, { type PageRuleFormInput } from '@/features/page-rules/form
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
-export default function ManagePageRule() {
+export default function ManagePages() {
   const queryClient = useQueryClient()
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
   const params = useParams<{ id: string }>()
@@ -31,16 +31,16 @@ export default function ManagePageRule() {
     mutationFn: async (values: PageRuleFormInput) => manageRule(values, data ? data.id : ''),
     onSuccess: (res) => {
       if (res.ok) {
-        toast.success('Page Rule updated', { description: 'Your rule was successfully updated.' })
+        toast.success('Page updated', { description: 'Your page was successfully updated.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
       } else {
         setFormErrors(res.error)
-        toast.error('Failed to update page rule', { description: 'Please review the error and try again.' })
+        toast.error('Failed to update page', { description: 'Please review the error and try again.' })
       }
     },
     onError: (error) => {
-      console.error('Failed to update page rule:', error)
-      toast.error('Failed to update page rule', {
+      console.error('Failed to update page:', error)
+      toast.error('Failed to update page', {
         description: 'Something went wrong. Please try again later.',
       })
     },
@@ -64,7 +64,7 @@ export default function ManagePageRule() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/page-rules`}>Page Rules</Link>
+              <Link href={`/projects/${params.id}/pages`}>Pages</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -85,7 +85,7 @@ export default function ManagePageRule() {
 
   return (
     <div className="p-4">
-      <h1 className="mb-4 text-xl font-semibold">Manage Page Rule</h1>
+      <h1 className="mb-4 text-xl font-semibold">Manage Pages</h1>
       {data && (
         <Card className="w-full">
           <CardContent className="max-w-2xl">

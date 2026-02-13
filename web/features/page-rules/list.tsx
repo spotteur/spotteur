@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
-import { Globe, MoreHorizontal, Settings } from 'lucide-react'
+import { Edit, Globe, MoreHorizontal, Settings } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
 
@@ -20,21 +20,25 @@ import { listPageRulesByProject } from '@/features/page-rules/actions'
 import { usePagination } from '@/hooks/use-pagination'
 import { formatDateTime } from '@/lib/utils'
 
-export function PageRuleListCard({
+export function PageListCard({
   projectId,
   onRequestDelete,
+  onBulkEditTrigger,
 }: {
   projectId?: string
   onRequestDelete: (payload: { id: string; path: string }) => void
+  onBulkEditTrigger: () => void
 }) {
   const { page, pageSize, pagination, onPaginationChange } = usePagination({
     defaultPageSize: 6,
   })
-  const { data, isLoading } = useQuery({
+  const { data, isLoading: pageRulesIsLoading } = useQuery({
     queryKey: [QUERY_KEY_PAGE_RULES, projectId, page],
     queryFn: () => listPageRulesByProject({ projectId: projectId!, pageSize, page }),
     enabled: !!projectId,
   })
+
+  const isLoading = pageRulesIsLoading
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -56,32 +60,40 @@ export function PageRuleListCard({
         {projectId ? (
           data &&
           data.data.length > 0 && (
-            <Link href={`/projects/${projectId}/page-rules/manage` as Route} className="cursor-pointer">
-              <Button size="sm" className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Manage
+            <>
+              <Link
+                href={`/projects/${projectId}/pages/manage?id=${data.data[0].id}` as Route}
+                className="cursor-pointer"
+              >
+                <Button size="sm" className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Manage
+                </Button>
+              </Link>
+              <Button size="sm" className="cursor-pointer" onClick={() => onBulkEditTrigger()}>
+                <Edit />
+                Bulk Edit
               </Button>
-            </Link>
+            </>
           )
         ) : (
-          <Skeleton className="h-8 w-32" />
+          <>
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-32" />
+          </>
         )}
       </CardHeader>
       <CardContent className="pt-4">
         {!projectId || isLoading ? (
-          <PageRuleListSkeleton />
+          <PageListSkeleton />
         ) : table && table.getRowModel().rows?.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {table.getRowModel().rows.map((row) => {
-              return <PageRuleItemCard rule={row.original} onRequestDelete={onRequestDelete} key={row.original.id} />
+              return <PageCard rule={row.original} onRequestDelete={onRequestDelete} key={row.original.id} />
             })}
           </div>
         ) : (
-          <EmptySection
-            url={`/projects/${projectId}/page-rules/manage` as Route}
-            label="Add page rule"
-            title="Page rule"
-          />
+          <EmptySection url={`/projects/${projectId}/pages/manage` as Route} label="Add new page" title="Page" />
         )}
       </CardContent>
       <CardFooter className="justify-end">
@@ -91,7 +103,7 @@ export function PageRuleListCard({
   )
 }
 
-export function PageRuleItemCard({
+export function PageCard({
   rule,
   onRequestDelete,
 }: {
@@ -101,7 +113,7 @@ export function PageRuleItemCard({
   return (
     <>
       <Card className="hover:border-primary h-full transition">
-        <Link href={`/projects/${rule.projectId}/page-rules/manage?id=${rule.id}` as Route}>
+        <Link href={`/projects/${rule.projectId}/pages/manage?id=${rule.id}` as Route}>
           <CardHeader className="space-y-2">
             <div className="flex items-start justify-between gap-3">
               <CardTitle className="word-wrap w-full text-lg font-semibold">
@@ -149,7 +161,7 @@ export function PageRuleItemCard({
   )
 }
 
-function PageRuleListSkeleton() {
+function PageListSkeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, idx) => (
