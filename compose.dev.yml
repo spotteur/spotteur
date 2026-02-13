@@ -41,6 +41,7 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "wget --spider http://localhost:9000/status || exit 1"]
+    restart: "unless-stopped"
 volumes:
   webapp_deps:
   webapp_next:

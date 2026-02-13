@@ -182,6 +182,30 @@ export class ScreenshotCapturer {
             logger.info(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`)
             await this.browserEngine?.replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
           }
+
+          if (ruleAttr.name === RuleAttrType.IMAGE_COLOR_BLACK) {
+            logger.info(`${this.logPrefix} Change image color to black for elements matching selector: ${selector}`)
+            await this.browserEngine?.executeScript<void>(`
+              const elements = document.querySelectorAll(\`${selector}\`);
+              elements.forEach(el => {
+                if (el instanceof HTMLImageElement) {
+                  el.style.filter = 'brightness(0)';
+                }
+              });
+            `)
+          }
+
+          if (ruleAttr.name === RuleAttrType.IMAGE_COLOR_WHITE) {
+            logger.info(`${this.logPrefix} Change image color to white for elements matching selector: ${selector}`)
+            await this.browserEngine?.executeScript<void>(`
+              const elements = document.querySelectorAll(\`${selector}\`);
+              elements.forEach(el => {
+                if (el instanceof HTMLImageElement) {
+                  el.style.filter = 'brightness(0) invert(1)';
+                }
+              });
+            `)
+          }
         }
       }
     }
