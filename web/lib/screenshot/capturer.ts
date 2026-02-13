@@ -1,7 +1,9 @@
 import * as fs from 'node:fs'
 import path from 'node:path'
 
-import { STORAGE_FOLDER } from '@/constants/app'
+import sharp from 'sharp'
+
+import { DEFAULT_SNAPSHOTS_HEIGHT, STORAGE_FOLDER } from '@/constants/app'
 import { RuleAttrType } from '@/constants/enum'
 import { BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
@@ -30,30 +32,33 @@ export class ScreenshotCapturer {
       )
 
       logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`)
-      await this.browserEngine.visit(this.payload.pageUrl)
+      await this.browser().visit(this.payload.pageUrl)
 
       logger.info(`${this.logPrefix} Waiting for page to completely load`)
-      await this.browserEngine.waitForPageLoad(30000)
+      await this.browser().waitForPageLoad(30000)
 
-      const rawVariables = await this.browserEngine.executeScript<unknown>('return window.spotteur || {}')
+      const rawVariables = await this.browser().executeScript<unknown>('return window.spotteur || {}')
       this.payload = await mergeGlobalVariablesIntoSnapshotPayload({
         payload: this.payload,
         rawVariables,
       })
 
       await this.runAfterPageLoadHook()
+      await this.hideScrollbars()
 
-      await this.browserEngine.scrollPageToBottom()
-      await this.browserEngine.scrollPageToTop()
-      await this.browserEngine.fitWindowToContentHeight()
+      await this.browser().scrollPageToBottom()
+      await this.browser().scrollPageToTop()
+      await this.fitWindowToContentHeight()
 
-      await this.browserEngine.waitForNetworkIdle(30000)
-      await this.browserEngine.waitForSelector(this.payload.selector, 30000)
+      await this.browser().waitForNetworkIdle(30000)
+      await this.browser().waitForSelector(this.payload.selector, 30000)
 
       await this.runBeforeScreenshotHook()
 
-      await this.browserEngine.scrollPageToBottom()
-      await this.browserEngine.scrollPageToTop()
+      // If the hooks made any changes that causing layout shifts, this will help to stabilize it
+      await this.browser().scrollPageToBottom()
+      await this.browser().scrollPageToTop()
+      await this.fitWindowToContentHeight()
 
       logger.info(`${this.logPrefix} Capturing screenshot`)
       const buffer = await this.takeConsistentScreenshot({
@@ -83,19 +88,26 @@ export class ScreenshotCapturer {
     consistentCount: number
   }): Promise<Buffer> {
     const screenshots: Buffer[] = []
-
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       logger.info(`${this.logPrefix} Taking screenshot attempt ${attempt}/${maxAttempts}`)
-      const buffer = await this.browserEngine?.takeScreenshot()
+      const buffer = await this.browser().takeScreenshot()
       if (!buffer) {
         throw new Error('Failed to capture screenshot')
+      }
+
+      const image = sharp(buffer).ensureAlpha().raw().toFormat('png')
+      const { info } = await image.toBuffer({ resolveWithObject: true })
+      if (info.width !== this.payload.viewportWidth) {
+        throw new Error(
+          `Screenshot width (${info.width}px) doesn't match expected viewport width (${this.payload.viewportWidth}px)`,
+        )
       }
 
       screenshots.push(buffer)
 
       // Need more screenshots before checking consistency
       if (screenshots.length < consistentCount) {
-        await this.browserEngine?.sleep(delayMs)
+        await this.browser().sleep(delayMs)
         continue
       }
 
@@ -108,7 +120,7 @@ export class ScreenshotCapturer {
       // Not consistent yet, wait before next attempt
       logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`)
       if (attempt < maxAttempts) {
-        await this.browserEngine?.sleep(delayMs)
+        await this.browser().sleep(delayMs)
       }
     }
 
@@ -134,24 +146,73 @@ export class ScreenshotCapturer {
   private async runAfterPageLoadHook(): Promise<void> {
     if (this.payload.hooks?.['after-page-load']) {
       logger.info(`${this.logPrefix} Executing after-page-load hook`)
-      await this.browserEngine?.executeScript<void>(this.payload.hooks['after-page-load'])
+      await this.browser().executeScript<void>(this.payload.hooks['after-page-load'])
     }
+  }
+
+  private async hideScrollbars(): Promise<void> {
+    await this.browser().executeScript<void>(`
+      const style = document.createElement('style')
+      style.type = 'text/css'
+      style.id = 'spotteur-hide-scrollbars-style'
+      style.appendChild(
+        document.createTextNode(\`
+          * {
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* Edge */
+          }
+          *::-webkit-scrollbar {
+            display: none !important; /* Chrome */
+          }
+        \`),
+      )
+      document.head.appendChild(style)
+    `)
+  }
+
+  private async fitWindowToContentHeight(): Promise<void> {
+    const { width, height } = await this.browser().getViewportSize()
+    logger.info(`${this.logPrefix} Viewport size before fitting: ${width}x${height}`)
+
+    // First set viewport height to the default to get accurate content height
+    await this.browser().setViewportSize({ width, height: DEFAULT_SNAPSHOTS_HEIGHT })
+
+    // Find out all height values from the page to determine full content height
+    const { innerHeight, outerHeight, documentScrollHeight, bodyScrollHeight } = await this.browser().executeScript<{
+      innerHeight: number
+      outerHeight: number
+      bodyScrollHeight: number
+      documentScrollHeight: number
+    }>(`return {
+        innerHeight: window.innerHeight,
+        outerHeight: window.outerHeight,
+        bodyScrollHeight: document.body.scrollHeight,
+        documentScrollHeight: document.documentElement.scrollHeight
+    }`)
+
+    // Formula:
+    // body/document scroll height for content height
+    // outerHeight - innerHeight for browser window decorations height (like address bar, etc)
+    const fullPageHeight = Math.max(bodyScrollHeight, documentScrollHeight) + (outerHeight - innerHeight)
+
+    logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`)
+    await this.browser().setViewportSize({ width, height: fullPageHeight })
   }
 
   private async runBeforeScreenshotHook(): Promise<void> {
     if (this.payload.hooks?.['before-screenshot']) {
       logger.info(`${this.logPrefix} Executing before-screenshot hook`)
-      await this.browserEngine?.executeScript<void>(this.payload.hooks['before-screenshot'])
+      await this.browser().executeScript<void>(this.payload.hooks['before-screenshot'])
     }
 
     if (this.payload.reducedMotion) {
       logger.info(`${this.logPrefix} Enabling reduced motion`)
-      await this.browserEngine?.enableReducedMotion()
+      await this.browser().enableReducedMotion()
     }
 
     if (this.payload.mediaReset) {
       logger.info(`${this.logPrefix} Resetting time-based media`)
-      await this.browserEngine?.resetTimeBasedMedia()
+      await this.browser().resetTimeBasedMedia()
     }
 
     await this.applyRules()
@@ -163,27 +224,35 @@ export class ScreenshotCapturer {
         for (const ruleAttr of rule.attrs) {
           if (ruleAttr.name === RuleAttrType.REMOVE) {
             logger.info(`${this.logPrefix} Removing element matching selector: ${selector}`)
-            await this.browserEngine?.removeElements(selector)
+            await this.browser().removeElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.HIDE) {
             logger.info(`${this.logPrefix} Hiding element matching selector: ${selector}`)
-            await this.browserEngine?.hideElements(selector)
+            await this.browser().hideElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.CUSTOM) {
             logger.info(
               `${this.logPrefix} Replace innerText element with user-defined text matching selector: ${selector}`,
             )
-            await this.browserEngine?.replaceElementInnerText(selector, ruleAttr.value || '')
+            await this.browser().replaceElementInnerText(selector, ruleAttr.value || '')
           }
 
           if (ruleAttr.name === RuleAttrType.REPLACE_WORDS) {
             logger.info(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`)
-            await this.browserEngine?.replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
+            await this.browser().replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
           }
         }
       }
     }
+  }
+
+  private browser(): IBrowserEngine {
+    if (!this.browserEngine) {
+      throw new Error('Browser engine not initialized yet')
+    }
+
+    return this.browserEngine
   }
 }

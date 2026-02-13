@@ -23,15 +23,17 @@ export class PlaywrightBrowserEngine implements IBrowserEngine {
     return await this.page.evaluate<T>(new Function(`"use strict"; ${script}`) as () => T)
   }
 
-  public async fitWindowToContentHeight(): Promise<void> {
-    const width = this.page.viewportSize()?.width
+  public async getViewportSize(): Promise<{ width: number; height: number }> {
+    const viewport = this.page.viewportSize()
+    if (viewport === null) {
+      throw new Error('Unable to get viewport size')
+    }
 
-    await this.page.setViewportSize({
-      width: width || 1280,
-      height: await this.page.evaluate(() =>
-        Math.ceil(Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)),
-      ),
-    })
+    return { width: viewport.width, height: viewport.height }
+  }
+
+  public async setViewportSize({ width, height }: { width: number; height: number }): Promise<void> {
+    await this.page.setViewportSize({ width, height })
   }
 
   public async hideElements(selector: string): Promise<void> {

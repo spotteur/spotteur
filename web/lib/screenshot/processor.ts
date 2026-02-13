@@ -119,14 +119,15 @@ export class ScreenshotProcessor {
         }
       }
 
-      if (!baselineScreenshotMediaId) {
-        logger.info(`${this.logPrefix} No baseline screenshot found`)
-      }
-
       // TODO: Maybe we can add this to project setting,
       // so user can decide wether auto-approved are allowed or not based on threshold.
       let approvalStatus = SnapshotApprovalStatus.PENDING
       if (diffPercentage === 0) {
+        approvalStatus = SnapshotApprovalStatus.APPROVED
+      }
+
+      if (!baselineScreenshotMediaId) {
+        logger.info(`${this.logPrefix} No baseline screenshot found, auto-approving snapshot`)
         approvalStatus = SnapshotApprovalStatus.APPROVED
       }
 
