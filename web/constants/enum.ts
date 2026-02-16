@@ -20,6 +20,8 @@ export enum RuleAttrType {
   REMOVE = 'data-spt-remove',
   REPLACE_WORDS = 'data-spt-replace-words',
   CUSTOM = 'data-spt-custom',
+  IMAGE_COLOR_WHITE = 'data-spt-image-color-white',
+  IMAGE_COLOR_BLACK = 'data-spt-image-color-black',
 }
 
 export const RULE_ATTR_TYPE_LABEL_MAP: Record<RuleAttrType, string> = {
@@ -27,6 +29,8 @@ export const RULE_ATTR_TYPE_LABEL_MAP: Record<RuleAttrType, string> = {
   [RuleAttrType.CUSTOM]: 'Custom',
   [RuleAttrType.HIDE]: 'Hide Element',
   [RuleAttrType.REMOVE]: 'Remove Element',
+  [RuleAttrType.IMAGE_COLOR_WHITE]: 'Change image color to white',
+  [RuleAttrType.IMAGE_COLOR_BLACK]: 'Change image color to black',
 } as const
 
 export const RULE_ATTR_TYPE_PLACEHOLDER_MAP: Record<RuleAttrType, string> = {
@@ -34,6 +38,8 @@ export const RULE_ATTR_TYPE_PLACEHOLDER_MAP: Record<RuleAttrType, string> = {
   [RuleAttrType.CUSTOM]: 'Lorem ipsum',
   [RuleAttrType.HIDE]: '',
   [RuleAttrType.REMOVE]: '',
+  [RuleAttrType.IMAGE_COLOR_WHITE]: '',
+  [RuleAttrType.IMAGE_COLOR_BLACK]: '',
 } as const
 
 export const RULE_ATTR_TYPE_OPTIONS = Object.values(RuleAttrType).map((attr) => ({
@@ -41,4 +47,9 @@ export const RULE_ATTR_TYPE_OPTIONS = Object.values(RuleAttrType).map((attr) => 
   label: RULE_ATTR_TYPE_LABEL_MAP[attr],
 }))
 
-export const RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS = [RuleAttrType.HIDE, RuleAttrType.REMOVE] as const
+export const RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS = [
+  RuleAttrType.HIDE,
+  RuleAttrType.REMOVE,
+  RuleAttrType.IMAGE_COLOR_WHITE,
+  RuleAttrType.IMAGE_COLOR_BLACK,
+] as const

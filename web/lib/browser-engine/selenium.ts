@@ -20,13 +20,14 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
     return await this.driver.executeScript<T>(script)
   }
 
-  public async fitWindowToContentHeight(): Promise<void> {
-    const { width } = await this.driver.manage().window().getRect()
-    const fullPageHeight = await this.driver.executeScript<number>(() => {
-      return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
-    })
+  public async getViewportSize(): Promise<{ width: number; height: number }> {
+    const { width, height } = await this.driver.manage().window().getRect()
 
-    await this.driver.manage().window().setRect({ width: width, height: fullPageHeight })
+    return { width, height }
+  }
+
+  public async setViewportSize({ width, height }: { width: number; height: number }): Promise<void> {
+    await this.driver.manage().window().setRect({ width, height })
   }
 
   public async hideElements(selector: string): Promise<void> {
@@ -183,7 +184,11 @@ export class SeleniumBrowserEngineFactory {
       .addArguments('--disable-browser-side-navigation') //https://stackoverflow.com/a/49123152/1689770
       .addArguments('--disable-gpu') //https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
     firefoxOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
-    edgeOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
+    edgeOpts
+      // Edge needs a bit more width to ensure the screenshot width is correct
+      .windowSize({ width: windowSize.width + 8, height: windowSize.height })
+      .addArguments('--headless')
+      .addArguments('--no-sandbox')
 
     const browser = payload.browser
 

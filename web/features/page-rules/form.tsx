@@ -438,11 +438,11 @@ export default function PageRuleForm({
                                             className="self-center"
                                           >
                                             <X />
+                                            <span className="sr-only">Remove attribute</span>
                                           </Button>
                                         </div>
                                       ))}
 
-                                    {/* ADD ATTR */}
                                     <Button
                                       type="button"
                                       variant="outline"
@@ -452,7 +452,8 @@ export default function PageRuleForm({
                                         )
                                       }
                                     >
-                                      <Plus /> Add attribute
+                                      <Plus />
+                                      <span>Add attribute</span>
                                     </Button>
                                   </div>
                                 )}
