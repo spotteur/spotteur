@@ -10,6 +10,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { useState } from 'react'
 import { type ReactNode } from 'react'
 
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { DISABLE_REGISTRATION } from '@/constants/env'
 import { authClient } from '@/lib/auth-client'
 
@@ -48,7 +49,7 @@ export function Providers({ children }: { children: ReactNode }) {
               fields: ['itemPerPage'],
             }}
           >
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
           </AuthUIProvider>
         </QueryClientProvider>
       </NuqsAdapter>
