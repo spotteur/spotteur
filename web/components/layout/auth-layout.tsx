@@ -14,7 +14,7 @@ export default function AuthLayout({
         <div className="header">
           <h1 className="text-xl font-semibold">Spotteur</h1>
         </div>
-        <div className="auth-content w-1/4">{children}</div>
+        <div className="auth-content lg:w-1/4">{children}</div>
       </div>
     </div>
   )
