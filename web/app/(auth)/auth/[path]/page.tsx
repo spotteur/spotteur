@@ -19,7 +19,7 @@ export default async function AuthPage({ params }: { params: Promise<{ path: str
         path={path}
         classNames={{
           form: {
-            forgotPasswordLink: 'text-small pl-5',
+            forgotPasswordLink: 'pl-5',
           },
         }}
       />
