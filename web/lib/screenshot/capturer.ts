@@ -4,7 +4,7 @@ import path from 'node:path'
 import sharp from 'sharp'
 
 import { DEFAULT_SNAPSHOTS_HEIGHT, STORAGE_FOLDER } from '@/constants/app'
-import { RuleAttrType } from '@/constants/enum'
+import { Browser, RuleAttrType } from '@/constants/enum'
 import { BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
 import { BrowserEngineFactory, BrowserEngineType } from '@/lib/browser-engine'
@@ -178,22 +178,42 @@ export class ScreenshotCapturer {
     await this.browser().setViewportSize({ width, height: DEFAULT_SNAPSHOTS_HEIGHT })
 
     // Find out all height values from the page to determine full content height
-    const { innerHeight, outerHeight, documentScrollHeight, bodyScrollHeight } = await this.browser().executeScript<{
+    const metrics = await this.browser().executeScript<{
       innerHeight: number
       outerHeight: number
       bodyScrollHeight: number
-      documentScrollHeight: number
+      bodyOffsetHeight: number
+      htmlClientHeight: number
+      htmlScrollHeight: number
+      htmlOffsetHeight: number
     }>(`return {
         innerHeight: window.innerHeight,
         outerHeight: window.outerHeight,
         bodyScrollHeight: document.body.scrollHeight,
-        documentScrollHeight: document.documentElement.scrollHeight
+        bodyOffsetHeight: document.body.offsetHeight,
+        htmlClientHeight: document.documentElement.clientHeight,
+        htmlScrollHeight: document.documentElement.scrollHeight,
+        htmlOffsetHeight: document.documentElement.offsetHeight,
     }`)
+    logger.info(`${this.logPrefix} Browser metrics: ${JSON.stringify(metrics)}`)
 
-    // Formula:
-    // body/document scroll height for content height
-    // outerHeight - innerHeight for browser window decorations height (like address bar, etc)
-    const fullPageHeight = Math.max(bodyScrollHeight, documentScrollHeight) + (outerHeight - innerHeight)
+    let fullPageHeight = Math.max(
+      metrics.bodyScrollHeight,
+      metrics.bodyOffsetHeight,
+      metrics.htmlClientHeight,
+      metrics.htmlScrollHeight,
+      metrics.htmlOffsetHeight,
+    )
+
+    if (metrics.outerHeight < metrics.innerHeight) {
+      logger.warn(
+        `${this.logPrefix} Unexpected metrics where outerHeight (${metrics.outerHeight}px) is less than innerHeight (${metrics.innerHeight}px)`,
+      )
+      fullPageHeight = Math.max(fullPageHeight, height)
+    } else {
+      const decorationsHeight = metrics.outerHeight - metrics.innerHeight
+      fullPageHeight += decorationsHeight
+    }
 
     logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`)
     await this.browser().setViewportSize({ width, height: fullPageHeight })

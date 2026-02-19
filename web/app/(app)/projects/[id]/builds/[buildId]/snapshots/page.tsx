@@ -1,17 +1,18 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type Route } from 'next'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo } from 'react'
+import { toast } from 'sonner'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { snapshotsMenu } from '@/constants/app'
-import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, snapshotsMenu } from '@/constants/app'
+import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus } from '@/constants/status-map'
-import { getBuildDetail } from '@/features/builds/actions'
+import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { getProject } from '@/features/projects/actions'
 import { SnapshotListCard } from '@/features/snapshots/list'
@@ -19,6 +20,7 @@ import { type NavigationType } from '@/types/app'
 
 export default function BuildDetailSnapshotsPage() {
   const params = useParams<{ id: string; buildId: string }>()
+  const queryClient = useQueryClient()
 
   const { data: projectData, isLoading: isLoadingProject } = useQuery({
     queryKey: [QUERY_KEY_PROJECTS, params.id],
@@ -34,7 +36,30 @@ export default function BuildDetailSnapshotsPage() {
         return 10_000
       }
 
+      if (buildStatus === BuildStatus.ERROR) {
+        return 2_000
+      }
+
       return false
+    },
+  })
+
+  const resume = useMutation({
+    mutationFn: () => resumeBuild({ projectId: params.id, buildId: params.buildId }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success('Build resumed', { description: 'The build has been requested to resume.' })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, params.id] })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, params.id, params.buildId] })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SNAPSHOTS, params.id, params.buildId] })
+        return
+      }
+
+      toast.error('Failed to resume build', { description: res.error })
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
     },
   })
 
@@ -91,7 +116,7 @@ export default function BuildDetailSnapshotsPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <BuildSummaryCard build={buildData} />
+      <BuildSummaryCard build={buildData} onResume={() => resume.mutate()} isResumePending={resume.isPending} />
 
       <SnapshotListCard build={buildData} />
     </div>

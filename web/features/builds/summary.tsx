@@ -1,17 +1,37 @@
+import { RotateCcw } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BuildStatus } from '@/constants/status-map'
 import { type builds } from '@/db/schema'
 import { BuildStatusBadge } from '@/features/builds/badge'
 import { formatDateTime } from '@/lib/utils'
 
-export function BuildSummaryCard({ build }: { build?: typeof builds.$inferSelect | null }) {
+export function BuildSummaryCard({
+  build,
+  onResume,
+  isResumePending,
+}: {
+  build?: typeof builds.$inferSelect | null
+  onResume?: () => void
+  isResumePending?: boolean
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         {build ? (
           <>
             <CardTitle className="text-xl">{build.identifier}</CardTitle>
-            <BuildStatusBadge status={build.status} />
+            <div className="flex flex-wrap items-center gap-3">
+              {build.status === BuildStatus.ERROR && onResume ? (
+                <Button size="sm" onClick={onResume} disabled={isResumePending}>
+                  <RotateCcw className="size-4" />
+                  Resume build
+                </Button>
+              ) : null}
+              <BuildStatusBadge status={build.status} />
+            </div>
           </>
         ) : (
           <>
