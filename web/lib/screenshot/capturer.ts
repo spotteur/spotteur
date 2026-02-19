@@ -4,7 +4,7 @@ import path from 'node:path'
 import sharp from 'sharp'
 
 import { DEFAULT_SNAPSHOTS_HEIGHT, STORAGE_FOLDER } from '@/constants/app'
-import { Browser, RuleAttrType } from '@/constants/enum'
+import { RuleAttrType } from '@/constants/enum'
 import { BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { mergeGlobalVariablesIntoSnapshotPayload } from '@/features/builds/actions'
 import { BrowserEngineFactory, BrowserEngineType } from '@/lib/browser-engine'

@@ -86,12 +86,8 @@ export async function createRule(input: unknown, projectId: string) {
     .insert(pageRules)
     .values({
       projectId,
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-      viewports: data.viewports,
-      mediaReset: data.mediaReset,
-      reducedMotion: data.reducedMotion,
-      pagePath: data.pagePath,
-      rules: data.rules,
+      ...data,
+      snapshotBrowsers: data.snapshotBrowsers as Browser[],
     })
     .returning()
 
@@ -103,55 +99,29 @@ export async function manageRule(input: PageRuleFormInput, projectId: string) {
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, ...data } = input
 
   const [upsert] = await db
     .insert(pageRules)
     .values({
       projectId,
-      ...data,
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      ...parsed.data,
+      snapshotBrowsers: parsed.data.snapshotBrowsers as Browser[],
     })
     .onConflictDoUpdate({
-      target: pageRules.id,
+      target: [pageRules.projectId, pageRules.pagePath],
       set: {
-        snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-        viewports: data.viewports,
-        mediaReset: data.mediaReset,
-        reducedMotion: data.reducedMotion,
-        pagePath: data.pagePath,
-        rules: data.rules,
-        hookAfterPageLoad: data.hookAfterPageLoad,
-        hookBeforeScreenshot: data.hookBeforeScreenshot,
+        snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
+        viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
+        mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
+        reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
+        rules: sql.raw(`excluded.${pageRules.rules.name}`),
+        hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
+        hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
       },
     })
     .returning()
 
   return { ok: true, data: upsert }
-}
-
-export async function updateRule(input: unknown, id: string, projectId: string) {
-  const parsed = PageRuleCreateSchema.safeParse(input)
-  if (!parsed.success) {
-    return { ok: false, error: z.flattenError(parsed.error) }
-  }
-  const data = parsed.data
-
-  const [updated] = await db
-    .update(pageRules)
-    .set({
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
-      viewports: data.viewports,
-      mediaReset: data.mediaReset,
-      reducedMotion: data.reducedMotion,
-      pagePath: data.pagePath,
-      rules: data.rules,
-    })
-    .where(and(eq(pageRules.id, id), eq(pageRules.projectId, projectId)))
-    .returning()
-
-  return { ok: true, data: updated }
 }
 
 export async function deletePageRule(id: string) {
@@ -166,28 +136,27 @@ export async function upsertPageRules(schema: string, projectId: string) {
     return { ok: false, error: z.flattenError(payload.error) }
   }
 
-  // Upsert the bulk data page rules
-  const pageRulesToInsert = parsed.map((rule: typeof pageRules.$inferInsert) => {
-    const snapshotBrowsers = rule.snapshotBrowsers as Browser[]
-    return {
-      ...rule,
-      projectId,
-      snapshotBrowsers,
-    }
-  })
-
-  const [data] = await db
+  const data = await db
     .insert(pageRules)
-    .values(pageRulesToInsert)
+    .values(
+      payload.data.map((rule) => {
+        return {
+          projectId,
+          ...rule,
+          snapshotBrowsers: rule.snapshotBrowsers as Browser[],
+        }
+      }),
+    )
     .onConflictDoUpdate({
-      target: pageRules.id,
+      target: [pageRules.projectId, pageRules.pagePath],
       set: {
         snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
         viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
         mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
         reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
-        pagePath: sql.raw(`excluded.${pageRules.pagePath.name}`),
         rules: sql.raw(`excluded.${pageRules.rules.name}`),
+        hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
+        hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
       },
     })
     .returning()
@@ -214,7 +183,7 @@ export async function existingPageRules(projectId: string) {
 
   const exportedRules = rules.length
     ? // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      rules.map(({ projectId, createdAt, updatedAt, ...rest }) => rest)
+      rules.map(({ id, projectId, createdAt, updatedAt, ...rest }) => rest)
     : defaultValuePageRule
   const doc = new YAML.Document(exportedRules)
   exportedRules.forEach((_, pageIndex) => {
