@@ -86,6 +86,7 @@ export default function NewProjectPage() {
         }}
         onSubmit={(values) => mutation.mutate(values)}
         submitLabel="Create"
+        isCreate={true}
         isSubmitting={mutation.isPending}
         errors={formErrors}
       />

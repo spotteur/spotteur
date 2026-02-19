@@ -95,6 +95,7 @@ export default function EditProjectPage() {
               }}
               onSubmit={(values) => mutation.mutate(values as ProjectFormInput)}
               submitLabel="Update"
+              isCreate={false}
               isSubmitting={mutation.isPending}
               errors={formErrors}
             />

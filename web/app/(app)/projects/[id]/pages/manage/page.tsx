@@ -85,7 +85,6 @@ export default function ManagePages() {
 
   return (
     <div className="p-4">
-      <h1 className="mb-4 text-xl font-semibold">Manage Pages</h1>
       {data && (
         <Card className="w-full">
           <CardContent className="max-w-2xl">

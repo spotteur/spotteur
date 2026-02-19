@@ -27,12 +27,14 @@ interface ProjectFormProps {
   submitLabel?: string
   isSubmitting?: boolean
   errors?: z.core.$ZodFlattenedError<ProjectFormInput>
+  isCreate?: boolean
 }
 
 export function ProjectForm({
   defaultValues,
   onSubmit,
   submitLabel = 'Submit',
+  isCreate = false,
   isSubmitting = false,
   errors = undefined,
 }: ProjectFormProps) {
@@ -119,81 +121,77 @@ export function ProjectForm({
           )
         }}
       />
-      <form.Field
-        name="token"
-        children={(field) => {
-          const tokenValue = field.state.value ?? ''
+      {!isCreate && (
+        <form.Field
+          name="token"
+          children={(field) => {
+            const tokenValue = field.state.value ?? ''
 
-          const handleCopy = async () => {
-            try {
-              await navigator.clipboard.writeText(tokenValue)
-              setCopied(true)
-              if (copyResetRef.current) {
-                clearTimeout(copyResetRef.current)
+            const handleCopy = async () => {
+              try {
+                await navigator.clipboard.writeText(tokenValue)
+                setCopied(true)
+                if (copyResetRef.current) {
+                  clearTimeout(copyResetRef.current)
+                }
+                copyResetRef.current = setTimeout(() => setCopied(false), 3000)
+              } catch (error) {
+                console.error('Failed to copy token', error)
               }
-              copyResetRef.current = setTimeout(() => setCopied(false), 3000)
-            } catch (error) {
-              console.error('Failed to copy token', error)
             }
-          }
 
-          const handleRegenerate = () => {
-            const newToken = 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
-            field.handleChange(newToken)
-            setRegenerated(true)
-            if (regenerateResetRef.current) {
-              clearTimeout(regenerateResetRef.current)
+            const handleRegenerate = () => {
+              const newToken = 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
+              field.handleChange(newToken)
+              setRegenerated(true)
+              if (regenerateResetRef.current) {
+                clearTimeout(regenerateResetRef.current)
+              }
+              regenerateResetRef.current = setTimeout(() => setRegenerated(false), 3000)
             }
-            regenerateResetRef.current = setTimeout(() => setRegenerated(false), 3000)
-          }
 
-          return (
-            <Field>
-              <FieldLabel htmlFor="project-token">Token</FieldLabel>
-              <InputGroup>
-                <InputGroupInput
-                  id="project-token"
-                  name={field.name}
-                  value={tokenValue}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                <Tooltip open={copied}>
-                  <TooltipTrigger asChild>
-                    <InputGroupButton
-                      size="icon-sm"
-                      variant="ghost"
-                      type="button"
-                      aria-label="Copy token"
-                      onClick={handleCopy}
-                    >
-                      {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
-                    </InputGroupButton>
-                  </TooltipTrigger>
-                  <TooltipContent>Token copied</TooltipContent>
-                </Tooltip>
-                <Tooltip open={regenerated}>
-                  <TooltipTrigger asChild>
-                    <InputGroupButton
-                      size="icon-sm"
-                      variant="ghost"
-                      type="button"
-                      aria-label="Generate new token"
-                      disabled={regenerated}
-                      className="disabled:opacity-100"
-                      onClick={handleRegenerate}
-                    >
-                      {regenerated ? <CheckIcon className="size-4" /> : <RefreshCcwIcon className="size-4" />}
-                    </InputGroupButton>
-                  </TooltipTrigger>
-                  <TooltipContent>New token generated</TooltipContent>
-                </Tooltip>
-              </InputGroup>
-              <FieldDescription>Optional authentication token for automated access</FieldDescription>
-            </Field>
-          )
-        }}
-      />
+            return (
+              <Field>
+                <FieldLabel htmlFor="project-token">Token</FieldLabel>
+                <InputGroup>
+                  <InputGroupInput id="project-token" name={field.name} value={tokenValue} readOnly />
+                  <Tooltip open={copied}>
+                    <TooltipTrigger asChild>
+                      <InputGroupButton
+                        size="icon-sm"
+                        variant="ghost"
+                        type="button"
+                        aria-label="Copy token"
+                        onClick={handleCopy}
+                      >
+                        {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+                      </InputGroupButton>
+                    </TooltipTrigger>
+                    <TooltipContent>Token copied</TooltipContent>
+                  </Tooltip>
+                  <Tooltip open={regenerated}>
+                    <TooltipTrigger asChild>
+                      <InputGroupButton
+                        size="icon-sm"
+                        variant="ghost"
+                        type="button"
+                        aria-label="Generate new token"
+                        disabled={regenerated}
+                        className="disabled:opacity-100"
+                        onClick={handleRegenerate}
+                      >
+                        {regenerated ? <CheckIcon className="size-4" /> : <RefreshCcwIcon className="size-4" />}
+                      </InputGroupButton>
+                    </TooltipTrigger>
+                    <TooltipContent>New token generated</TooltipContent>
+                  </Tooltip>
+                </InputGroup>
+                <FieldDescription>Optional authentication token for automated access</FieldDescription>
+              </Field>
+            )
+          }}
+        />
+      )}
       <form.Field
         name="snapshotBrowsers"
         children={(field) => {
@@ -316,27 +314,29 @@ export function ProjectForm({
           )
         }}
       />
-      <form.Field
-        name="pagePaths"
-        children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-          return (
-            <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor="project-pagePaths">Page Paths</FieldLabel>
-              <Textarea
-                id="project-pagePaths"
-                name={field.name}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                aria-invalid={isInvalid}
-              />
-              <FieldDescription>Each path must start with a slash (e.g., /pricing)</FieldDescription>
-              {isInvalid && <FieldError errors={field.state.meta.errors} />}
-            </Field>
-          )
-        }}
-      />
+      {isCreate && (
+        <form.Field
+          name="pagePaths"
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor="project-pagePaths">Page Paths</FieldLabel>
+                <Textarea
+                  id="project-pagePaths"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                />
+                <FieldDescription>Each path must start with a slash (e.g., /pricing)</FieldDescription>
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            )
+          }}
+        />
+      )}
       <div className="flex gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (

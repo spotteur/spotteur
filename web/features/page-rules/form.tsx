@@ -373,7 +373,7 @@ export default function PageRuleForm({
                               <form.Field name={`rules[${index}].attrs`}>
                                 {(attrsField) => (
                                   <div id="pageRule-rules-attribute" className="flex flex-1 flex-col gap-3 space-y-2">
-                                    {attrsField.state.value &&
+                                    {Array.isArray(attrsField.state.value) &&
                                       attrsField.state.value.map((attrObj, i) => (
                                         <div key={i} className="flex items-start justify-between gap-3">
                                           <div className="flex w-1/2 flex-col gap-3">
