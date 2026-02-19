@@ -11,10 +11,19 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDateTime(value: Date | string) {
   const date = typeof value === 'string' ? new Date(value) : value
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
+
+  if (isNaN(date.getTime())) return ''
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+    .format(date)
+    .replace(',', '')
 }
 
 export function humanReadableEpoch(ts: number = Date.now()): string {

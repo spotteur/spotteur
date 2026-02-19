@@ -13,9 +13,16 @@ export default async function AuthPage({ params }: { params: Promise<{ path: str
   const { path } = await params
 
   return (
-    <main className="container flex grow flex-col items-center justify-center self-center p-4 md:p-6">
+    <main className="container flex grow flex-col items-center justify-center self-center py-4 md:py-6">
       <Toaster richColors closeButton position="top-right" />
-      <AuthView path={path} />
+      <AuthView
+        path={path}
+        classNames={{
+          form: {
+            forgotPasswordLink: 'text-small pl-5',
+          },
+        }}
+      />
     </main>
   )
 }
