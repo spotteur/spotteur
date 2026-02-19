@@ -2,6 +2,7 @@ import * as crypto from 'crypto'
 
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
+import { format } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { type $ZodFlattenedError } from 'zod/v4/core'
 
@@ -14,16 +15,7 @@ export function formatDateTime(value: Date | string) {
 
   if (isNaN(date.getTime())) return ''
 
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-    .format(date)
-    .replace(',', '')
+  return format(date, 'dd/MM/yyyy HH:MM')
 }
 
 export function humanReadableEpoch(ts: number = Date.now()): string {
