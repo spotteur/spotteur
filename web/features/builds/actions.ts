@@ -15,6 +15,7 @@ import { snapshots, users } from '@/db/schema'
 import { builds, pageRules, projects } from '@/db/schema'
 import { SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
 import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
+import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { temporalClient } from '@/lib/temporal-client'
 import { humanReadableEpoch } from '@/lib/utils'
@@ -83,6 +84,17 @@ export async function getNovuSubscribers() {
   return chunkedSubscribers
 }
 
+export async function startBuildWorkflow({ projectId, buildId }: { projectId: string; buildId: string }) {
+  await temporalClient.workflow.start<typeof buildSnapshotsWorkflow>(TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, {
+    workflowId: `build-${buildId}`,
+    taskQueue: TEMPORAL_QUEUE_NAME,
+    args: [{ projectId, buildId }],
+    retry: {
+      maximumAttempts: 3,
+    },
+  })
+}
+
 export async function triggerBuild({ projectId, identifier }: { projectId: string; identifier?: string }) {
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
 
@@ -116,14 +128,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     })
     .returning()
 
-  await temporalClient.workflow.start<typeof buildSnapshotsWorkflow>(TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, {
-    workflowId: `build-${build.id}`,
-    taskQueue: TEMPORAL_QUEUE_NAME,
-    args: [{ projectId: project.id, buildId: build.id }],
-    retry: {
-      maximumAttempts: 3,
-    },
-  })
+  await startBuildWorkflow({ projectId, buildId: build.id })
 
   const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
 
@@ -152,6 +157,31 @@ export async function getBuildDetail({ projectId, buildId }: { projectId: string
   if (!build) return null
 
   return build
+}
+
+export async function resumeBuild({ projectId, buildId }: { projectId: string; buildId: string }) {
+  try {
+    const [build] = await db
+      .select()
+      .from(builds)
+      .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
+      .limit(1)
+    if (!build) {
+      return { ok: false, error: 'Build not found' } as const
+    }
+
+    if (build.status !== BuildStatus.ERROR) {
+      return { ok: false, error: 'Build is not in error state' } as const
+    }
+
+    await startBuildWorkflow({ projectId, buildId })
+
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    await db.update(builds).set({ status: BuildStatus.ERROR }).where(eq(builds.id, buildId))
+    return { ok: false, error: 'Failed to resume build' } as const
+  }
 }
 
 export async function populateSnapshotsPayload({
