@@ -2,6 +2,7 @@ import * as crypto from 'crypto'
 
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
+import { format } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { type $ZodFlattenedError } from 'zod/v4/core'
 
@@ -11,10 +12,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDateTime(value: Date | string) {
   const date = typeof value === 'string' ? new Date(value) : value
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
+
+  if (isNaN(date.getTime())) return ''
+
+  return format(date, 'dd/MM/yyyy HH:MM')
 }
 
 export function humanReadableEpoch(ts: number = Date.now()): string {
