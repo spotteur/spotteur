@@ -1,0 +1,1 @@
+ALTER TABLE "page_rules" ADD CONSTRAINT "page_rules_unique" UNIQUE("project_id","page_path");

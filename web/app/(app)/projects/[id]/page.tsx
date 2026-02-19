@@ -93,7 +93,7 @@ export default function EditProjectPage() {
                 pagePaths: (data.pagePaths ?? []).join('\n'),
                 token: data.token ?? '',
               }}
-              onSubmit={(values) => mutation.mutate(values as ProjectFormInput)}
+              onSubmit={(values) => mutation.mutate(values)}
               submitLabel="Update"
               isSubmitting={mutation.isPending}
               errors={formErrors}
