@@ -82,6 +82,8 @@ export async function createProject(input: unknown) {
       snapshotSelector: data.snapshotSelector,
       viewports: data.viewports,
       pagePaths: data.pagePaths,
+      hookAfterPageLoad: data.hookAfterPageLoad,
+      hookBeforeScreenshot: data.hookBeforeScreenshot,
     })
     .returning()
   return { ok: true, data: created }
@@ -106,6 +108,8 @@ export async function updateProject(input: unknown) {
       snapshotSelector: data.snapshotSelector,
       viewports: data.viewports,
       pagePaths: data.pagePaths,
+      hookAfterPageLoad: data.hookAfterPageLoad,
+      hookBeforeScreenshot: data.hookBeforeScreenshot,
     })
     .where(eq(projects.id, data.id))
     .returning()

@@ -1,6 +1,13 @@
 import { z } from 'zod'
 
-import { BrowsersSchema, PagePathsSchema, SelectorSchema, ViewportsSchema } from '@/features/page-rules/schema'
+import {
+  BrowsersSchema,
+  HookAfterPageLoadSchema,
+  HookBeforeScreenshotSchema,
+  PagePathsSchema,
+  SelectorSchema,
+  ViewportsSchema,
+} from '@/features/page-rules/schema'
 
 export const ProjectBrowserEnum = z.enum(['chrome', 'firefox', 'edge'], 'Invalid browser option')
 
@@ -14,6 +21,8 @@ export const ProjectBaseSchema = z.object({
   viewports: ViewportsSchema,
   snapshotSelector: SelectorSchema,
   pagePaths: PagePathsSchema,
+  hookAfterPageLoad: HookAfterPageLoadSchema,
+  hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
 
 export const ProjectCreateSchema = ProjectBaseSchema

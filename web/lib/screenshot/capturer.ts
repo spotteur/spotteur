@@ -144,6 +144,11 @@ export class ScreenshotCapturer {
   }
 
   private async runAfterPageLoadHook(): Promise<void> {
+    if (this.payload.globalHooks?.['after-page-load']) {
+      logger.info(`${this.logPrefix} Executing global after-page-load hook`)
+      await this.browser().executeScript<void>(this.payload.globalHooks['after-page-load'])
+    }
+
     if (this.payload.hooks?.['after-page-load']) {
       logger.info(`${this.logPrefix} Executing after-page-load hook`)
       await this.browser().executeScript<void>(this.payload.hooks['after-page-load'])
@@ -220,6 +225,11 @@ export class ScreenshotCapturer {
   }
 
   private async runBeforeScreenshotHook(): Promise<void> {
+    if (this.payload.globalHooks?.['before-screenshot']) {
+      logger.info(`${this.logPrefix} Executing global before-screenshot hook`)
+      await this.browser().executeScript<void>(this.payload.globalHooks['before-screenshot'])
+    }
+
     if (this.payload.hooks?.['before-screenshot']) {
       logger.info(`${this.logPrefix} Executing before-screenshot hook`)
       await this.browser().executeScript<void>(this.payload.hooks['before-screenshot'])

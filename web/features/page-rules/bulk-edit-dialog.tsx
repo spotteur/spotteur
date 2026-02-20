@@ -21,14 +21,14 @@ export function BulkEditDialog({
 
   return (
     <Dialog open={open}>
-      <DialogContent onPointerDownOutside={onCancel} onEscapeKeyDown={onCancel} className="!max-w-3xl">
+      <DialogContent showCloseButton={false} className="max-w-5xl!">
         <DialogHeader>
           <DialogTitle>Bulk edit page rules</DialogTitle>
         </DialogHeader>
         <div className="py-5">
           <Editor
             width="100%"
-            height="400px"
+            height="600px"
             language="yaml"
             value={codeYaml}
             onChange={(value) => setCode(value || '')}

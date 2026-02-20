@@ -16,6 +16,7 @@ export type SnapshotPayload = Pick<
   mediaReset: boolean
   rules?: NonNullable<z.infer<typeof SpotteurGlobalVariablesSchema>['options']>['rules']
   hooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']
+  globalHooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']
 }
 
 export interface ScreenshotWorkflowParams {
