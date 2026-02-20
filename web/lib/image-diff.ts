@@ -61,14 +61,18 @@ export async function getImageDiff({
 
   const totalPixels = width * height
   const diffPercentage = (diffPixels / totalPixels) * 100
-  const diffPngBuffer = await sharp(diffBuffer, {
+  const diffImage = await sharp(diffBuffer, {
     raw: { width, height, channels },
   })
-    .png()
+    .png({
+      compressionLevel: 5,
+      quality: 60,
+    })
+    .toFormat('png')
     .toBuffer()
 
   return {
     diffPercentage,
-    diffImage: diffPngBuffer,
+    diffImage,
   }
 }

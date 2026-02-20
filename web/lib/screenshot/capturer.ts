@@ -95,7 +95,14 @@ export class ScreenshotCapturer {
         throw new Error('Failed to capture screenshot')
       }
 
-      const image = sharp(buffer).ensureAlpha().raw().toFormat('png')
+      const image = sharp(buffer)
+        .ensureAlpha()
+        .raw()
+        .png({
+          compressionLevel: 5,
+          quality: 60,
+        })
+        .toFormat('png')
       const { info } = await image.toBuffer({ resolveWithObject: true })
       if (info.width !== this.payload.viewportWidth) {
         throw new Error(
