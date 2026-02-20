@@ -218,14 +218,11 @@ export class ScreenshotCapturer {
     )
 
     if (metrics.outerHeight < metrics.innerHeight) {
-      logger.warn(
-        `${this.logPrefix} Unexpected metrics where outerHeight (${metrics.outerHeight}px) is less than innerHeight (${metrics.innerHeight}px)`,
-      )
-      fullPageHeight = Math.max(fullPageHeight, height)
-    } else {
-      const decorationsHeight = metrics.outerHeight - metrics.innerHeight
-      fullPageHeight += decorationsHeight
+      throw new Error('Unexpected browser metrics, unable to determine full page height')
     }
+
+    const decorationsHeight = metrics.outerHeight - metrics.innerHeight
+    fullPageHeight += decorationsHeight
 
     logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`)
     await this.browser().setViewportSize({ width, height: fullPageHeight })
