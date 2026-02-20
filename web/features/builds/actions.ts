@@ -263,6 +263,10 @@ export async function populateSnapshotsPayload({
             'after-page-load': pageRule?.hookAfterPageLoad ?? undefined,
             'before-screenshot': pageRule?.hookBeforeScreenshot ?? undefined,
           },
+          globalHooks: {
+            'after-page-load': project?.hookAfterPageLoad ?? undefined,
+            'before-screenshot': project?.hookBeforeScreenshot ?? undefined,
+          },
         } satisfies SnapshotPayload)
       }
     }

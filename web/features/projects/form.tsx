@@ -1,5 +1,6 @@
 'use client'
 
+import { Editor } from '@monaco-editor/react'
 import { useForm } from '@tanstack/react-form'
 import { CheckIcon, CopyIcon, Plus, RefreshCcwIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -333,6 +334,56 @@ export function ProjectForm({
               />
               <FieldDescription>Each path must start with a slash (e.g., /pricing)</FieldDescription>
               {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
+      <form.Field
+        name="hookAfterPageLoad"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <div className="flex flex-col gap-3">
+                <FieldLabel htmlFor="pageRule-hookAfterPageLoad">Global Hook After Page Load</FieldLabel>
+                <div className="input">
+                  <Card className="p-5">
+                    <Editor
+                      width="100%"
+                      height="300px"
+                      language="javascript"
+                      value={field.state.value ?? undefined}
+                      onChange={(value) => field.handleChange(value)}
+                      theme="vs-dark"
+                    />
+                  </Card>
+                </div>
+              </div>
+            </Field>
+          )
+        }}
+      />
+      <form.Field
+        name="hookBeforeScreenshot"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <div className="flex flex-col gap-3">
+                <FieldLabel htmlFor="pageRule-hookBeforeScreenshot">Global Hook Before Screenshot</FieldLabel>
+                <div className="input">
+                  <Card className="p-5">
+                    <Editor
+                      width="100%"
+                      height="300px"
+                      language="javascript"
+                      value={field.state.value ?? undefined}
+                      onChange={(value) => field.handleChange(value)}
+                      theme="vs-dark"
+                    />
+                  </Card>
+                </div>
+              </div>
             </Field>
           )
         }}
