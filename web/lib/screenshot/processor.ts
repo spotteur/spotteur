@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import sharp from 'sharp'
 
 import { SnapshotApprovalStatus } from '@/constants/status-map'
@@ -45,11 +45,11 @@ export class ScreenshotProcessor {
         .onConflictDoUpdate({
           target: media.path,
           set: {
-            fileName: this.payload.fileName,
-            fileSize: buffer.length,
-            mimeType: 'image/png',
-            width: info.width,
-            height: info.height,
+            fileName: sql.raw(`excluded.${media.fileName.name}`),
+            fileSize: sql.raw(`excluded.${media.fileSize.name}`),
+            mimeType: sql.raw(`excluded.${media.mimeType.name}`),
+            width: sql.raw(`excluded.${media.width.name}`),
+            height: sql.raw(`excluded.${media.height.name}`),
           },
         })
         .returning()
@@ -100,11 +100,11 @@ export class ScreenshotProcessor {
               .onConflictDoUpdate({
                 target: media.path,
                 set: {
-                  fileName: diffFileName,
-                  fileSize: diffScreenshotBuffer.length,
-                  mimeType: 'image/png',
-                  width: info.width,
-                  height: info.height,
+                  fileName: sql.raw(`excluded.${media.fileName.name}`),
+                  fileSize: sql.raw(`excluded.${media.fileSize.name}`),
+                  mimeType: sql.raw(`excluded.${media.mimeType.name}`),
+                  width: sql.raw(`excluded.${media.width.name}`),
+                  height: sql.raw(`excluded.${media.height.name}`),
                 },
               })
               .returning()
@@ -150,11 +150,11 @@ export class ScreenshotProcessor {
         .onConflictDoUpdate({
           target: snapshots.id,
           set: {
-            approvalStatus,
-            diffPercentage,
-            screenshotMediaId: screenshotMedia.id,
-            baselineScreenshotMediaId,
-            diffScreenshotMediaId,
+            approvalStatus: sql.raw(`excluded.${snapshots.approvalStatus.name}`),
+            diffPercentage: sql.raw(`excluded.${snapshots.diffPercentage.name}`),
+            screenshotMediaId: sql.raw(`excluded.${snapshots.screenshotMediaId.name}`),
+            baselineScreenshotMediaId: sql.raw(`excluded.${snapshots.baselineScreenshotMediaId.name}`),
+            diffScreenshotMediaId: sql.raw(`excluded.${snapshots.diffScreenshotMediaId.name}`),
           },
         })
         .returning()

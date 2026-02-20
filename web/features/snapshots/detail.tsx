@@ -159,10 +159,16 @@ export function SnapshotViewer({
             <Comparison className="aspect-video" mode="hover">
               {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
               <ComparisonItem position="right">
-                <Image src={snapshot.baselineScreenshotMedia.path} alt="Baseline" fill className="object-contain" />
+                <Image
+                  unoptimized
+                  src={snapshot.baselineScreenshotMedia.path}
+                  alt="Baseline"
+                  fill
+                  className="object-contain"
+                />
               </ComparisonItem>
               <ComparisonItem position="left">
-                <Image src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
+                <Image unoptimized src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
               </ComparisonItem>
               <ComparisonHandle />
               <Badge variant="outline" className="pointer-events-none absolute top-6 left-6">
@@ -180,6 +186,7 @@ export function SnapshotViewer({
           {snapshot.diffScreenshotMedia?.path ? (
             <div className="relative h-1280 w-full">
               <Image
+                unoptimized
                 src={snapshot.diffScreenshotMedia?.path}
                 alt="Diff heatmap"
                 fill
@@ -217,7 +224,7 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
         <span className="text-muted-foreground text-xs">{`${label} (${media.width}x${media.height})`}</span>
       ) : null}
       <div className="bg-muted/20 relative w-full overflow-hidden rounded-lg border" style={{ aspectRatio }}>
-        <Image src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
+        <Image unoptimized src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
       </div>
     </div>
   )
