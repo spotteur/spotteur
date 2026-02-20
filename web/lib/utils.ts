@@ -15,7 +15,7 @@ export function formatDateTime(value: Date | string) {
 
   if (isNaN(date.getTime())) return ''
 
-  return format(date, 'dd/MM/yyyy HH:MM')
+  return format(date, 'dd/MM/yyyy HH:mm')
 }
 
 export function humanReadableEpoch(ts: number = Date.now()): string {

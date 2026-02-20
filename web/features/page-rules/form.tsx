@@ -176,7 +176,7 @@ export default function PageRuleForm({
                   onSelect={(value) => handleSelect(value)}
                   isInvalid={isInvalid}
                 />
-                <FieldDescription>path to use for capturing snapshots and implement the rule.</FieldDescription>
+                <FieldDescription>Choose the page path to apply the rules.</FieldDescription>
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             )

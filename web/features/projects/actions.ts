@@ -70,7 +70,7 @@ export async function createProject(input: unknown) {
   }
 
   const data = parsed.data
-  const token = data.token && data.token.length > 0 ? data.token : crypto.randomUUID()
+  const token = data.token && data.token.length > 0 ? data.token : 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
 
   const [created] = await db
     .insert(projects)
@@ -78,7 +78,7 @@ export async function createProject(input: unknown) {
       name: data.name,
       baseUrl: data.baseUrl,
       token,
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      snapshotBrowsers: data.snapshotBrowsers as Browser[],
       snapshotSelector: data.snapshotSelector,
       viewports: data.viewports,
       pagePaths: data.pagePaths,
@@ -102,7 +102,7 @@ export async function updateProject(input: unknown) {
       name: data.name,
       baseUrl: data.baseUrl,
       token,
-      snapshotBrowsers: data.snapshotBrowsers.map((b) => b as Browser),
+      snapshotBrowsers: data.snapshotBrowsers as Browser[],
       snapshotSelector: data.snapshotSelector,
       viewports: data.viewports,
       pagePaths: data.pagePaths,
