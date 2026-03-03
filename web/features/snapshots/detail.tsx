@@ -6,13 +6,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { type SnapshotActionRes, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
@@ -127,13 +127,59 @@ export function SnapshotViewer({
   projectId: string
   buildId: string
 }) {
+  const dimensionMismatch =
+    snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
+    snapshot.baselineScreenshotMedia?.height !== snapshot.screenshotMedia?.height
+  const noBaseline = snapshot.baselineScreenshotMedia === null
+  const width = Math.max(snapshot.baselineScreenshotMedia?.width || 0, snapshot.screenshotMedia?.width || 0)
+  const height = Math.max(snapshot.baselineScreenshotMedia?.height || 0, snapshot.screenshotMedia?.height || 0)
+  const aspectRatio = width && height ? `${width} / ${height}` : '4 / 3'
+
+  // If there's no baseline, heatmap & comparison view is not available, default to side-by-side to show the current screenshot.
+  // If there's a dimension mismatch, heatmap view is not available, default to comparison view to show the differences.
+  const defaultTab = noBaseline
+    ? SnapshotViewerType.SIDE_BY_SIDE
+    : dimensionMismatch
+      ? SnapshotViewerType.COMPARISON
+      : SnapshotViewerType.HEATMAP
+
   return (
-    <Tabs defaultValue="side-by-side" className="space-y-2">
+    <Tabs defaultValue={defaultTab} className="space-y-2">
       <div className="flex justify-between">
         <TabsList>
-          <TabsTrigger value="side-by-side">Side by side</TabsTrigger>
-          <TabsTrigger value="comparison">Comparison</TabsTrigger>
-          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block w-fit">
+                <TabsTrigger
+                  disabled={noBaseline || dimensionMismatch ? true : undefined}
+                  value={SnapshotViewerType.HEATMAP}
+                >
+                  {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]}
+                </TabsTrigger>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent hidden={!(dimensionMismatch || noBaseline)}>
+              {noBaseline
+                ? `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable because there's no baseline screenshot to compare.`
+                : `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable due to dimension mismatch between baseline and current screenshots.`}
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block w-fit">
+                <TabsTrigger disabled={noBaseline ? true : undefined} value={SnapshotViewerType.COMPARISON}>
+                  {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]}
+                </TabsTrigger>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent hidden={!noBaseline}>
+              {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]} view is unavailable because there&apos;s
+              no baseline screenshot to compare.
+            </TooltipContent>
+          </Tooltip>
+          <TabsTrigger value={SnapshotViewerType.SIDE_BY_SIDE}>
+            {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.SIDE_BY_SIDE]}
+          </TabsTrigger>
         </TabsList>
         <div className="flex gap-5">
           {action.prev ? (
@@ -151,50 +197,58 @@ export function SnapshotViewer({
 
       <TabsContent value="comparison">
         {snapshot.baselineScreenshotMedia === null ? (
-          <PreviewFallback message="This snapshot has no baseline image to compare" />
+          <PreviewFallback message="This snapshot doesn't have a baseline image to compare" />
         ) : snapshot.screenshotMedia === null ? (
           <PreviewFallback message="This snapshot doesn't have any image yet" />
         ) : (
-          <Card className="bg-muted/40 py-0">
-            <Comparison className="aspect-video" mode="hover">
-              {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
-              <ComparisonItem position="right">
-                <Image
-                  unoptimized
-                  src={snapshot.baselineScreenshotMedia.path}
-                  alt="Baseline"
-                  fill
-                  className="object-contain"
-                />
-              </ComparisonItem>
-              <ComparisonItem position="left">
-                <Image unoptimized src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
-              </ComparisonItem>
-              <ComparisonHandle />
-              <Badge variant="outline" className="pointer-events-none absolute top-6 left-6">
-                Baseline
-              </Badge>
-              <Badge variant="outline" className="pointer-events-none absolute top-6 right-6">
-                Current
-              </Badge>
-            </Comparison>
-          </Card>
+          <div className="flex w-full flex-col gap-2">
+            <div className="text-muted-foreground flex justify-between text-xs">
+              <span>{`Baseline (${snapshot.baselineScreenshotMedia.width}x${snapshot.baselineScreenshotMedia.height})`}</span>
+              <span>{`Current (${snapshot.screenshotMedia.width}x${snapshot.screenshotMedia.height})`}</span>
+            </div>
+            <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
+              <Comparison style={{ aspectRatio }} mode="hover">
+                {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
+                <ComparisonItem position="right">
+                  <Image
+                    unoptimized
+                    src={snapshot.baselineScreenshotMedia.path}
+                    alt="Baseline"
+                    width={snapshot.baselineScreenshotMedia.width || 0}
+                    height={snapshot.baselineScreenshotMedia.height || 0}
+                    className="h-auto w-full"
+                  />
+                </ComparisonItem>
+                <ComparisonItem position="left">
+                  <Image
+                    unoptimized
+                    src={snapshot.screenshotMedia.path}
+                    alt="Current"
+                    width={snapshot.screenshotMedia.width || 0}
+                    height={snapshot.screenshotMedia.height || 0}
+                    className="h-auto w-full"
+                  />
+                </ComparisonItem>
+                <ComparisonHandle />
+              </Comparison>
+            </div>
+          </div>
         )}
       </TabsContent>
       <TabsContent value="heatmap">
         <div className="w-full">
           {snapshot.diffScreenshotMedia?.path ? (
-            <div className="relative h-1280 w-full">
+            <div className="relative w-full">
               <Image
                 unoptimized
                 src={snapshot.diffScreenshotMedia?.path}
+                width={snapshot.diffScreenshotMedia?.width || 0}
+                height={snapshot.diffScreenshotMedia?.height || 0}
                 alt="Diff heatmap"
-                fill
-                className="object-contain object-top"
+                className="h-auto w-full"
               />
             </div>
-          ) : snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
-            snapshot.baselineScreenshotMedia?.height !== snapshot.screenshotMedia?.height ? (
+          ) : dimensionMismatch ? (
             <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
           ) : (
             <PreviewFallback />
@@ -202,9 +256,15 @@ export function SnapshotViewer({
         </div>
       </TabsContent>
       <TabsContent value="side-by-side">
-        <div className="grid w-full grid-cols-2 gap-4">
-          <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
-          <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
+        <div className="flex w-full flex-col gap-2">
+          <div className="text-muted-foreground flex justify-between text-xs">
+            <span>{`Baseline (${snapshot.baselineScreenshotMedia?.width}x${snapshot.baselineScreenshotMedia?.height})`}</span>
+            <span>{`Current (${snapshot.screenshotMedia?.width}x${snapshot.screenshotMedia?.height})`}</span>
+          </div>
+          <div className="grid w-full grid-cols-2 gap-4">
+            <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
+            <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
+          </div>
         </div>
       </TabsContent>
     </Tabs>
@@ -219,13 +279,8 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
   const aspectRatio = media.width && media.height ? `${media.width} / ${media.height}` : '4 / 3'
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      {label ? (
-        <span className="text-muted-foreground text-xs">{`${label} (${media.width}x${media.height})`}</span>
-      ) : null}
-      <div className="bg-muted/20 relative w-full overflow-hidden rounded-lg border" style={{ aspectRatio }}>
-        <Image unoptimized src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
-      </div>
+    <div className="bg-muted/20 relative w-full overflow-hidden border-none" style={{ aspectRatio }}>
+      <Image unoptimized src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
     </div>
   )
 }
@@ -233,7 +288,7 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
 const PreviewFallback = ({ label, message }: { label?: string; message?: string }) => (
   <div className="flex flex-col gap-2">
     {label ? <span className="text-muted-foreground text-xs">{label}</span> : null}
-    <div className="bg-muted/40 text-muted-foreground flex h-48 items-center justify-center rounded-lg border text-xs">
+    <div className="bg-muted/40 text-muted-foreground flex h-48 items-center justify-center border text-xs">
       {message ?? 'No image available'}
     </div>
   </div>

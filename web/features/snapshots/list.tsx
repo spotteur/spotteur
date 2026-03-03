@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PAGE_SIZE_OPTIONS } from '@/constants/app'
@@ -103,8 +103,11 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
               <Search />
             </InputGroupAddon>
             {pendingSearch && (
-              <InputGroupAddon onClick={handleClearSearch} className="cursor-pointer" align="inline-end">
-                <X />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton onClick={handleClearSearch}>
+                  <span className="sr-only">Clear search</span>
+                  <X />
+                </InputGroupButton>
               </InputGroupAddon>
             )}
           </InputGroup>

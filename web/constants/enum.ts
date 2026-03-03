@@ -53,3 +53,15 @@ export const RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS = [
   RuleAttrType.IMAGE_COLOR_WHITE,
   RuleAttrType.IMAGE_COLOR_BLACK,
 ] as const
+
+export enum SnapshotViewerType {
+  HEATMAP = 'heatmap',
+  COMPARISON = 'comparison',
+  SIDE_BY_SIDE = 'side-by-side',
+}
+
+export const SNAPSHOT_VIEWER_TYPE_LABEL_MAP: Record<SnapshotViewerType, string> = {
+  [SnapshotViewerType.HEATMAP]: 'Heatmap',
+  [SnapshotViewerType.COMPARISON]: 'Comparison',
+  [SnapshotViewerType.SIDE_BY_SIDE]: 'Side by Side',
+} as const
