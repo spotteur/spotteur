@@ -64,6 +64,28 @@ export function TriggerBuildForm({ defaultValues, onSubmit, onCancel, isSubmitti
           )
         }}
       />
+      <form.Field
+        name="notes"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="build-notes">Notes</FieldLabel>
+              <Textarea
+                id="build-notes"
+                name={field.name}
+                value={field.state.value || undefined}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                className="min-h-26"
+                placeholder="Add your notes about this build here. It can be anything you want to remember or share about this build."
+                aria-invalid={isInvalid}
+              />
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={() => onCancel()} disabled={isSubmitting} className="ml-2">
           Cancel
@@ -124,6 +146,7 @@ export function UpdateBuildNotesForm({
                 value={field.state.value || undefined}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
+                className="min-h-26"
                 aria-invalid={isInvalid}
               />
               {isInvalid && <FieldError errors={field.state.meta.errors} />}

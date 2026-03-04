@@ -7,23 +7,26 @@ export const BuildIdentifierSchema = z.string().transform((value) => {
   return trimmed === '' ? undefined : trimmed
 })
 
-export const TriggerBuildSchema = z.object({
-  projectId: z.string(),
-  identifier: BuildIdentifierSchema.optional(),
-  baseUrl: BaseUrlSchema.optional(),
-})
+const BuildNotesSchema = z.string().nullable().optional()
 
-export const TriggerBuildApiSchema = z.object({
-  projectId: z.string(),
+export const TriggerBuildSchema = z.object({
   identifier: BuildIdentifierSchema.optional(),
   baseUrl: BaseUrlSchema.optional(),
-  projectToken: z.string(),
+  notes: BuildNotesSchema,
 })
 
 export type TriggerBuildInput = z.infer<typeof TriggerBuildSchema>
 
+export const TriggerBuildApiSchema = z.object({
+  ...TriggerBuildSchema.shape,
+  projectId: z.string(),
+  projectToken: z.string(),
+})
+
+export type TriggerBuildApiInput = z.infer<typeof TriggerBuildApiSchema>
+
 export const UpdateBuildNotesSchema = z.object({
-  notes: z.string().nullable().optional(),
+  notes: BuildNotesSchema,
 })
 
 export type UpdateBuildNotesInput = z.infer<typeof UpdateBuildNotesSchema>

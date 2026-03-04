@@ -58,7 +58,7 @@ export function UpdateBuildNotesDialog({
     <>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Build notes</DialogTitle>
             <DialogDescription>

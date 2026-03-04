@@ -26,10 +26,7 @@ export function TriggerBuildDialog({
   const queryClient = useQueryClient()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const triggerBuildMutation = useMutation({
-    mutationFn: (payload: TriggerBuildInput) =>
-      triggerBuildManual({
-        payload,
-      }),
+    mutationFn: (values: { projectId: string; payload: TriggerBuildInput }) => triggerBuildManual(values),
     onSuccess: (res, variables) => {
       if (res.ok) {
         toast.success('Build triggered', { description: 'A new build was queued.' })
@@ -50,9 +47,9 @@ export function TriggerBuildDialog({
     <>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create new build</DialogTitle>
+            <DialogTitle>Trigger build</DialogTitle>
           </DialogHeader>
           <Alert className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/30">
             <InfoIcon className="size-4 text-blue-600 dark:text-blue-400" />
@@ -67,10 +64,9 @@ export function TriggerBuildDialog({
           </Alert>
           <TriggerBuildForm
             defaultValues={{
-              projectId,
               baseUrl,
             }}
-            onSubmit={(values) => triggerBuildMutation.mutate(values)}
+            onSubmit={(payload) => triggerBuildMutation.mutate({ projectId, payload })}
             onCancel={() => setIsDialogOpen(false)}
             isSubmitting={triggerBuildMutation.isPending}
           />

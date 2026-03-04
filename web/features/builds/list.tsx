@@ -89,7 +89,7 @@ export function BuildListCard({ projectId, baseUrl }: { projectId?: string; base
           {projectId && baseUrl ? (
             <TriggerBuildDialog projectId={projectId} baseUrl={baseUrl}>
               <Button size="sm">
-                <Play /> Create new build
+                <Play /> Trigger build
               </Button>
             </TriggerBuildDialog>
           ) : (

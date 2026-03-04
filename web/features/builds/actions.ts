@@ -117,13 +117,13 @@ export async function updateBuildNotes({ buildId, payload }: { buildId: string; 
   }
 }
 
-export async function triggerBuild({ payload }: { payload: unknown }) {
+export async function triggerBuild({ projectId, payload }: { projectId: string; payload: unknown }) {
   const parseResult = TriggerBuildSchema.safeParse(payload)
   if (!parseResult.success) {
     throw parseResult.error
   }
 
-  const { projectId, baseUrl, identifier } = parseResult.data
+  const { baseUrl, identifier, notes } = parseResult.data
 
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   if (!project) {
@@ -150,6 +150,7 @@ export async function triggerBuild({ payload }: { payload: unknown }) {
       status: BuildStatus.PENDING,
       identifier: buildIdentifier,
       baselineBuildId: project.baselineBuildId,
+      notes,
     })
     .returning()
 
@@ -413,9 +414,9 @@ export async function mergeGlobalVariablesIntoSnapshotPayload({
   return payload
 }
 
-export async function triggerBuildManual({ payload }: { payload: unknown }) {
+export async function triggerBuildManual({ projectId, payload }: { projectId: string; payload: unknown }) {
   try {
-    const { build } = await triggerBuild({ payload })
+    const { build } = await triggerBuild({ projectId, payload })
 
     return { ok: true, data: build } as const
   } catch (error) {
@@ -438,7 +439,7 @@ export async function triggerBuildApi({ payload }: { payload: unknown }) {
     throw parsePayload.error
   }
 
-  const { projectId, projectToken, identifier, baseUrl } = parsePayload.data
+  const { projectId, projectToken, identifier, baseUrl, notes } = parsePayload.data
 
   const [project] = await db
     .select()
@@ -450,10 +451,11 @@ export async function triggerBuildApi({ payload }: { payload: unknown }) {
   }
 
   return await triggerBuild({
+    projectId,
     payload: {
-      projectId,
       identifier,
       baseUrl,
+      notes,
     },
   })
 }
