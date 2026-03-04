@@ -11,11 +11,13 @@ import {
 
 export const ProjectBrowserEnum = z.enum(['chrome', 'firefox', 'edge'], 'Invalid browser option')
 
+export const BaseUrlSchema = z.url('Base URL must be a valid URL').refine((url) => url.endsWith('/'), {
+  error: 'Base URL must end with a trailing slash (/)',
+})
+
 export const ProjectBaseSchema = z.object({
   name: z.string().min(2, 'Project name must be at least 2 characters'),
-  baseUrl: z.url('Base URL must be a valid URL').refine((url) => url.endsWith('/'), {
-    error: 'Base URL must end with a trailing slash (/)',
-  }),
+  baseUrl: BaseUrlSchema,
   token: z.string().optional(),
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,

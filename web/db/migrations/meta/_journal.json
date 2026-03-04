@@ -113,6 +113,13 @@
       "when": 1771578279760,
       "tag": "0015_unknown_azazel",
       "breakpoints": false
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1772591834519,
+      "tag": "0016_chemical_harpoon",
+      "breakpoints": false
     }
   ]
 }

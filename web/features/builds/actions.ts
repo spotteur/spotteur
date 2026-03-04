@@ -3,9 +3,11 @@
 import { type Subscriber } from '@novu/js'
 import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
 import { type Route } from 'next'
-import { NextResponse } from 'next/server'
 import { v7 as uuidv7 } from 'uuid'
+import { z } from 'zod'
+import { $ZodError } from 'zod/v4/core'
 
+import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { APP_URL } from '@/constants/env'
 import { NOVU_WORKFLOW_BUILD_CREATED, NOVU_WORKFLOW_BUILD_FAILED, NOVU_WORKFLOW_BUILD_PASSED } from '@/constants/novu'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
@@ -14,6 +16,7 @@ import db, { type DB, type DBTransaction } from '@/db/drizzle'
 import { snapshots, users } from '@/db/schema'
 import { builds, pageRules, projects } from '@/db/schema'
 import { SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
+import { InvalidProjectTokenError, ProjectNotFoundError } from '@/features/projects/errors'
 import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
 import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
@@ -21,6 +24,9 @@ import { temporalClient } from '@/lib/temporal-client'
 import { humanReadableEpoch } from '@/lib/utils'
 import { type buildSnapshotsWorkflow } from '@/temporal/workflows/snapshot'
 import { type SnapshotPayload } from '@/types/screenshot'
+
+import { PendingBuildAlreadyExistError } from './errors'
+import { UpdateBuildNotesSchema, TriggerBuildApiSchema, TriggerBuildSchema } from './schema'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
 
@@ -95,11 +101,33 @@ export async function startBuildWorkflow({ projectId, buildId }: { projectId: st
   })
 }
 
-export async function triggerBuild({ projectId, identifier }: { projectId: string; identifier?: string }) {
-  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+export async function updateBuildNotes({ buildId, payload }: { buildId: string; payload: unknown }) {
+  try {
+    const parseResult = UpdateBuildNotesSchema.safeParse(payload)
+    if (!parseResult.success) {
+      return { ok: false, error: z.prettifyError(parseResult.error) } as const
+    }
 
+    const { notes } = parseResult.data
+    await db.update(builds).set({ notes }).where(eq(builds.id, buildId))
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: 'Failed to update build notes' } as const
+  }
+}
+
+export async function triggerBuild({ payload }: { payload: unknown }) {
+  const parseResult = TriggerBuildSchema.safeParse(payload)
+  if (!parseResult.success) {
+    throw parseResult.error
+  }
+
+  const { projectId, baseUrl, identifier } = parseResult.data
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
   if (!project) {
-    return { ok: false, error: 'Project not found' } as const
+    throw new ProjectNotFoundError()
   }
 
   const [pendingBuild] = await db
@@ -107,20 +135,17 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     .from(builds)
     .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.PENDING)))
     .limit(1)
-
   if (pendingBuild) {
-    return { ok: false, error: 'Pending build still exists!' } as const
+    throw new PendingBuildAlreadyExistError()
   }
 
-  const safeIdentifier = identifier?.trim()
-  const buildIdentifier =
-    safeIdentifier && safeIdentifier.length > 0 ? safeIdentifier : `manual-${humanReadableEpoch()}`
+  const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
 
   const [build] = await db
     .insert(builds)
     .values({
       projectId: project.id,
-      baseUrl: project.baseUrl,
+      baseUrl: baseUrl || project.baseUrl,
       pagePaths: project.pagePaths,
       status: BuildStatus.PENDING,
       identifier: buildIdentifier,
@@ -144,7 +169,7 @@ export async function triggerBuild({ projectId, identifier }: { projectId: strin
     })
   }
 
-  return { ok: true, data: build } as const
+  return { build }
 }
 
 export async function getBuildDetail({ projectId, buildId }: { projectId: string; buildId: string }) {
@@ -310,13 +335,22 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   const [latestApprovedBuild] = await dbOrTx
     .select()
     .from(builds)
-    .where(and(eq(builds.projectId, build.projectId), eq(builds.status, BuildStatus.PASSED)))
+    .where(
+      and(
+        eq(builds.projectId, build.projectId),
+        eq(builds.status, BuildStatus.PASSED),
+        // Only consider builds with the same base URL as the baseline build,
+        // to prevent special builds (with different base URLs) from becoming baseline builds.
+        eq(builds.baseUrl, projects.baseUrl),
+      ),
+    )
+    .leftJoin(projects, eq(builds.projectId, projects.id))
     .orderBy(desc(builds.createdAt))
     .limit(1)
   if (latestApprovedBuild) {
     await dbOrTx
       .update(projects)
-      .set({ baselineBuildId: latestApprovedBuild.id })
+      .set({ baselineBuildId: latestApprovedBuild.builds.id })
       .where(eq(projects.id, build.projectId))
   }
 
@@ -379,34 +413,47 @@ export async function mergeGlobalVariablesIntoSnapshotPayload({
   return payload
 }
 
-export async function triggerBuildApi({
-  projectId,
-  identifier,
-  token,
-}: {
-  projectId: string
-  identifier: string
-  token: string
-}) {
+export async function triggerBuildManual({ payload }: { payload: unknown }) {
+  try {
+    const { build } = await triggerBuild({ payload })
+
+    return { ok: true, data: build } as const
+  } catch (error) {
+    if (error instanceof ProjectNotFoundError || error instanceof PendingBuildAlreadyExistError) {
+      return { ok: false, error: error.message } as const
+    }
+
+    if (error instanceof $ZodError) {
+      return { ok: false, error: z.prettifyError(error) } as const
+    }
+
+    logger.error(error)
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
+  }
+}
+
+export async function triggerBuildApi({ payload }: { payload: unknown }) {
+  const parsePayload = TriggerBuildApiSchema.safeParse(payload)
+  if (!parsePayload.success) {
+    throw parsePayload.error
+  }
+
+  const { projectId, projectToken, identifier, baseUrl } = parsePayload.data
+
   const [project] = await db
     .select()
     .from(projects)
-    .where(and(eq(projects.id, projectId), eq(projects.token, token)))
+    .where(and(eq(projects.id, projectId), eq(projects.token, projectToken)))
     .limit(1)
-
   if (!project) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: 'Invalid project id or token',
-      },
-      { status: 400 },
-    )
+    throw new InvalidProjectTokenError()
   }
 
-  const build = await triggerBuild({ projectId, identifier })
-  if (!build.ok) {
-    return NextResponse.json(build, { status: 401 })
-  }
-  return NextResponse.json(build, { status: 201 })
+  return await triggerBuild({
+    payload: {
+      projectId,
+      identifier,
+      baseUrl,
+    },
+  })
 }
