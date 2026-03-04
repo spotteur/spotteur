@@ -38,6 +38,10 @@ export const snapshotsMenu = (projectId: string, buildId: string): NavigationTyp
       url: `/projects/${projectId}/builds/${buildId}/snapshots` as Route,
     },
     {
+      label: 'Review Changes',
+      url: `/projects/${projectId}/builds/${buildId}/snapshots/review` as Route,
+    },
+    {
       label: 'Logs',
       url: `/projects/${projectId}/builds/${buildId}/logs` as Route,
     },

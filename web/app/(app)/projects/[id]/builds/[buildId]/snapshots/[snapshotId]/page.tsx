@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { snapshotsMenu } from '@/constants/app'
@@ -135,9 +136,28 @@ export default function SnapshotDetailPage() {
           {snapshotData ? (
             <SnapshotViewer
               snapshot={snapshotData.snapshot}
-              action={snapshotData.action}
-              projectId={params.id}
-              buildId={params.buildId}
+              action={
+                <div className="flex gap-5">
+                  {snapshotData.action.prev ? (
+                    <Button asChild variant="outline">
+                      <Link
+                        href={`/projects/${params.id}/builds/${params.buildId}/snapshots/${snapshotData.action.prev}`}
+                      >
+                        Previous
+                      </Link>
+                    </Button>
+                  ) : null}
+                  {snapshotData.action.next ? (
+                    <Button asChild variant="outline">
+                      <Link
+                        href={`/projects/${params.id}/builds/${params.buildId}/snapshots/${snapshotData.action.next}`}
+                      >
+                        Next
+                      </Link>
+                    </Button>
+                  ) : null}
+                </div>
+              }
             />
           ) : (
             <Skeleton className="h-150 w-full" />
