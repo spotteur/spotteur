@@ -103,12 +103,12 @@ export default function ProjectsPage() {
             )}
           </InputGroup>
         </div>
-        <Link href="/projects/create">
-          <Button size="sm">
+        <Button size="sm" asChild>
+          <Link href="/projects/create">
             <Plus className="mr-2 size-4" />
             Create Project
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       {isLoading ? (

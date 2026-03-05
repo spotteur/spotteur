@@ -399,9 +399,9 @@ export function ProjectForm({
             submitLabel
           )}
         </Button>
-        <Link href="/projects">
-          <Button variant="secondary">Cancel</Button>
-        </Link>
+        <Button variant="secondary" asChild>
+          <Link href="/projects">Cancel</Link>
+        </Button>
       </div>
     </form>
   )

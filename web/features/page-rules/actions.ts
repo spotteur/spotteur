@@ -63,6 +63,16 @@ export async function listPageRulesByProject({
   return { data: rows, total }
 }
 
+export async function listPageRulesByProjectV2({ projectId }: { projectId: string }) {
+  const rows = await db
+    .select()
+    .from(pageRules)
+    .where(eq(pageRules.projectId, projectId))
+    .orderBy(asc(pageRules.pagePath))
+
+  return { data: rows }
+}
+
 export async function createRule(input: unknown, projectId: string) {
   const parsed = PageRuleCreateSchema.safeParse(input)
   if (!parsed.success) {
@@ -218,3 +228,6 @@ export async function unUsedPagePath(projectId: string) {
 
   return unusedPaths[0]
 }
+
+export type PageRulesListV2Res = Awaited<ReturnType<typeof listPageRulesByProjectV2>>
+export type PageRulesListItemV2Res = PageRulesListV2Res['data'][number]

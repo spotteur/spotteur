@@ -76,7 +76,7 @@ function TreeNode({ node, level, onSelectNode, selectedNodeId, expandedNodes, on
         ) : (
           <>
             <div className="w-px" />
-            {node.icon ? node.icon : <File size={16} className="shrink-0" />}
+            {node.icon}
           </>
         )}
         <span className="flex-1" title={isFolder ? undefined : `Open ${node.path}`}>

@@ -132,7 +132,6 @@ export default function ManagePagesPage() {
           }
         }}
       />
-
       <BulkEditPageRulesDialog
         open={openBulkEdit}
         codeYaml={existingPagesData || pendingUpdate}

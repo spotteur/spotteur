@@ -1,19 +1,65 @@
 import { z } from 'zod'
 
-import { Browser, RuleAttrType } from '@/constants/enum'
+import {
+  Browser,
+  RULE_ATTR_TYPE_LABEL_MAP,
+  RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS,
+  RuleAttrType,
+} from '@/constants/enum'
 
-export const RuleAttrSchema = z.object({
-  value: z.string(),
-  name: z.enum(RuleAttrType, {
-    error: 'Invalid attribute type',
-  }),
-})
+export const RuleAttrSchema = z
+  .object({
+    name: z.enum(RuleAttrType),
+    value: z.string(),
+  })
+  .refine(
+    (data) => {
+      if (RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.includes(data.name as RuleAttrType)) {
+        return data.value === 'true'
+      }
+      return true
+    },
+    {
+      error: 'Value must be "true" for this attribute',
+      path: ['value'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.name === RuleAttrType.REPLACE_WORDS) {
+        const num = Number(String(data.value))
+        return !Number.isNaN(num) && num > 0
+      }
+      return true
+    },
+    {
+      error: 'Value must be a number greater than 0 for this attribute',
+      path: ['value'],
+    },
+  )
 
 export const SelectorSchema = z.string().nonempty('Provide at least 1 selector')
 
 export const RuleSchema = z.object({
-  selectors: z.array(SelectorSchema),
-  attrs: z.array(RuleAttrSchema),
+  selectors: z.array(SelectorSchema).min(1, 'Provide at least 1 selector'),
+  attrs: z
+    .array(RuleAttrSchema)
+    .min(1, 'Provide at least 1 rule')
+    .transform((val, ctx) => {
+      const names = new Set<string>()
+      for (const attr of val) {
+        if (names.has(attr.name)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate rule "${RULE_ATTR_TYPE_LABEL_MAP[attr.name]}" in the same rule group`,
+          })
+          return z.NEVER
+        }
+
+        names.add(attr.name)
+      }
+      return val
+    }),
 })
 
 export const RulesSchema = z.array(RuleSchema).optional()

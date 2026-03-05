@@ -52,4 +52,4 @@ export const RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS = [
   RuleAttrType.REMOVE,
   RuleAttrType.IMAGE_COLOR_WHITE,
   RuleAttrType.IMAGE_COLOR_BLACK,
-] as const
+]
