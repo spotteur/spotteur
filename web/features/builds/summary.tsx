@@ -1,11 +1,13 @@
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, Pencil, Plus } from 'lucide-react'
 
+import { ExpandableText } from '@/components/expandable-text'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BuildStatus } from '@/constants/status-map'
 import { type builds } from '@/db/schema'
 import { BuildStatusBadge } from '@/features/builds/badge'
+import { UpdateBuildNotesDialog } from '@/features/builds/edit-build-notes-dialog'
 import { formatDateTime } from '@/lib/utils'
 
 export function BuildSummaryCard({
@@ -40,14 +42,33 @@ export function BuildSummaryCard({
           </>
         )}
       </CardHeader>
-      <CardContent className="text-muted-foreground space-y-2 text-sm">
+      <CardContent className="text-muted-foreground space-y-4 text-sm">
         {build ? (
           <>
-            <div className="flex flex-wrap gap-4">
-              <span className="text-foreground font-medium">Base URL:</span> {build.baseUrl}
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-4">
+                <span className="text-foreground font-medium">Base URL:</span> {build.baseUrl}
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <span className="text-foreground font-medium">Created:</span> {formatDateTime(build.createdAt)}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-4">
-              <span className="text-foreground font-medium">Created:</span> {formatDateTime(build.createdAt)}
+
+            <div className="bg-muted/30 relative flex flex-col gap-2 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-foreground font-medium">Notes</span>
+                <UpdateBuildNotesDialog projectId={build.projectId} buildId={build.id} notes={build.notes}>
+                  <Button variant="ghost" size="icon-xs">
+                    {build.notes ? <Pencil /> : <Plus />}
+                  </Button>
+                </UpdateBuildNotesDialog>
+              </div>
+
+              {build.notes ? (
+                <ExpandableText text={build.notes} />
+              ) : (
+                <div className="text-muted-foreground italic">No notes added yet.</div>
+              )}
             </div>
           </>
         ) : (

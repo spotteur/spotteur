@@ -56,7 +56,7 @@ export default function ProjectBuildsPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <BuildListCard projectId={data?.id} />
+      <BuildListCard projectId={data?.id} baseUrl={data?.baseUrl} />
     </div>
   )
 }
