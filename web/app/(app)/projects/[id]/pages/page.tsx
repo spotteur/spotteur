@@ -1,7 +1,6 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit } from 'lucide-react'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
@@ -9,11 +8,10 @@ import { toast } from 'sonner'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Button } from '@/components/ui/button'
 import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deletePageRule, existingPageRules, upsertPageRules } from '@/features/page-rules/actions'
-import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialog'
+import { BulkEditPageRulesDialog } from '@/features/page-rules/bulk-edit-page-rules-dialog'
 import { ConfirmDeletePageDialog } from '@/features/page-rules/confirm-delete-path-dialog'
 import { PageListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
@@ -135,7 +133,7 @@ export default function ManagePagesPage() {
         }}
       />
 
-      <BulkEditPagesDialog
+      <BulkEditPageRulesDialog
         open={openBulkEdit}
         codeYaml={existingPagesData || pendingUpdate}
         onImport={(code) => {
