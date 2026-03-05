@@ -1,31 +1,30 @@
 'use client'
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
 import { Layers, Play, Search, X } from 'lucide-react'
 import { type Route } from 'next'
 import Link from 'next/link'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback } from 'react'
-import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, PAGE_SIZE_OPTIONS } from '@/constants/app'
+import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 import { type builds } from '@/db/schema'
-import { listBuildsByProject, triggerBuild } from '@/features/builds/actions'
+import { listBuildsByProject } from '@/features/builds/actions'
 import { BuildStatusBadge } from '@/features/builds/badge'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { formatDateTime } from '@/lib/utils'
 
-export function BuildListCard({ projectId }: { projectId?: string }) {
-  const queryClient = useQueryClient()
+import { TriggerBuildDialog } from './trigger-build-dialog'
 
+export function BuildListCard({ projectId, baseUrl }: { projectId?: string; baseUrl?: string }) {
   const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({
     defaultPageSize: 6,
   })
@@ -51,23 +50,6 @@ export function BuildListCard({ projectId }: { projectId?: string }) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange,
-  })
-
-  const trigger = useMutation({
-    mutationFn: (projectId: string) => triggerBuild({ projectId }),
-    onSuccess: (res, projectId) => {
-      if (res.ok) {
-        toast.success('Build triggered', { description: 'A new build was queued.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, projectId] })
-        return
-      }
-
-      toast.error('Failed to trigger build', { description: res.error })
-    },
-    onError: (error) => {
-      console.error(error)
-      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
-    },
   })
 
   const handleSearchChange = useCallback(
@@ -104,10 +86,12 @@ export function BuildListCard({ projectId }: { projectId?: string }) {
           </InputGroup>
         </div>
         <CardAction className="flex flex-row items-center justify-end gap-2 pb-0">
-          {projectId ? (
-            <Button onClick={() => trigger.mutate(projectId)} disabled={trigger.isPending} size="sm">
-              <Play className="size-4" /> Trigger build
-            </Button>
+          {projectId && baseUrl ? (
+            <TriggerBuildDialog projectId={projectId} baseUrl={baseUrl}>
+              <Button size="sm">
+                <Play /> Trigger build
+              </Button>
+            </TriggerBuildDialog>
           ) : (
             <Skeleton className="h-8 w-32" />
           )}

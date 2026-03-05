@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/ap
 import { SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
-import { type SnapshotActionRes, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
 
 export function SnapshotActionButtons({
@@ -45,6 +45,9 @@ export function SnapshotActionButtons({
       if (res.ok) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
+        })
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'],
         })
 
         const statusMessages = {
@@ -116,17 +119,7 @@ export function SnapshotActionButtons({
   )
 }
 
-export function SnapshotViewer({
-  snapshot,
-  action,
-  projectId,
-  buildId,
-}: {
-  snapshot: SnapshotDetailRes
-  action: SnapshotActionRes
-  projectId: string
-  buildId: string
-}) {
+export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailRes; action?: ReactNode }) {
   const dimensionMismatch =
     snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
     snapshot.baselineScreenshotMedia?.height !== snapshot.screenshotMedia?.height
@@ -181,18 +174,7 @@ export function SnapshotViewer({
             {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.SIDE_BY_SIDE]}
           </TabsTrigger>
         </TabsList>
-        <div className="flex gap-5">
-          {action.prev ? (
-            <Button asChild variant="outline">
-              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.prev}`}>Previous</Link>
-            </Button>
-          ) : null}
-          {action.next ? (
-            <Button asChild variant="outline">
-              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.next}`}>Next</Link>
-            </Button>
-          ) : null}
-        </div>
+        {action}
       </div>
 
       <TabsContent value="comparison">
