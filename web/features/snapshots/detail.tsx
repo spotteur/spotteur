@@ -127,6 +127,13 @@ const SnapshotLabel = ({ children, media }: { children: ReactNode; media?: Media
   return <span>{`${children} (${media?.width || 0}x${media?.height || 0})`}</span>
 }
 
+const SnapshotLabels = ({ snapshot }: { snapshot: SnapshotDetailRes }) => (
+  <div className="text-muted-foreground flex justify-between text-xs">
+    <SnapshotLabel media={snapshot.baselineScreenshotMedia}>Baseline</SnapshotLabel>
+    <SnapshotLabel media={snapshot.screenshotMedia}>Current</SnapshotLabel>
+  </div>
+)
+
 export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailRes; action?: ReactNode }) {
   const dimensionMismatch =
     snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
@@ -192,10 +199,7 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
           <PreviewFallback message="This snapshot doesn't have any image yet" />
         ) : (
           <div className="flex w-full flex-col gap-2">
-            <div className="text-muted-foreground flex justify-between text-xs">
-              <span>{`Baseline (${snapshot.baselineScreenshotMedia.width}x${snapshot.baselineScreenshotMedia.height})`}</span>
-              <span>{`Current (${snapshot.screenshotMedia.width}x${snapshot.screenshotMedia.height})`}</span>
-            </div>
+            <SnapshotLabels snapshot={snapshot} />
             <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
               <Comparison style={{ aspectRatio }} mode="hover">
                 {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
@@ -247,10 +251,7 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
       </TabsContent>
       <TabsContent value="side-by-side">
         <div className="flex w-full flex-col gap-2">
-          <div className="text-muted-foreground flex justify-between text-xs">
-            <SnapshotLabel media={snapshot.baselineScreenshotMedia}>Baseline</SnapshotLabel>
-            <SnapshotLabel media={snapshot.screenshotMedia}>Current</SnapshotLabel>
-          </div>
+          <SnapshotLabels snapshot={snapshot} />
           <div className="grid w-full grid-cols-2 gap-4">
             <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
             <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
@@ -275,11 +276,8 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
   )
 }
 
-const PreviewFallback = ({ label, message }: { label?: string; message?: string }) => (
-  <div className="flex flex-col gap-2">
-    {label ? <span className="text-muted-foreground text-xs">{label}</span> : null}
-    <div className="bg-muted/40 text-muted-foreground flex h-48 items-center justify-center border text-xs">
-      {message ?? 'No image available'}
-    </div>
+const PreviewFallback = ({ message }: { message?: string }) => (
+  <div className="bg-muted/40 text-muted-foreground flex h-48 items-center justify-center border text-base">
+    {message ?? 'No image available'}
   </div>
 )
