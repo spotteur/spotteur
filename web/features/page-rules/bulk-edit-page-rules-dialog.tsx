@@ -21,7 +21,7 @@ export function BulkEditPageRulesDialog({
 
   return (
     <Dialog open={open}>
-      <DialogContent showCloseButton={false} className="max-w-6xl!">
+      <DialogContent showCloseButton={false} className="max-w-5xl!">
         <DialogHeader>
           <DialogTitle>Bulk Edit Pages</DialogTitle>
         </DialogHeader>

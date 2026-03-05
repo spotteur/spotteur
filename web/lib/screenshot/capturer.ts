@@ -95,7 +95,14 @@ export class ScreenshotCapturer {
         throw new Error('Failed to capture screenshot')
       }
 
-      const image = sharp(buffer).ensureAlpha().raw().toFormat('png')
+      const image = sharp(buffer)
+        .ensureAlpha()
+        .raw()
+        .png({
+          compressionLevel: 5,
+          quality: 60,
+        })
+        .toFormat('png')
       const { info } = await image.toBuffer({ resolveWithObject: true })
       if (info.width !== this.payload.viewportWidth) {
         throw new Error(
@@ -144,6 +151,11 @@ export class ScreenshotCapturer {
   }
 
   private async runAfterPageLoadHook(): Promise<void> {
+    if (this.payload.globalHooks?.['after-page-load']) {
+      logger.info(`${this.logPrefix} Executing global after-page-load hook`)
+      await this.browser().executeScript<void>(this.payload.globalHooks['after-page-load'])
+    }
+
     if (this.payload.hooks?.['after-page-load']) {
       logger.info(`${this.logPrefix} Executing after-page-load hook`)
       await this.browser().executeScript<void>(this.payload.hooks['after-page-load'])
@@ -206,20 +218,22 @@ export class ScreenshotCapturer {
     )
 
     if (metrics.outerHeight < metrics.innerHeight) {
-      logger.warn(
-        `${this.logPrefix} Unexpected metrics where outerHeight (${metrics.outerHeight}px) is less than innerHeight (${metrics.innerHeight}px)`,
-      )
-      fullPageHeight = Math.max(fullPageHeight, height)
-    } else {
-      const decorationsHeight = metrics.outerHeight - metrics.innerHeight
-      fullPageHeight += decorationsHeight
+      throw new Error('Unexpected browser metrics, unable to determine full page height')
     }
+
+    const decorationsHeight = metrics.outerHeight - metrics.innerHeight
+    fullPageHeight += decorationsHeight
 
     logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`)
     await this.browser().setViewportSize({ width, height: fullPageHeight })
   }
 
   private async runBeforeScreenshotHook(): Promise<void> {
+    if (this.payload.globalHooks?.['before-screenshot']) {
+      logger.info(`${this.logPrefix} Executing global before-screenshot hook`)
+      await this.browser().executeScript<void>(this.payload.globalHooks['before-screenshot'])
+    }
+
     if (this.payload.hooks?.['before-screenshot']) {
       logger.info(`${this.logPrefix} Executing before-screenshot hook`)
       await this.browser().executeScript<void>(this.payload.hooks['before-screenshot'])

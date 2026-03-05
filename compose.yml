@@ -14,6 +14,8 @@ services:
         TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
     ports:
       - "${WEBAPP_PORT:-18000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000"]
       interval: 3s
@@ -40,6 +42,8 @@ services:
         NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
         S3_ENDPOINT: ${S3_ENDPOINT:-}
         TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file: [".env"]
     profiles:
       - "script-runner"
@@ -50,6 +54,8 @@ services:
     build:
       context: "web"
       dockerfile: "Dockerfile.worker"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file: [".env"]
     restart: "unless-stopped"
     depends_on:

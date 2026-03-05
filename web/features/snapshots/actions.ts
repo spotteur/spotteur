@@ -27,6 +27,67 @@ const sortColumn = (key: SortKey) => {
   }
 }
 
+export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
+  const baselineMedia = alias(media, 'baseline_media')
+  const diffMedia = alias(media, 'diff_media')
+  const rows = await db
+    .select({
+      id: snapshots.id,
+      pagePath: snapshots.pagePath,
+      browser: snapshots.browser,
+      diffPercentage: snapshots.diffPercentage,
+      approvalStatus: snapshots.approvalStatus,
+      screenshotMedia: {
+        id: media.id,
+        path: media.path,
+        width: media.width,
+        height: media.height,
+        mimeType: media.mimeType,
+      },
+      baselineScreenshotMedia: {
+        id: baselineMedia.id,
+        path: baselineMedia.path,
+        width: baselineMedia.width,
+        height: baselineMedia.height,
+        mimeType: baselineMedia.mimeType,
+      },
+      diffScreenshotMedia: {
+        id: diffMedia.id,
+        path: diffMedia.path,
+        width: diffMedia.width,
+        height: diffMedia.height,
+        mimeType: diffMedia.mimeType,
+      },
+    })
+    .from(snapshots)
+    .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
+    .leftJoin(baselineMedia, eq(snapshots.baselineScreenshotMediaId, baselineMedia.id))
+    .leftJoin(diffMedia, eq(snapshots.diffScreenshotMediaId, diffMedia.id))
+    .where(eq(snapshots.buildId, buildId))
+    .orderBy(asc(snapshots.pagePath), asc(snapshots.browser))
+
+  const modifiedRows = rows.map(async (row) => {
+    const [screenshotUrl, baselineUrl, diffUrl] = await Promise.all([
+      row.screenshotMedia ? getPresignUrl({ key: row.screenshotMedia.path }) : Promise.resolve(''),
+      row.baselineScreenshotMedia ? getPresignUrl({ key: row.baselineScreenshotMedia.path }) : Promise.resolve(''),
+      row.diffScreenshotMedia ? getPresignUrl({ key: row.diffScreenshotMedia.path }) : Promise.resolve(''),
+    ])
+
+    return {
+      ...row,
+      screenshotMedia: row.screenshotMedia ? { ...row.screenshotMedia, path: screenshotUrl } : row.screenshotMedia,
+      baselineScreenshotMedia: row.baselineScreenshotMedia
+        ? { ...row.baselineScreenshotMedia, path: baselineUrl }
+        : row.baselineScreenshotMedia,
+      diffScreenshotMedia: row.diffScreenshotMedia
+        ? { ...row.diffScreenshotMedia, path: diffUrl }
+        : row.diffScreenshotMedia,
+    }
+  })
+
+  return { data: await Promise.all(modifiedRows) }
+}
+
 export async function listSnapshotsByBuild({
   buildId,
   page = 1,
@@ -304,7 +365,10 @@ export async function getNextSnapshot({ buildId, snapshotId }: { buildId: string
 export type SnapshotsListRes = Awaited<ReturnType<typeof listSnapshotsByBuild>>
 export type SnapshotListItemRes = SnapshotsListRes['data'][number]
 
+export type SnapshotsListV2Res = Awaited<ReturnType<typeof listSnapshotsByBuildV2>>
+export type SnapshotListV2ItemRes = SnapshotsListV2Res['data'][number]
+
 export type GetSnapshotDetailRes = Awaited<ReturnType<typeof getSnapshotDetail>>
-export type SnapshotDetailRes = NonNullable<GetSnapshotDetailRes>['snapshot']
+export type SnapshotDetailRes = NonNullable<GetSnapshotDetailRes>['snapshot'] | SnapshotListV2ItemRes
 export type MediaDetailRes = NonNullable<SnapshotDetailRes['screenshotMedia']>
 export type SnapshotActionRes = { prev: string; next: string }

@@ -29,6 +29,8 @@ export const projects = pgTable('projects', {
     .notNull()
     .default(sql`'{}'::text[]`),
   baselineBuildId: uuid('baseline_build_id'),
+  hookAfterPageLoad: text('hook_after_page_load'),
+  hookBeforeScreenshot: text('hook_before_screenshot'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
@@ -51,6 +53,7 @@ export const builds = pgTable('builds', {
     .notNull()
     .default(sql`'{}'::text[]`),
   status: varchar('status').notNull().$type<BuildStatus>(),
+  notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

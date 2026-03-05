@@ -92,6 +92,8 @@ export default function EditProjectPage() {
                 viewports: data.viewports,
                 pagePaths: (data.pagePaths ?? []).join('\n'),
                 token: data.token ?? '',
+                hookAfterPageLoad: data.hookAfterPageLoad ?? undefined,
+                hookBeforeScreenshot: data.hookBeforeScreenshot ?? undefined,
               }}
               onSubmit={(values) => mutation.mutate(values)}
               submitLabel="Update"

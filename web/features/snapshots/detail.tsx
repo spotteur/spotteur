@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
-import { type SnapshotActionRes, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
 
 export function SnapshotActionButtons({
@@ -45,6 +45,9 @@ export function SnapshotActionButtons({
       if (res.ok) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
+        })
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'],
         })
 
         const statusMessages = {
@@ -116,17 +119,7 @@ export function SnapshotActionButtons({
   )
 }
 
-export function SnapshotViewer({
-  snapshot,
-  action,
-  projectId,
-  buildId,
-}: {
-  snapshot: SnapshotDetailRes
-  action: SnapshotActionRes
-  projectId: string
-  buildId: string
-}) {
+export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailRes; action?: ReactNode }) {
   return (
     <Tabs defaultValue="side-by-side" className="space-y-2">
       <div className="flex justify-between">
@@ -135,18 +128,7 @@ export function SnapshotViewer({
           <TabsTrigger value="comparison">Comparison</TabsTrigger>
           <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
         </TabsList>
-        <div className="flex gap-5">
-          {action.prev ? (
-            <Button asChild variant="outline">
-              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.prev}`}>Previous</Link>
-            </Button>
-          ) : null}
-          {action.next ? (
-            <Button asChild variant="outline">
-              <Link href={`/projects/${projectId}/builds/${buildId}/snapshots/${action.next}`}>Next</Link>
-            </Button>
-          ) : null}
-        </div>
+        {action}
       </div>
 
       <TabsContent value="comparison">
@@ -159,10 +141,16 @@ export function SnapshotViewer({
             <Comparison className="aspect-video" mode="hover">
               {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
               <ComparisonItem position="right">
-                <Image src={snapshot.baselineScreenshotMedia.path} alt="Baseline" fill className="object-contain" />
+                <Image
+                  unoptimized
+                  src={snapshot.baselineScreenshotMedia.path}
+                  alt="Baseline"
+                  fill
+                  className="object-contain"
+                />
               </ComparisonItem>
               <ComparisonItem position="left">
-                <Image src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
+                <Image unoptimized src={snapshot.screenshotMedia.path} alt="Current" fill className="object-contain" />
               </ComparisonItem>
               <ComparisonHandle />
               <Badge variant="outline" className="pointer-events-none absolute top-6 left-6">
@@ -180,6 +168,7 @@ export function SnapshotViewer({
           {snapshot.diffScreenshotMedia?.path ? (
             <div className="relative h-1280 w-full">
               <Image
+                unoptimized
                 src={snapshot.diffScreenshotMedia?.path}
                 alt="Diff heatmap"
                 fill
@@ -217,7 +206,7 @@ const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRe
         <span className="text-muted-foreground text-xs">{`${label} (${media.width}x${media.height})`}</span>
       ) : null}
       <div className="bg-muted/20 relative w-full overflow-hidden rounded-lg border" style={{ aspectRatio }}>
-        <Image src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
+        <Image unoptimized src={media.path} alt={label ?? 'Snapshot preview'} fill className="object-contain" />
       </div>
     </div>
   )
