@@ -119,6 +119,14 @@ export function SnapshotActionButtons({
   )
 }
 
+const SnapshotLabel = ({ children, media }: { children: ReactNode; media?: MediaDetailRes | null }) => {
+  if (!media?.path) {
+    return <span>{children}</span>
+  }
+
+  return <span>{`${children} (${media?.width || 0}x${media?.height || 0})`}</span>
+}
+
 export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailRes; action?: ReactNode }) {
   const dimensionMismatch =
     snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
@@ -240,8 +248,8 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
       <TabsContent value="side-by-side">
         <div className="flex w-full flex-col gap-2">
           <div className="text-muted-foreground flex justify-between text-xs">
-            <span>{`Baseline (${snapshot.baselineScreenshotMedia?.width}x${snapshot.baselineScreenshotMedia?.height})`}</span>
-            <span>{`Current (${snapshot.screenshotMedia?.width}x${snapshot.screenshotMedia?.height})`}</span>
+            <SnapshotLabel media={snapshot.baselineScreenshotMedia}>Baseline</SnapshotLabel>
+            <SnapshotLabel media={snapshot.screenshotMedia}>Current</SnapshotLabel>
           </div>
           <div className="grid w-full grid-cols-2 gap-4">
             <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
@@ -255,7 +263,7 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
 
 const SnapshotImage = ({ label, media }: { label?: string; media?: MediaDetailRes | null }) => {
   if (!media?.path) {
-    return <PreviewFallback label={label} />
+    return <PreviewFallback />
   }
 
   const aspectRatio = media.width && media.height ? `${media.width} / ${media.height}` : '4 / 3'
