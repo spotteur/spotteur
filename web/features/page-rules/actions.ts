@@ -8,10 +8,8 @@ import { z } from 'zod'
 import { Browser, RuleAttrType } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
-import { PageRuleCreateSchema, PageRulesUpsertSchema } from '@/features/page-rules/schema'
+import { PageRuleCreateSchema, PageRulesUpsertSchema, type PageRuleFormInput } from '@/features/page-rules/schema'
 import { defaultValuePageRule } from '@/features/page-rules/template'
-
-import { type PageRuleFormInput } from './form'
 
 type SortKey = 'createdAt' | 'updatedAt' | ''
 

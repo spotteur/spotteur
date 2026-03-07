@@ -38,9 +38,10 @@ export const RuleAttrSchema = z
     },
   )
 
-export const SelectorSchema = z.string().nonempty('Provide at least 1 selector')
+export const SelectorSchema = z.string().min(1, 'Invalid CSS selector')
 
 export const RuleSchema = z.object({
+  identifier: z.string({ error: 'Identifier must be a string' }).optional(),
   selectors: z.array(SelectorSchema).min(1, 'Provide at least 1 selector'),
   attrs: z
     .array(RuleAttrSchema)
@@ -63,6 +64,7 @@ export const RuleSchema = z.object({
 })
 
 export const RulesSchema = z.array(RuleSchema).optional()
+
 export const PagePathSchema = z
   .string()
   .nonempty('Page path is required')
@@ -106,11 +108,50 @@ export const BrowsersSchema = z
   .pipe(z.array(BrowserSchema).nonempty('Provide at least 1 browser'))
 
 export const ViewportSchema = z.tuple([
-  z.number().positive('Width must be greater than 0'),
-  z.number().positive('Height must be greater than 0'),
+  z.number().positive({ error: 'Width must be greater than 0', abort: true }),
+  z.number().positive({ error: 'Height must be greater than 0', abort: true }),
 ])
 
-export const ViewportsSchema = z.array(ViewportSchema).nonempty('Provide at least 1 viewport')
+export const ViewportsSchema = z
+  .array(ViewportSchema)
+  .nonempty('Provide at least 1 viewport')
+  .superRefine((viewports, ctx) => {
+    const viewportSet = new Set<string>()
+    const viewportWidthSet = new Set<number>()
+    const duplicateViewports = []
+    const duplicateViewportWidths = []
+    for (const [width, height] of viewports) {
+      const key = `${width}x${height}`
+      if (viewportSet.has(key)) {
+        duplicateViewports.push(key)
+      } else {
+        viewportSet.add(key)
+      }
+
+      if (viewportWidthSet.has(width)) {
+        duplicateViewportWidths.push(width)
+      } else {
+        viewportWidthSet.add(width)
+      }
+    }
+
+    if (duplicateViewports.length > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Viewport dimensions must be unique. Duplicate viewports found: ${duplicateViewports.join(', ')}`,
+      })
+
+      // Stop further validation
+      return z.NEVER
+    }
+
+    if (duplicateViewportWidths.length > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Viewport widths must be unique. Duplicate widths found: ${duplicateViewportWidths.join(', ')}`,
+      })
+    }
+  })
 
 export const MediaResetSchema = z.boolean().optional()
 
@@ -130,6 +171,8 @@ export const PageRuleBaseSchema = z.object({
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
+
+export type PageRuleFormInput = z.input<typeof PageRuleBaseSchema>
 
 export const PageRuleCreateSchema = PageRuleBaseSchema
 export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {

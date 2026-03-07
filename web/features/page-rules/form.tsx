@@ -1,19 +1,28 @@
 'use client'
 
-import { Editor } from '@monaco-editor/react'
+import { Editor, type EditorProps } from '@monaco-editor/react'
 import { useForm, useStore } from '@tanstack/react-form'
-import { useQuery } from '@tanstack/react-query'
-import { ChevronsDownUp, MoreHorizontal, Plus, ToggleRight, Trash, X } from 'lucide-react'
+import { ChevronDown, Info, MoreHorizontal, Plus, Trash, X } from 'lucide-react'
 import Link from 'next/link'
-import { parseAsString, useQueryState } from 'nuqs'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type z } from 'zod'
 
-import InputTag from '@/components/input-tag'
-import InputTags from '@/components/input-tags'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+} from '@/components/ui/combobox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,562 +30,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+} from '@/components/ui/input-group'
+import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import {
   BROWSER_OPTIONS,
   RULE_ATTR_TYPE_PLACEHOLDER_MAP,
-  type RuleAttrType,
   RULE_ATTR_TYPE_OPTIONS,
   RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS,
   RULE_ATTR_TYPE_LABEL_MAP,
+  type Browser,
+  BROWSER_LABEL_MAP,
 } from '@/constants/enum'
-import { QUERY_KEY_PAGE_RULES } from '@/constants/query-keys'
 import { type projects } from '@/db/schema'
-import { getRule, pageRuleByPath, unUsedPagePath } from '@/features/page-rules/actions'
-import { PageRuleCreateSchema } from '@/features/page-rules/schema'
 import { setFormErrors } from '@/lib/utils'
 
-import { ConfirmChangePathDialog } from './confim-change-path-dialog'
-
-export type PageRuleFormInput = z.infer<typeof PageRuleCreateSchema> & {
-  id?: string
-  createdAt?: Date
-  updatedAt?: Date
-}
-
-// interface PageRuleFormProps {
-//   defaultValues: PageRuleFormInput
-//   onSubmit: (values: PageRuleFormInput) => void
-//   submitLabel?: string
-//   isSubmitting?: boolean
-//   errors?: z.core.$ZodFlattenedError<PageRuleFormInput>
-//   project: typeof projects.$inferSelect
-// }
-
-// export default function PageRuleForm({
-//   defaultValues,
-//   onSubmit,
-//   submitLabel = 'Submit',
-//   isSubmitting = false,
-//   errors = undefined,
-//   project,
-// }: PageRuleFormProps) {
-//   const [ruleId, setRuleId] = useQueryState('id', parseAsString.withDefault(''))
-//   const [selectedPath, setSelectedPath] = useState<string>('')
-//   const [openDialog, setOpenDialog] = useState(false)
-//   const isManualReset = useRef(false)
-//   const pendingActions = useRef<Array<() => Promise<void>>>([])
-
-//   const form = useForm({
-//     defaultValues,
-//     validators: {
-//       onSubmit: PageRuleCreateSchema,
-//     },
-//     onSubmit: async ({ value }) => {
-//       onSubmit(value)
-//     },
-//   })
-
-//   const { data } = useQuery({
-//     queryKey: [QUERY_KEY_PAGE_RULES, ruleId],
-//     queryFn: async () => {
-//       const res = await getRule(ruleId)
-
-//       return res.rule
-//     },
-//   })
-
-//   useEffect(() => {
-//     setFormErrors<PageRuleFormInput>(form, errors)
-//   }, [errors, form])
-
-//   useEffect(() => {
-//     // Reset the value back manually after continuing or discarding the changes from the dialog
-//     if (isManualReset.current) {
-//       isManualReset.current = false
-//       return
-//     }
-
-//     // Populate the value when the parameter is exist
-//     if (data && ruleId) {
-//       form.reset(data)
-//     } else {
-//       form.reset({
-//         ...defaultValues,
-//         pagePath: selectedPath,
-//       })
-//     }
-//   }, [data, form, ruleId, defaultValues, selectedPath])
-
-//   useEffect(() => {
-//     // Populate the data when the page is accessed without parameters and without any state
-//     if (!isManualReset.current && !data && !ruleId) {
-//       // Find unused paths from page rules as the default value.
-//       const findUnusedPath = async () => {
-//         const unusedPath = await unUsedPagePath(project.id)
-
-//         if (unusedPath) {
-//           form.reset({
-//             ...defaultValues,
-//             pagePath: unusedPath,
-//           })
-//         } else {
-//           // Use the first rule as the default value if all paths already exist.
-//           const rule = await pageRuleByPath(project.id, project.pagePaths[0])
-//           if (rule) {
-//             setRuleId(rule.id)
-//           }
-//         }
-//       }
-
-//       findUnusedPath()
-//     }
-//   }, [data, defaultValues, form, project, ruleId, setRuleId])
-
-//   const handleSelect = async (value: string) => {
-//     // Populate the value when manually triggered from the pagePath field
-//     isManualReset.current = true
-//     const applyChange = async () => {
-//       const rule = await pageRuleByPath(project.id, value)
-
-//       if (rule) {
-//         setRuleId(rule.id)
-//         form.reset(rule)
-//       } else {
-//         setRuleId('')
-//         setSelectedPath(value)
-//       }
-//     }
-//     // Show the dialog if the current data has already changed
-//     if (form.state.isDirty) {
-//       pendingActions.current.push(applyChange)
-//       setOpenDialog(true)
-//       return
-//     }
-
-//     await applyChange()
-//   }
-
-//   return (
-//     <>
-//       <form
-//         onSubmit={(e) => {
-//           e.preventDefault()
-//           form.handleSubmit()
-//         }}
-//         className="space-y-4"
-//       >
-//         <form.Field
-//           name="pagePath"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             const paths = project.pagePaths.map((opt) => ({ label: opt, value: opt }))
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <FieldLabel htmlFor="pageRules-pagePath">Page Path</FieldLabel>
-//                 <InputTag
-//                   defaultValue={field.state.value}
-//                   tags={paths}
-//                   onSelect={(value) => handleSelect(value)}
-//                   isInvalid={isInvalid}
-//                 />
-//                 <FieldDescription>Choose the page path to apply the rules.</FieldDescription>
-//                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
-//               </Field>
-//             )
-//           }}
-//         />
-//         <form.Field
-//           name="snapshotBrowsers"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
-//                 <InputTags
-//                   defaultValue={field.state.value}
-//                   tags={BROWSER_OPTIONS}
-//                   onRemove={(value) => field.handleChange(value)}
-//                   onSelect={(value) => field.handleChange(value)}
-//                 />
-//                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
-//               </Field>
-//             )
-//           }}
-//         />
-//         <form.Field
-//           name="viewports"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <>
-//                 <div className="flex flex-col items-start gap-3">
-//                   <FieldLabel htmlFor="pageRule-viewports">Viewports</FieldLabel>
-//                   <Field data-invalid={isInvalid}>
-//                     <Card>
-//                       <CardContent className="flex flex-col gap-3">
-//                         {field.state.value &&
-//                           field.state.value.map((_obj, index) => (
-//                             <div key={index} className="w-full">
-//                               <form.Field
-//                                 name={`viewports[${index}]`}
-//                                 children={(viewportField) => {
-//                                   const isValueInvalid =
-//                                     viewportField.state.meta.isTouched && !viewportField.state.meta.isValid
-//                                   return (
-//                                     <div className="flex gap-3">
-//                                       <Field data-invalid={isValueInvalid}>
-//                                         <FieldLabel htmlFor="pageRule-viewports-width">Width</FieldLabel>
-//                                         <Input
-//                                           id="pageRule-viewports-width"
-//                                           name={viewportField.name}
-//                                           value={viewportField.state.value.at(0) ?? '0'}
-//                                           onBlur={viewportField.handleBlur}
-//                                           onChange={(e) => {
-//                                             const value = Number(e.target.value)
-
-//                                             if (!Number.isNaN(value)) {
-//                                               viewportField.handleChange((prev) => {
-//                                                 return [value, prev[1]]
-//                                               })
-//                                             }
-//                                           }}
-//                                           aria-invalid={isValueInvalid}
-//                                         />
-//                                         {isValueInvalid && <FieldError errors={field.state.meta.errors} />}
-//                                       </Field>
-//                                       <Field data-invalid={isValueInvalid}>
-//                                         <FieldLabel htmlFor="pageRule-viewports-height">Height</FieldLabel>
-//                                         <Input
-//                                           id="pageRule-viewports-height"
-//                                           name={viewportField.name}
-//                                           value={viewportField.state.value[1] ?? '0'}
-//                                           onBlur={viewportField.handleBlur}
-//                                           onChange={(e) => {
-//                                             const value = Number(e.target.value)
-
-//                                             if (!Number.isNaN(value)) {
-//                                               viewportField.handleChange((prev) => {
-//                                                 return [prev[0], value]
-//                                               })
-//                                             }
-//                                           }}
-//                                           aria-invalid={isValueInvalid}
-//                                         />
-//                                         {isValueInvalid && <FieldError errors={viewportField.state.meta.errors} />}
-//                                       </Field>
-//                                     </div>
-//                                   )
-//                                 }}
-//                               />
-//                             </div>
-//                           ))}
-//                         <Button
-//                           type="button"
-//                           variant="outline"
-//                           onClick={() => field.handleChange((old) => [...old, [0, 0]])}
-//                         >
-//                           <Plus /> Add Viewport
-//                         </Button>
-//                       </CardContent>
-//                     </Card>
-//                   </Field>
-//                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
-//                 </div>
-//               </>
-//             )
-//           }}
-//         />
-//         <form.Field
-//           name="mediaReset"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <div className="flex items-start gap-3">
-//                   <Checkbox
-//                     id="pageRule-mediaReset"
-//                     checked={field.state.value}
-//                     onCheckedChange={(checked) => field.handleChange(checked === true)}
-//                   />
-//                   <div className="grid gap-3">
-//                     <FieldLabel htmlFor="pageRule-mediaReset">Media reset</FieldLabel>
-//                     <p className="text-muted-foreground text-sm">
-//                       If checked, resets all time-based media to a static state.
-//                     </p>
-//                   </div>
-//                 </div>
-//                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
-//               </Field>
-//             )
-//           }}
-//         />
-//         <form.Field
-//           name="reducedMotion"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <div className="flex items-start gap-3">
-//                   <Checkbox
-//                     id="pageRule-reducedMotion"
-//                     checked={field.state.value}
-//                     onCheckedChange={(checked) => field.handleChange(checked === true)}
-//                   />
-//                   <div className="grid gap-3">
-//                     <FieldLabel htmlFor="pageRule-reducedMotion">Reduce Motion</FieldLabel>
-//                     <p className="text-muted-foreground text-sm">
-//                       If checked, disables CSS animations and transitions.
-//                     </p>
-//                   </div>
-//                 </div>
-//                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
-//               </Field>
-//             )
-//           }}
-//         />
-
-//         <form.Field name="rules">
-//           {(rulesField) => {
-//             const isInvalid = rulesField.state.meta.isTouched && !rulesField.state.meta.isValid
-//             return (
-//               <div>
-//                 <Field data-invalid={isInvalid} className="flex flex-col gap-3 space-y-3">
-//                   <label className="text-base font-medium">Rules</label>
-
-//                   {rulesField.state.value &&
-//                     rulesField.state.value.map((_, index) => (
-//                       <div key={index} className="flex items-start justify-between gap-3">
-//                         <Card className="w-full">
-//                           <CardContent className="flex flex-col gap-3">
-//                             <form.Field name={`rules[${index}].selectors`}>
-//                               {(field) => {
-//                                 const isInvalidSelectors = field.state.meta.isTouched && !field.state.meta.isValid
-//                                 return (
-//                                   <div>
-//                                     <Field data-invalid={isInvalidSelectors} className="flex flex-col gap-3">
-//                                       <FieldLabel htmlFor={`pageRule-rules-selectors-${index}`}>Selectors</FieldLabel>
-//                                       <Textarea
-//                                         id={`pageRule-rules-selectors-${index}`}
-//                                         name={field.name}
-//                                         value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
-//                                         onBlur={field.handleBlur}
-//                                         onChange={(e) =>
-//                                           field.handleChange(e.target.value.split(/\r?\n/).map((s) => s.trim()))
-//                                         }
-//                                         aria-invalid={isInvalidSelectors}
-//                                       />
-//                                     </Field>
-//                                     {isInvalidSelectors && <FieldError errors={field.state.meta.errors} />}
-//                                   </div>
-//                                 )
-//                               }}
-//                             </form.Field>
-//                             <div className="flex flex-col gap-3 py-3">
-//                               <FieldLabel htmlFor="pageRule-rules-attribute">Attributes</FieldLabel>
-//                               <form.Field name={`rules[${index}].attrs`}>
-//                                 {(attrsField) => (
-//                                   <div id="pageRule-rules-attribute" className="flex flex-1 flex-col gap-3 space-y-2">
-//                                     {Array.isArray(attrsField.state.value) &&
-//                                       attrsField.state.value.map((attrObj, i) => (
-//                                         <div key={i} className="flex items-start justify-between gap-3">
-//                                           <div className="flex w-1/2 flex-col gap-3">
-//                                             <form.Field
-//                                               name={`rules[${index}].attrs[${i}].name`}
-//                                               listeners={{
-//                                                 onChange: ({ value }) => {
-//                                                   return RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-//                                                     (r) => r.toString() === value,
-//                                                   )
-//                                                     ? form.setFieldValue(`rules[${index}].attrs[${i}].value`, 'true')
-//                                                     : form.setFieldValue(`rules[${index}].attrs[${i}].value`, '')
-//                                                 },
-//                                               }}
-//                                             >
-//                                               {(field) => (
-//                                                 <Select
-//                                                   value={field.state.value}
-//                                                   onValueChange={(value) => field.handleChange(value as RuleAttrType)}
-//                                                 >
-//                                                   <SelectTrigger id="pageRule-rules-attribute-name" className="w-full">
-//                                                     <SelectValue placeholder="Select rule" />
-//                                                   </SelectTrigger>
-//                                                   <SelectContent>
-//                                                     {RULE_ATTR_TYPE_OPTIONS.map(({ value, label }) => (
-//                                                       <SelectItem key={value} value={value}>
-//                                                         {label}
-//                                                       </SelectItem>
-//                                                     ))}
-//                                                   </SelectContent>
-//                                                 </Select>
-//                                               )}
-//                                             </form.Field>
-//                                           </div>
-
-//                                           {attrObj.name && (
-//                                             <div className="flex flex-col gap-3">
-//                                               <form.Field name={`rules[${index}].attrs[${i}].value`}>
-//                                                 {(field) => (
-//                                                   <Input
-//                                                     id={`pageRule-rules[${index}]-attrs[${i}]-value`}
-//                                                     value={field.state.value}
-//                                                     onBlur={field.handleBlur}
-//                                                     placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
-//                                                     onChange={(e) => field.handleChange(e.target.value)}
-//                                                     readOnly={
-//                                                       !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-//                                                         (r) => r.toString() === attrObj.name,
-//                                                       )
-//                                                     }
-//                                                   />
-//                                                 )}
-//                                               </form.Field>
-//                                             </div>
-//                                           )}
-//                                           <Button
-//                                             type="button"
-//                                             variant="ghost"
-//                                             onClick={() =>
-//                                               attrsField.handleChange((old) => old && old.filter((_, idx) => idx !== i))
-//                                             }
-//                                             className="self-center"
-//                                           >
-//                                             <X />
-//                                             <span className="sr-only">Remove attribute</span>
-//                                           </Button>
-//                                         </div>
-//                                       ))}
-
-//                                     <Button
-//                                       type="button"
-//                                       variant="outline"
-//                                       onClick={() =>
-//                                         attrsField.handleChange(
-//                                           (old) => old && [...old, { name: '' as RuleAttrType, value: '' }],
-//                                         )
-//                                       }
-//                                     >
-//                                       <Plus />
-//                                       <span>Add attribute</span>
-//                                     </Button>
-//                                   </div>
-//                                 )}
-//                               </form.Field>
-//                             </div>
-//                           </CardContent>
-//                         </Card>
-
-//                         {/* REMOVE RULE */}
-//                         <Button
-//                           type="button"
-//                           variant="ghost"
-//                           onClick={() => rulesField.handleChange((old) => old && old.filter((_, i) => i !== index))}
-//                           className="self-center"
-//                         >
-//                           <X />
-//                         </Button>
-//                       </div>
-//                     ))}
-
-//                   {/* ADD RULE */}
-//                   <Button
-//                     type="button"
-//                     variant="outline"
-//                     onClick={() => rulesField.handleChange((old) => old && [...old, { attrs: [], selectors: [] }])}
-//                     className="ml-3"
-//                   >
-//                     <Plus /> Add Rules
-//                   </Button>
-//                 </Field>
-//                 {isInvalid && <FieldError errors={rulesField.state.meta.errors} />}
-//               </div>
-//             )
-//           }}
-//         </form.Field>
-
-//         <form.Field
-//           name="hookAfterPageLoad"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <div className="flex flex-col gap-3">
-//                   <FieldLabel htmlFor="pageRule-hookAfterPageLoad">Hook After Page Load</FieldLabel>
-//                   <div className="input">
-//                     <Card className="p-5">
-//                       <Editor
-//                         width="100%"
-//                         height="300px"
-//                         language="javascript"
-//                         value={field.state.value ?? undefined}
-//                         onChange={(value) => field.handleChange(value)}
-//                         theme="vs-dark"
-//                       />
-//                     </Card>
-//                   </div>
-//                 </div>
-//               </Field>
-//             )
-//           }}
-//         />
-//         <form.Field
-//           name="hookBeforeScreenshot"
-//           children={(field) => {
-//             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-//             return (
-//               <Field data-invalid={isInvalid}>
-//                 <div className="flex flex-col gap-3">
-//                   <FieldLabel htmlFor="pageRule-hookBeforeScreenshot">Hook Before Screenshot</FieldLabel>
-//                   <div className="input">
-//                     <Card className="p-5">
-//                       <Editor
-//                         width="100%"
-//                         height="300px"
-//                         language="javascript"
-//                         value={field.state.value ?? undefined}
-//                         onChange={(value) => field.handleChange(value)}
-//                         theme="vs-dark"
-//                       />
-//                     </Card>
-//                   </div>
-//                 </div>
-//               </Field>
-//             )
-//           }}
-//         />
-
-//         <div className="flex gap-3">
-//           <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
-//             {isSubmitting && <Spinner />}
-//             {submitLabel}
-//           </Button>
-//           <Button variant="secondary" asChild>
-//             <Link href={`/projects/${project.id}/pages`} className="cursor-pointer">
-//               Cancel
-//             </Link>
-//           </Button>
-//         </div>
-//       </form>
-//       <ConfirmChangePathDialog
-//         open={openDialog}
-//         onConfirm={async () => {
-//           for (const action of pendingActions.current) {
-//             await action()
-//           }
-
-//           pendingActions.current = []
-
-//           setOpenDialog(false)
-//         }}
-//         onCancel={() => setOpenDialog(false)}
-//       />
-//     </>
-//   )
-// }
+import { PageRuleBaseSchema, type PageRuleFormInput } from './schema'
 
 interface PageRuleV2FormProps {
   defaultValues: PageRuleFormInput
@@ -597,18 +83,31 @@ export function PageRuleV2Form({
   onDirtyChange,
   onFormReady,
 }: PageRuleV2FormProps) {
-  const [openDialog, setOpenDialog] = useState(false)
-  const pendingActions = useRef<Array<() => Promise<void>>>([])
+  const [viewportsSectionOpen, setViewportsSectionOpen] = useState(false)
+  const [rulesSectionOpen, setRulesSectionOpen] = useState(false)
+  const [hooksSectionOpen, setHooksSectionOpen] = useState(false)
 
   const form = useForm({
     defaultValues,
     validators: {
-      onSubmit: PageRuleCreateSchema,
+      onSubmit: PageRuleBaseSchema,
+    },
+    onSubmitInvalid: () => {
+      const InvalidInput = document.querySelector('[aria-invalid="true"]') as HTMLInputElement
+
+      InvalidInput?.focus()
     },
     onSubmit: async ({ value }) => {
       onSubmit(value)
     },
   })
+
+  const monacoOptions = {
+    scrollbar: {
+      alwaysConsumeMouseWheel: false,
+    },
+    lineNumbersMinChars: 3,
+  } satisfies EditorProps['options']
 
   useEffect(() => {
     setFormErrors<PageRuleFormInput>(form, errors)
@@ -644,122 +143,63 @@ export function PageRuleV2Form({
             return (
               <Field data-invalid={isInvalid}>
                 <FieldLabel htmlFor="pageRule-snapshotBrowsers">Browsers</FieldLabel>
-                <InputTags
-                  defaultValue={field.state.value}
-                  tags={BROWSER_OPTIONS}
-                  onRemove={(value) => field.handleChange(value)}
-                  onSelect={(value) => field.handleChange(value)}
-                />
+                <Combobox
+                  id="pageRule-snapshotBrowsers"
+                  multiple
+                  autoHighlight
+                  items={BROWSER_OPTIONS}
+                  value={field.state.value}
+                  onValueChange={(value) => field.handleChange(value)}
+                >
+                  <ComboboxChips className="w-sm">
+                    <ComboboxValue>
+                      {(values: Browser[]) => (
+                        <>
+                          {values.map((value) => (
+                            <ComboboxChip key={value}>{BROWSER_LABEL_MAP[value]}</ComboboxChip>
+                          ))}
+                          <ComboboxChipsInput aria-invalid={isInvalid} />
+                        </>
+                      )}
+                    </ComboboxValue>
+                  </ComboboxChips>
+                  <ComboboxContent data-side="bottom">
+                    <ComboboxEmpty>No browser found.</ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: (typeof BROWSER_OPTIONS)[number]) => (
+                        <ComboboxItem key={item.value} value={item.value}>
+                          {item.label}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             )
           }}
         />
-        <form.Field
-          name="viewports"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <>
-                <div className="flex flex-col items-start gap-3">
-                  <FieldLabel htmlFor="pageRule-viewports">Viewports</FieldLabel>
-                  <Field data-invalid={isInvalid}>
-                    <Card>
-                      <CardContent className="flex flex-col gap-3">
-                        {field.state.value &&
-                          field.state.value.map((_obj, index) => (
-                            <div key={index} className="w-full">
-                              <form.Field
-                                name={`viewports[${index}]`}
-                                children={(viewportField) => {
-                                  const isValueInvalid =
-                                    viewportField.state.meta.isTouched && !viewportField.state.meta.isValid
-                                  return (
-                                    <div className="flex gap-3">
-                                      <Field data-invalid={isValueInvalid}>
-                                        <FieldLabel htmlFor="pageRule-viewports-width">Width</FieldLabel>
-                                        <Input
-                                          id="pageRule-viewports-width"
-                                          name={viewportField.name}
-                                          value={viewportField.state.value.at(0) ?? '0'}
-                                          onBlur={viewportField.handleBlur}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value)
-
-                                            if (!Number.isNaN(value)) {
-                                              viewportField.handleChange((prev) => {
-                                                return [value, prev[1]]
-                                              })
-                                            }
-                                          }}
-                                          aria-invalid={isValueInvalid}
-                                        />
-                                        {isValueInvalid && <FieldError errors={field.state.meta.errors} />}
-                                      </Field>
-                                      <Field data-invalid={isValueInvalid}>
-                                        <FieldLabel htmlFor="pageRule-viewports-height">Height</FieldLabel>
-                                        <Input
-                                          id="pageRule-viewports-height"
-                                          name={viewportField.name}
-                                          value={viewportField.state.value[1] ?? '0'}
-                                          onBlur={viewportField.handleBlur}
-                                          onChange={(e) => {
-                                            const value = Number(e.target.value)
-
-                                            if (!Number.isNaN(value)) {
-                                              viewportField.handleChange((prev) => {
-                                                return [prev[0], value]
-                                              })
-                                            }
-                                          }}
-                                          aria-invalid={isValueInvalid}
-                                        />
-                                        {isValueInvalid && <FieldError errors={viewportField.state.meta.errors} />}
-                                      </Field>
-                                    </div>
-                                  )
-                                }}
-                              />
-                            </div>
-                          ))}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => field.handleChange((old) => [...old, [0, 0]])}
-                        >
-                          <Plus /> Add Viewport
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Field>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </div>
-              </>
-            )
-          }}
-        />
-        <FieldGroup className="grid grid-cols-2 gap-3 py-2">
+        <FieldGroup className="grid gap-3 py-2 xl:grid-cols-2">
           <form.Field
             name="mediaReset"
             children={(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
-                <Field data-invalid={isInvalid}>
-                  <div className="flex items-start gap-3">
+                <FieldLabel>
+                  <Field orientation="horizontal" data-invalid={isInvalid}>
                     <Checkbox
-                      id="pageRule-mediaReset"
+                      name={field.name}
                       checked={field.state.value}
-                      onCheckedChange={(checked) => field.handleChange(checked === true)}
+                      onCheckedChange={(checked) => field.handleChange(!!checked)}
+                      aria-invalid={isInvalid}
                     />
-                    <div className="grid gap-3">
-                      <FieldLabel htmlFor="pageRule-mediaReset">Media reset</FieldLabel>
-                      <p className="text-muted-foreground text-sm">
-                        If checked, resets all time-based media to a static state.
-                      </p>
-                    </div>
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
+                    <FieldContent className="grid gap-3">
+                      <FieldTitle>Media reset</FieldTitle>
+                      <FieldDescription>If checked, resets all time-based media to a static state.</FieldDescription>
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </FieldContent>
+                  </Field>
+                </FieldLabel>
               )
             }}
           />
@@ -768,317 +208,548 @@ export function PageRuleV2Form({
             children={(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
               return (
-                <Field data-invalid={isInvalid}>
-                  <div className="flex items-start gap-3">
+                <FieldLabel>
+                  <Field orientation="horizontal" data-invalid={isInvalid}>
                     <Checkbox
-                      id="pageRule-reducedMotion"
+                      name={field.name}
                       checked={field.state.value}
-                      onCheckedChange={(checked) => field.handleChange(checked === true)}
+                      onCheckedChange={(checked) => field.handleChange(!!checked)}
+                      aria-invalid={isInvalid}
                     />
-                    <div className="grid gap-3">
-                      <FieldLabel htmlFor="pageRule-reducedMotion">Reduce Motion</FieldLabel>
-                      <p className="text-muted-foreground text-sm">
-                        If checked, disables CSS animations and transitions.
-                      </p>
-                    </div>
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
+                    <FieldContent className="grid gap-3">
+                      <FieldTitle>Reduce Motion</FieldTitle>
+                      <FieldDescription>If checked, disables CSS animations and transitions.</FieldDescription>
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </FieldContent>
+                  </Field>
+                </FieldLabel>
               )
             }}
           />
         </FieldGroup>
 
-        <form.Field name="rules">
-          {(rulesField) => {
-            const isInvalid = rulesField.state.meta.isTouched && !rulesField.state.meta.isValid
+        <form.Field
+          mode="array"
+          name="viewports"
+          children={(viewportsField) => {
+            const isViewportsInvalid = viewportsField.state.meta.isTouched && !viewportsField.state.meta.isValid
             return (
               <Card>
-                <CardHeader>
-                  <CardTitle>Rules</CardTitle>
-                  <CardDescription>
-                    Define rules to apply to specified elements on the page before screenshot is taken.
-                  </CardDescription>
-                  <CardAction>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => rulesField.handleChange((old) => old && [...old, { attrs: [], selectors: [] }])}
-                    >
-                      <Plus /> Add Rule
-                    </Button>
-                  </CardAction>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <Field data-invalid={isInvalid} className="flex flex-col gap-3 space-y-3">
-                      {rulesField.state.value &&
-                        rulesField.state.value.map((_, index) => (
-                          <div key={index} className="flex items-start justify-between gap-3">
-                            <Card className="w-full gap-4 py-4">
-                              <CardHeader className="px-4">
-                                <CardTitle>Rule #{index + 1}</CardTitle>
-                                <CardAction>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button size="icon-sm" variant="ghost">
-                                        <MoreHorizontal />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                      <DropdownMenuItem
-                                        variant="destructive"
-                                        onClick={() =>
-                                          rulesField.handleChange((old) => old && old.filter((_, i) => i !== index))
-                                        }
-                                      >
-                                        <Trash />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </CardAction>
-                              </CardHeader>
-                              <CardContent className="grid grid-cols-3 gap-3 px-4 xl:grid-cols-6">
-                                <form.Field name={`rules[${index}].selectors`}>
-                                  {(field) => {
-                                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                                    return (
-                                      <Field data-invalid={isInvalid} className="col-span-3 xl:col-span-3">
-                                        <FieldLabel htmlFor={`pageRule-rules-selectors-${index}`}>Selectors</FieldLabel>
-                                        <Textarea
-                                          id={`pageRule-rules-selectors-${index}`}
-                                          name={field.name}
-                                          value={Array.isArray(field.state.value) ? field.state.value.join('\n') : ''}
-                                          onBlur={field.handleBlur}
-                                          onChange={(e) =>
-                                            field.handleChange(e.target.value.split(/\r?\n/).map((s) => s.trim()))
-                                          }
-                                          className="min-h-18"
-                                          placeholder="Write any CSS selectors, e.g. .header, #main-content, div > p, etc."
-                                          aria-invalid={isInvalid}
+                <Collapsible open={viewportsSectionOpen} onOpenChange={setViewportsSectionOpen}>
+                  <CardHeader>
+                    <CardTitle className="relative w-fit">
+                      <span className={isViewportsInvalid ? 'text-destructive' : undefined}>Viewports</span>
+                      {Array.isArray(viewportsField.state.value) && viewportsField.state.value.length > 0 && (
+                        <Badge className="absolute -top-2.5 -right-5.5 h-5 min-w-5 px-1 tabular-nums">
+                          {viewportsField.state.value.length}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription className={isViewportsInvalid ? 'text-destructive' : undefined}>
+                      Define the viewports to capture screenshots for.
+                    </CardDescription>
+                    <CardAction className="space-x-3">
+                      {viewportsSectionOpen && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => viewportsField.pushValue([0, 0])}
+                        >
+                          <Plus /> Add viewport
+                        </Button>
+                      )}
+                      <CollapsibleTrigger asChild className="group">
+                        <Button type="button" variant="ghost" size="icon-sm">
+                          <ChevronDown className="transition-transform group-data-[state=open]:rotate-180" />
+                          <span className="sr-only">Toggle</span>
+                        </Button>
+                      </CollapsibleTrigger>
+                    </CardAction>
+                  </CardHeader>
+                  <CollapsibleContent asChild>
+                    <CardContent className="space-y-6 pt-6">
+                      <Field data-invalid={isViewportsInvalid}>
+                        {(viewportsField.state.value || []).map((_, viewportIndex) => (
+                          <div key={viewportIndex} className="flex items-start justify-between gap-3">
+                            <FieldGroup className="grid grid-cols-2 gap-3">
+                              <form.Field
+                                name={`viewports[${viewportIndex}][0]`}
+                                children={(viewportWidthField) => {
+                                  const isInvalid =
+                                    viewportWidthField.state.meta.isTouched && !viewportWidthField.state.meta.isValid
+                                  return (
+                                    <Field data-invalid={isViewportsInvalid || isInvalid}>
+                                      <InputGroup>
+                                        <InputGroupAddon>
+                                          <InputGroupText>Width</InputGroupText>
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                          name={viewportWidthField.name}
+                                          value={viewportWidthField.state.value || '0'}
+                                          onBlur={() => {
+                                            if (isViewportsInvalid) viewportsField.handleBlur()
+                                            viewportWidthField.handleBlur()
+                                          }}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value)
+                                            if (!Number.isNaN(value)) {
+                                              viewportWidthField.handleChange(value)
+                                            }
+                                          }}
+                                          aria-invalid={isViewportsInvalid || isInvalid}
                                         />
-                                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                      </Field>
-                                    )
-                                  }}
-                                </form.Field>
-                                <form.Field
-                                  mode="array"
-                                  name={`rules[${index}].attrs`}
-                                  children={(attrsField) => {
-                                    const isInvalid = attrsField.state.meta.isTouched && !attrsField.state.meta.isValid
-                                    return (
-                                      <Field
-                                        data-invalid={isInvalid}
-                                        className="col-span-4 flex flex-col gap-3 xl:col-span-3"
-                                      >
-                                        <div className="flex justify-between">
-                                          <FieldLabel>Rule attributes</FieldLabel>
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button type="button" size="xs">
-                                                <Plus />
-                                                Add rule attribute
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-60">
-                                              <DropdownMenuGroup>
-                                                {RULE_ATTR_TYPE_OPTIONS.filter(
-                                                  // Filter out options that already exist in the current attributes
-                                                  (option) =>
-                                                    !Array.isArray(attrsField.state.value) ||
-                                                    !attrsField.state.value.some((attr) => attr.name === option.value),
-                                                ).map(({ value, label }) => (
-                                                  <DropdownMenuItem
-                                                    key={value}
-                                                    onClick={() => {
-                                                      if (
-                                                        RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find((r) => r === value)
-                                                      ) {
-                                                        attrsField.handleChange(
-                                                          (old) => old && [...old, { name: value, value: 'true' }],
-                                                        )
-                                                      } else {
-                                                        attrsField.handleChange(
-                                                          (old) => old && [...old, { name: value, value: '' }],
-                                                        )
-                                                      }
-                                                    }}
-                                                  >
-                                                    {label}
-                                                  </DropdownMenuItem>
-                                                ))}
-                                              </DropdownMenuGroup>
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
-                                        </div>
-                                        <div className="flex flex-1 flex-col gap-3 space-y-2">
-                                          {Array.isArray(attrsField.state.value) &&
-                                            attrsField.state.value.map((attrObj, i) => (
-                                              <div key={i} className="flex items-start justify-between gap-3">
-                                                <FieldGroup className="grid grid-cols-2">
-                                                  <form.Field
-                                                    name={`rules[${index}].attrs[${i}].name`}
-                                                    children={(field) => {
-                                                      const isInvalid =
-                                                        field.state.meta.isTouched && !field.state.meta.isValid
-                                                      return (
-                                                        <Field data-invalid={isInvalid}>
-                                                          <Input
-                                                            name={field.name}
-                                                            value={
-                                                              field.state.value
-                                                                ? RULE_ATTR_TYPE_LABEL_MAP[field.state.value]
-                                                                : ''
-                                                            }
-                                                            onBlur={field.handleBlur}
-                                                            readOnly
-                                                            aria-invalid={isInvalid}
-                                                          />
-                                                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                                        </Field>
-                                                      )
-                                                    }}
-                                                  />
-                                                  <form.Field
-                                                    name={`rules[${index}].attrs[${i}].value`}
-                                                    children={(field) => {
-                                                      const isInvalid =
-                                                        field.state.meta.isTouched && !field.state.meta.isValid
-                                                      return (
-                                                        <Field data-invalid={isInvalid}>
-                                                          <Input
-                                                            id={`pageRule-rules[${index}]-attrs[${i}]-value`}
-                                                            value={field.state.value?.toString()}
-                                                            onBlur={field.handleBlur}
-                                                            aria-invalid={isInvalid}
-                                                            placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
-                                                            onChange={(e) => field.handleChange(e.target.value)}
-                                                            readOnly={
-                                                              !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-                                                                (r) => r.toString() === attrObj.name,
-                                                              )
-                                                            }
-                                                          />
-                                                          {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                                        </Field>
-                                                      )
-                                                    }}
-                                                  />
-                                                </FieldGroup>
-
-                                                <Button
-                                                  type="button"
-                                                  variant="ghost"
-                                                  onClick={() =>
-                                                    attrsField.handleChange(
-                                                      (old) => old && old.filter((_, idx) => idx !== i),
-                                                    )
-                                                  }
-                                                  className="self-center"
-                                                >
-                                                  <X />
-                                                  <span className="sr-only">Remove rule attribute</span>
-                                                </Button>
-                                              </div>
-                                            ))}
-                                        </div>
-                                        {isInvalid && <FieldError errors={attrsField.state.meta.errors} />}
-                                      </Field>
-                                    )
-                                  }}
-                                />
-                              </CardContent>
-                            </Card>
+                                        <InputGroupAddon align="inline-end">
+                                          <InputGroupText>px</InputGroupText>
+                                        </InputGroupAddon>
+                                      </InputGroup>
+                                      {isInvalid && <FieldError errors={viewportWidthField.state.meta.errors} />}
+                                    </Field>
+                                  )
+                                }}
+                              />
+                              <form.Field
+                                name={`viewports[${viewportIndex}][1]`}
+                                children={(viewportHeightField) => {
+                                  const isInvalid =
+                                    viewportHeightField.state.meta.isTouched && !viewportHeightField.state.meta.isValid
+                                  return (
+                                    <Field data-invalid={isViewportsInvalid || isInvalid}>
+                                      <InputGroup>
+                                        <InputGroupAddon>
+                                          <InputGroupText>Height</InputGroupText>
+                                        </InputGroupAddon>
+                                        <InputGroupInput
+                                          name={viewportHeightField.name}
+                                          value={viewportHeightField.state.value || '0'}
+                                          onBlur={() => {
+                                            if (isViewportsInvalid) viewportsField.handleBlur()
+                                            viewportHeightField.handleBlur()
+                                          }}
+                                          onChange={(e) => {
+                                            const value = Number(e.target.value)
+                                            if (!Number.isNaN(value)) {
+                                              viewportHeightField.handleChange(value)
+                                            }
+                                          }}
+                                          aria-invalid={isViewportsInvalid || isInvalid}
+                                        />
+                                        <InputGroupAddon align="inline-end">
+                                          <InputGroupText>px</InputGroupText>
+                                        </InputGroupAddon>
+                                      </InputGroup>
+                                      {isInvalid && <FieldError errors={viewportHeightField.state.meta.errors} />}
+                                    </Field>
+                                  )
+                                }}
+                              />
+                            </FieldGroup>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              disabled={viewportsField.state.value.length === 1}
+                              onClick={() => viewportsField.removeValue(viewportIndex)}
+                            >
+                              <X />
+                              <span className="sr-only">Remove viewport</span>
+                            </Button>
                           </div>
                         ))}
-                    </Field>
-                    {isInvalid && <FieldError errors={rulesField.state.meta.errors} />}
-                  </div>
-                </CardContent>
+                        {isViewportsInvalid && <FieldError errors={viewportsField.state.meta.errors} />}
+                      </Field>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
               </Card>
             )
           }}
-        </form.Field>
+        />
 
         <form.Field
-          name="hookAfterPageLoad"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          mode="array"
+          name="rules"
+          children={(rulesField) => {
+            const isRulesInvalid =
+              (rulesField.state.meta.isTouched && !rulesField.state.meta.isValid) ||
+              rulesField.getMeta().errors?.length > 0
             return (
-              <Field data-invalid={isInvalid}>
-                <div className="flex flex-col gap-3">
-                  <FieldLabel htmlFor="pageRule-hookAfterPageLoad">Hook After Page Load</FieldLabel>
-                  <div className="input">
-                    <Card className="p-5">
-                      <Editor
-                        width="100%"
-                        height="300px"
-                        language="javascript"
-                        value={field.state.value ?? undefined}
-                        onChange={(value) => field.handleChange(value)}
-                        theme="vs-dark"
-                      />
-                    </Card>
-                  </div>
-                </div>
-              </Field>
+              <Card>
+                <Collapsible open={rulesSectionOpen} onOpenChange={setRulesSectionOpen}>
+                  <CardHeader>
+                    <CardTitle className="relative w-fit">
+                      <span className={isRulesInvalid ? 'text-destructive' : undefined}>Rules</span>
+                      {Array.isArray(rulesField.state.value) && rulesField.state.value.length > 0 && (
+                        <Badge className="absolute -top-2.5 -right-5.5 h-5 min-w-5 px-1 tabular-nums">
+                          {rulesField.state.value.length}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription className={isRulesInvalid ? 'text-destructive' : undefined}>
+                      Define rules to apply to specified elements on the page before screenshot is taken.
+                    </CardDescription>
+                    <CardAction className="space-x-3">
+                      {rulesSectionOpen && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            rulesField.pushValue({ attrs: [], selectors: [''], identifier: crypto.randomUUID() })
+                          }
+                        >
+                          <Plus /> Add rule
+                        </Button>
+                      )}
+                      <CollapsibleTrigger asChild className="group">
+                        <Button type="button" variant="ghost" size="icon-sm">
+                          <ChevronDown className="transition-transform group-data-[state=open]:rotate-180" />
+                          <span className="sr-only">Toggle</span>
+                        </Button>
+                      </CollapsibleTrigger>
+                    </CardAction>
+                  </CardHeader>
+                  <CollapsibleContent asChild>
+                    <CardContent className="space-y-6 pt-6">
+                      <Field data-invalid={isRulesInvalid} className="flex flex-col gap-3 space-y-3">
+                        {(rulesField.state.value || []).map((_, ruleIndex) => (
+                          <Card key={ruleIndex} className="w-full gap-4 py-4">
+                            <CardHeader className="px-4">
+                              <form.Field
+                                name={`rules[${ruleIndex}].identifier`}
+                                children={(field) => {
+                                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                                  return (
+                                    <Field data-invalid={isInvalid}>
+                                      <InputGroup className="max-w-md">
+                                        <InputGroupAddon>Rule #{ruleIndex + 1}</InputGroupAddon>
+                                        <InputGroupInput
+                                          name={field.name}
+                                          value={field.state.value}
+                                          onBlur={field.handleBlur}
+                                          onChange={(e) => field.handleChange(e.target.value)}
+                                        />
+                                        <InputGroupAddon align="inline-end">
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <InputGroupButton variant="ghost" size="icon-xs">
+                                                <Info />
+                                              </InputGroupButton>
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                              <PopoverHeader>
+                                                <PopoverTitle>
+                                                  The rule identifier is used for internal reference only.
+                                                </PopoverTitle>
+                                              </PopoverHeader>
+                                            </PopoverContent>
+                                          </Popover>
+                                        </InputGroupAddon>
+                                      </InputGroup>
+                                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                    </Field>
+                                  )
+                                }}
+                              />
+                              <CardAction>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="icon-sm" variant="ghost">
+                                      <MoreHorizontal />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      variant="destructive"
+                                      onClick={() => {
+                                        rulesField.removeValue(ruleIndex)
+                                      }}
+                                    >
+                                      <Trash />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </CardAction>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-3 gap-6 px-4 xl:grid-cols-6">
+                              <form.Field
+                                mode="array"
+                                name={`rules[${ruleIndex}].selectors`}
+                                children={(ruleSelectorsField) => {
+                                  const isInvalid =
+                                    ruleSelectorsField.state.meta.isTouched && !ruleSelectorsField.state.meta.isValid
+                                  return (
+                                    <Field
+                                      data-invalid={isInvalid}
+                                      className="col-span-4 flex flex-col gap-3 xl:col-span-3"
+                                    >
+                                      <div className="flex justify-between">
+                                        <FieldLabel>Selectors</FieldLabel>
+                                        <Button
+                                          type="button"
+                                          size="xs"
+                                          onClick={() => ruleSelectorsField.pushValue('')}
+                                        >
+                                          <Plus />
+                                          Add selector
+                                        </Button>
+                                      </div>
+                                      {Array.isArray(ruleSelectorsField.state.value) &&
+                                        ruleSelectorsField.state.value.map((_, ruleSelectorIndex) => (
+                                          <div
+                                            key={ruleSelectorIndex}
+                                            className="flex items-start justify-between gap-3"
+                                          >
+                                            <form.Field
+                                              name={`rules[${ruleIndex}].selectors[${ruleSelectorIndex}]`}
+                                              children={(field) => {
+                                                const isInvalid =
+                                                  field.state.meta.isTouched && !field.state.meta.isValid
+                                                return (
+                                                  <Field data-invalid={isInvalid}>
+                                                    <Textarea
+                                                      name={field.name}
+                                                      value={field.state.value}
+                                                      onBlur={field.handleBlur}
+                                                      onChange={(e) => field.handleChange(e.target.value)}
+                                                      className="min-h-18"
+                                                      placeholder="Write any valid CSS selector, e.g. #main-content"
+                                                      aria-invalid={isInvalid}
+                                                    />
+                                                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                                  </Field>
+                                                )
+                                              }}
+                                            />
+
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              disabled={ruleSelectorsField.state.value?.length === 1}
+                                              onClick={() => ruleSelectorsField.removeValue(ruleSelectorIndex)}
+                                              className="self-center"
+                                            >
+                                              <X />
+                                              <span className="sr-only">Remove selector</span>
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      {isInvalid && <FieldError errors={ruleSelectorsField.state.meta.errors} />}
+                                    </Field>
+                                  )
+                                }}
+                              />
+                              <form.Field
+                                mode="array"
+                                name={`rules[${ruleIndex}].attrs`}
+                                children={(ruleAttrsField) => {
+                                  const isInvalid =
+                                    ruleAttrsField.state.meta.isTouched && !ruleAttrsField.state.meta.isValid
+                                  return (
+                                    <Field
+                                      data-invalid={isInvalid}
+                                      className="col-span-4 flex flex-col gap-3 xl:col-span-3"
+                                    >
+                                      <div className="flex justify-between">
+                                        <FieldLabel>Rule attributes</FieldLabel>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button type="button" size="xs">
+                                              <Plus />
+                                              Add rule attribute
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-60">
+                                            <DropdownMenuGroup>
+                                              {RULE_ATTR_TYPE_OPTIONS.filter(
+                                                // Filter out options that already exist in the current attributes
+                                                (option) =>
+                                                  !Array.isArray(ruleAttrsField.state.value) ||
+                                                  !ruleAttrsField.state.value.some(
+                                                    (attr) => attr.name === option.value,
+                                                  ),
+                                              ).map(({ value, label }) => (
+                                                <DropdownMenuItem
+                                                  key={value}
+                                                  onClick={() => {
+                                                    if (
+                                                      RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find((r) => r === value)
+                                                    ) {
+                                                      ruleAttrsField.pushValue({ name: value, value: 'true' })
+                                                    } else {
+                                                      ruleAttrsField.pushValue({ name: value, value: '' })
+                                                    }
+                                                  }}
+                                                >
+                                                  {label}
+                                                </DropdownMenuItem>
+                                              ))}
+                                            </DropdownMenuGroup>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
+                                      <div className="flex flex-1 flex-col gap-3 space-y-2">
+                                        {Array.isArray(ruleAttrsField.state.value) &&
+                                          ruleAttrsField.state.value.map((attrObj, ruleAttrIndex) => (
+                                            <div key={ruleAttrIndex} className="flex items-start justify-between gap-3">
+                                              <FieldGroup className="grid grid-cols-2">
+                                                <form.Field
+                                                  name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].name`}
+                                                  children={(field) => {
+                                                    const isInvalid =
+                                                      field.state.meta.isTouched && !field.state.meta.isValid
+                                                    return (
+                                                      <Field data-invalid={isInvalid}>
+                                                        <Input
+                                                          name={field.name}
+                                                          value={
+                                                            field.state.value
+                                                              ? RULE_ATTR_TYPE_LABEL_MAP[field.state.value]
+                                                              : ''
+                                                          }
+                                                          onBlur={field.handleBlur}
+                                                          readOnly
+                                                          aria-invalid={isInvalid}
+                                                        />
+                                                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                                      </Field>
+                                                    )
+                                                  }}
+                                                />
+                                                <form.Field
+                                                  name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].value`}
+                                                  children={(field) => {
+                                                    const isInvalid =
+                                                      field.state.meta.isTouched && !field.state.meta.isValid
+                                                    return (
+                                                      <Field data-invalid={isInvalid}>
+                                                        <Input
+                                                          id={`pageRule-rules[${ruleIndex}]-attrs[${ruleAttrIndex}]-value`}
+                                                          value={field.state.value?.toString()}
+                                                          onBlur={field.handleBlur}
+                                                          aria-invalid={isInvalid}
+                                                          placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
+                                                          onChange={(e) => field.handleChange(e.target.value)}
+                                                          readOnly={
+                                                            !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
+                                                              (r) => r.toString() === attrObj.name,
+                                                            )
+                                                          }
+                                                        />
+                                                        {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                                      </Field>
+                                                    )
+                                                  }}
+                                                />
+                                              </FieldGroup>
+
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => ruleAttrsField.removeValue(ruleAttrIndex)}
+                                                className="self-center"
+                                              >
+                                                <X />
+                                                <span className="sr-only">Remove rule attribute</span>
+                                              </Button>
+                                            </div>
+                                          ))}
+                                      </div>
+                                      {isInvalid && <FieldError errors={ruleAttrsField.state.meta.errors} />}
+                                    </Field>
+                                  )
+                                }}
+                              />
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Field>
+                      {isRulesInvalid && <FieldError errors={rulesField.state.meta.errors} />}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
             )
           }}
         />
-        <form.Field
-          name="hookBeforeScreenshot"
-          children={(field) => {
-            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-            return (
-              <Field data-invalid={isInvalid}>
-                <div className="flex flex-col gap-3">
-                  <FieldLabel htmlFor="pageRule-hookBeforeScreenshot">Hook Before Screenshot</FieldLabel>
-                  <div className="input">
-                    <Card className="p-5">
-                      <Editor
-                        width="100%"
-                        height="300px"
-                        language="javascript"
-                        value={field.state.value ?? undefined}
-                        onChange={(value) => field.handleChange(value)}
-                        theme="vs-dark"
-                      />
-                    </Card>
-                  </div>
-                </div>
-              </Field>
-            )
-          }}
-        />
+
+        <Card>
+          <Collapsible open={hooksSectionOpen} onOpenChange={setHooksSectionOpen}>
+            <CardHeader>
+              <CardTitle>Hooks</CardTitle>
+              <CardDescription>
+                Define hooks to run custom JavaScript code on the page on a specific event.
+              </CardDescription>
+              <CardAction>
+                <CollapsibleTrigger asChild className="group">
+                  <Button type="button" variant="ghost" size="icon-sm">
+                    <ChevronDown className="transition-transform group-data-[state=open]:rotate-180" />
+                    <span className="sr-only">Toggle</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </CardAction>
+            </CardHeader>
+            <CollapsibleContent asChild>
+              <CardContent className="space-y-6 pt-6">
+                <form.Field
+                  name="hookAfterPageLoad"
+                  children={(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pageRule-hookAfterPageLoad">After Page Load</FieldLabel>
+                        <Editor
+                          options={monacoOptions}
+                          wrapperProps={{ id: 'pageRule-hookAfterPageLoad' }}
+                          width="100%"
+                          height="300px"
+                          language="javascript"
+                          value={field.state.value ?? undefined}
+                          onChange={(value) => field.handleChange(value)}
+                          theme="vs-dark"
+                        />
+                      </Field>
+                    )
+                  }}
+                />
+                <form.Field
+                  name="hookBeforeScreenshot"
+                  children={(field) => {
+                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                    return (
+                      <Field data-invalid={isInvalid}>
+                        <FieldLabel htmlFor="pageRule-hookBeforeScreenshot">Before Screenshot</FieldLabel>
+                        <Editor
+                          options={monacoOptions}
+                          wrapperProps={{ id: 'pageRule-hookBeforeScreenshot' }}
+                          width="100%"
+                          height="300px"
+                          language="javascript"
+                          value={field.state.value ?? undefined}
+                          onChange={(value) => field.handleChange(value)}
+                          theme="vs-dark"
+                        />
+                      </Field>
+                    )
+                  }}
+                />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Spinner />}
             Submit
           </Button>
           <Button variant="secondary" asChild>
-            <Link href={`/projects/${project.id}/pages`} className="cursor-pointer">
-              Cancel
-            </Link>
+            <Link href={`/projects/${project.id}/pages`}>Cancel</Link>
           </Button>
         </div>
       </form>
-      <ConfirmChangePathDialog
-        open={openDialog}
-        onConfirm={async () => {
-          for (const action of pendingActions.current) {
-            await action()
-          }
-
-          pendingActions.current = []
-
-          setOpenDialog(false)
-        }}
-        onCancel={() => setOpenDialog(false)}
-      />
     </>
   )
 }

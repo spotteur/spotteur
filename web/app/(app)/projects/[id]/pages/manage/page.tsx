@@ -17,8 +17,9 @@ import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { listPageRulesByProjectV2, manageRule } from '@/features/page-rules/actions'
 import { ConfirmChangePathDialog } from '@/features/page-rules/confim-change-path-dialog'
-import { PageRuleV2Form, type PageRuleFormInput } from '@/features/page-rules/form'
+import { PageRuleV2Form } from '@/features/page-rules/form'
 import { PageRulesTree } from '@/features/page-rules/page-tree'
+import { type PageRuleFormInput } from '@/features/page-rules/schema'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
@@ -183,7 +184,16 @@ export default function ManagePages() {
             <>
               <h2 className="mb-4 text-xl font-bold">{selectedPageRule.pagePath}</h2>
               <PageRuleV2Form
-                defaultValues={selectedPageRule}
+                defaultValues={{
+                  pagePath: selectedPageRule.pagePath,
+                  snapshotBrowsers: selectedPageRule.snapshotBrowsers,
+                  viewports: selectedPageRule.viewports,
+                  mediaReset: selectedPageRule.mediaReset,
+                  reducedMotion: selectedPageRule.reducedMotion,
+                  rules: selectedPageRule.rules,
+                  hookAfterPageLoad: selectedPageRule.hookAfterPageLoad,
+                  hookBeforeScreenshot: selectedPageRule.hookBeforeScreenshot,
+                }}
                 onSubmit={(values) => mutation.mutate(values)}
                 isSubmitting={mutation.isPending}
                 errors={formErrors}

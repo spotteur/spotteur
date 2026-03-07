@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, File } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useState, type ReactNode, type MouseEvent } from 'react'
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
