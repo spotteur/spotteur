@@ -182,6 +182,8 @@ services:
       - "rustfs"
   rustfs-init-bucket-helper:
     image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file: [".env"]
     depends_on:
       rustfs:

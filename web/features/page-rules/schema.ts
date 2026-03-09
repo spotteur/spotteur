@@ -1,22 +1,70 @@
 import { z } from 'zod'
 
-import { Browser, RuleAttrType } from '@/constants/enum'
+import {
+  Browser,
+  RULE_ATTR_TYPE_LABEL_MAP,
+  RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS,
+  RuleAttrType,
+} from '@/constants/enum'
 
-export const RuleAttrSchema = z.object({
-  value: z.string(),
-  name: z.enum(RuleAttrType, {
-    error: 'Invalid attribute type',
-  }),
-})
+export const RuleAttrSchema = z
+  .object({
+    name: z.enum(RuleAttrType),
+    value: z.string(),
+  })
+  .refine(
+    (data) => {
+      if (RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find((attr) => attr === data.name)) {
+        return data.value === 'true'
+      }
+      return true
+    },
+    {
+      error: 'Value must be "true" for this attribute',
+      path: ['value'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.name === RuleAttrType.REPLACE_WORDS) {
+        const num = Number(String(data.value))
+        return !Number.isNaN(num) && num > 0
+      }
+      return true
+    },
+    {
+      error: 'Value must be a number greater than 0 for this attribute',
+      path: ['value'],
+    },
+  )
 
-export const SelectorSchema = z.string().nonempty('Provide at least 1 selector')
+export const SelectorSchema = z.string().min(1, 'Invalid CSS selector')
 
 export const RuleSchema = z.object({
-  selectors: z.array(SelectorSchema),
-  attrs: z.array(RuleAttrSchema),
+  identifier: z.string({ error: 'Identifier must be a string' }).optional(),
+  selectors: z.array(SelectorSchema).min(1, 'Provide at least 1 selector'),
+  attrs: z
+    .array(RuleAttrSchema)
+    .min(1, 'Provide at least 1 rule')
+    .transform((val, ctx) => {
+      const names = new Set<string>()
+      for (const attr of val) {
+        if (names.has(attr.name)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate rule "${RULE_ATTR_TYPE_LABEL_MAP[attr.name]}" in the same rule group`,
+          })
+          return z.NEVER
+        }
+
+        names.add(attr.name)
+      }
+      return val
+    }),
 })
 
 export const RulesSchema = z.array(RuleSchema).optional()
+
 export const PagePathSchema = z
   .string()
   .nonempty('Page path is required')
@@ -60,11 +108,50 @@ export const BrowsersSchema = z
   .pipe(z.array(BrowserSchema).nonempty('Provide at least 1 browser'))
 
 export const ViewportSchema = z.tuple([
-  z.number().positive('Width must be greater than 0'),
-  z.number().positive('Height must be greater than 0'),
+  z.number().positive({ error: 'Width must be greater than 0', abort: true }),
+  z.number().positive({ error: 'Height must be greater than 0', abort: true }),
 ])
 
-export const ViewportsSchema = z.array(ViewportSchema).nonempty('Provide at least 1 viewport')
+export const ViewportsSchema = z
+  .array(ViewportSchema)
+  .nonempty('Provide at least 1 viewport')
+  .superRefine((viewports, ctx) => {
+    const viewportSet = new Set<string>()
+    const viewportWidthSet = new Set<number>()
+    const duplicateViewports = []
+    const duplicateViewportWidths = []
+    for (const [width, height] of viewports) {
+      const key = `${width}x${height}`
+      if (viewportSet.has(key)) {
+        duplicateViewports.push(key)
+      } else {
+        viewportSet.add(key)
+      }
+
+      if (viewportWidthSet.has(width)) {
+        duplicateViewportWidths.push(width)
+      } else {
+        viewportWidthSet.add(width)
+      }
+    }
+
+    if (duplicateViewports.length > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Viewport dimensions must be unique. Duplicate viewports found: ${duplicateViewports.join(', ')}`,
+      })
+
+      // Stop further validation
+      return z.NEVER
+    }
+
+    if (duplicateViewportWidths.length > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Viewport widths must be unique. Duplicate widths found: ${duplicateViewportWidths.join(', ')}`,
+      })
+    }
+  })
 
 export const MediaResetSchema = z.boolean().optional()
 
@@ -85,49 +172,54 @@ export const PageRuleBaseSchema = z.object({
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
 
-export const PageRuleCreateSchema = PageRuleBaseSchema
-export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {
-  const map = new Map<string, number[]>()
+export type PageRuleFormInput = z.input<typeof PageRuleBaseSchema>
 
-  items.forEach((item, index) => {
-    const key = item.pagePath
+export const PageRuleCreateSchema = z.object({
+  pagePaths: PagePathsSchema.transform((pagePaths) => Array.from(new Set(pagePaths))),
+})
 
-    if (!map.has(key)) {
-      map.set(key, [index])
-    } else {
-      map.get(key)!.push(index)
-    }
-  })
+export type PageRuleCreateFormInput = z.input<typeof PageRuleCreateSchema>
 
-  map.forEach((indexes, path) => {
-    if (indexes.length > 1) {
-      indexes.forEach((index) => {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Duplicate path "${path}"`,
-          path: [index, 'path'],
+export const PageRulesUpsertSchema = z
+  .array(PageRuleBaseSchema, 'Invalid page rule format')
+  .superRefine((items, ctx) => {
+    const map = new Map<string, number[]>()
+
+    items.forEach((item, index) => {
+      const key = item.pagePath
+
+      if (!map.has(key)) {
+        map.set(key, [index])
+      } else {
+        map.get(key)!.push(index)
+      }
+    })
+
+    map.forEach((indexes, path) => {
+      if (indexes.length > 1) {
+        indexes.forEach((index) => {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate path "${path}"`,
+            path: [index, 'path'],
+          })
         })
-      })
-    }
+      }
+    })
   })
-})
-
-export const PageRuleUpdateSchema = PageRuleBaseSchema.extend({
-  id: z.uuid('Invalid id'),
-})
 
 export const SpotteurGlobalVariablesSchema = z.object({
   options: z
     .object({
       mediaReset: MediaResetSchema,
       reducedMotion: ReducedMotionSchema,
-      rules: z.optional(RulesSchema),
+      rules: RulesSchema,
     })
     .optional(),
   hooks: z
     .object({
-      'after-page-load': z.string().optional(),
-      'before-screenshot': z.string().optional(),
+      'after-page-load': HookAfterPageLoadSchema,
+      'before-screenshot': HookBeforeScreenshotSchema,
     })
     .optional(),
 })

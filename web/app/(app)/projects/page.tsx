@@ -7,6 +7,7 @@ import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { BreadcrumbItem, BreadcrumbPage } from '@/components/ui/breadcrumb'
@@ -17,7 +18,6 @@ import { DEFAULT_ERROR_DESCRIPTION, defaultMenu } from '@/constants/app'
 import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deleteProject, listProjects } from '@/features/projects/actions'
 import { getColumns } from '@/features/projects/columns'
-import { ConfirmDeleteProjectDialog } from '@/features/projects/confirm-delete-dialog'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
 import { type NavigationType } from '@/types/app'
@@ -103,12 +103,12 @@ export default function ProjectsPage() {
             )}
           </InputGroup>
         </div>
-        <Link href="/projects/create">
-          <Button size="sm">
+        <Button size="sm" asChild>
+          <Link href="/projects/create">
             <Plus className="mr-2 size-4" />
             Create Project
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       {isLoading ? (
@@ -123,9 +123,12 @@ export default function ProjectsPage() {
         />
       )}
 
-      <ConfirmDeleteProjectDialog
+      <ConfirmDeleteDialog
         open={!!pendingDelete}
-        projectName={pendingDelete?.name ?? ''}
+        valueToMatch={pendingDelete?.name ?? ''}
+        title="Delete Project"
+        instruction="Type the project name to confirm"
+        confirmButtonText="Delete Project"
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
           if (pendingDelete) {

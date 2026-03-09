@@ -66,52 +66,56 @@ export async function getProject(id: string) {
 export async function createProject(input: unknown) {
   const parsed = ProjectCreateSchema.safeParse(input)
   if (!parsed.success) {
+    return { ok: false, error: z.flattenError(parsed.error) } as const
+  }
+
+  const token = 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
+
+  const project = await db.transaction(async (tx) => {
+    const [project] = await db
+      .insert(projects)
+      .values({
+        ...parsed.data,
+        token,
+        snapshotBrowsers: parsed.data.snapshotBrowsers as Browser[],
+      })
+      .returning()
+
+    await tx
+      .insert(pageRules)
+      .values(
+        project.pagePaths.map((pagePath) => ({
+          pagePath,
+          projectId: project.id,
+          snapshotBrowsers: project.snapshotBrowsers,
+          viewports: project.viewports,
+        })),
+      )
+      .onConflictDoNothing()
+
+    return project
+  })
+
+  return { ok: true, data: project } as const
+}
+
+export async function updateProject({ projectId, payload }: { projectId: string; payload: unknown }) {
+  const parsed = ProjectUpdateSchema.safeParse(payload)
+  if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
 
   const data = parsed.data
   const token = data.token && data.token.length > 0 ? data.token : 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
 
-  const [created] = await db
-    .insert(projects)
-    .values({
-      name: data.name,
-      baseUrl: data.baseUrl,
-      token,
-      snapshotBrowsers: data.snapshotBrowsers as Browser[],
-      snapshotSelector: data.snapshotSelector,
-      viewports: data.viewports,
-      pagePaths: data.pagePaths,
-      hookAfterPageLoad: data.hookAfterPageLoad,
-      hookBeforeScreenshot: data.hookBeforeScreenshot,
-    })
-    .returning()
-  return { ok: true, data: created }
-}
-
-export async function updateProject(input: unknown) {
-  const parsed = ProjectUpdateSchema.safeParse(input)
-  if (!parsed.success) {
-    return { ok: false, error: z.flattenError(parsed.error) }
-  }
-
-  const data = parsed.data
-  const token = data.token && data.token.length > 0 ? data.token : crypto.randomUUID()
-
   const [updated] = await db
     .update(projects)
     .set({
-      name: data.name,
-      baseUrl: data.baseUrl,
+      ...data,
       token,
       snapshotBrowsers: data.snapshotBrowsers as Browser[],
-      snapshotSelector: data.snapshotSelector,
-      viewports: data.viewports,
-      pagePaths: data.pagePaths,
-      hookAfterPageLoad: data.hookAfterPageLoad,
-      hookBeforeScreenshot: data.hookBeforeScreenshot,
     })
-    .where(eq(projects.id, data.id))
+    .where(eq(projects.id, projectId))
     .returning()
   return { ok: true, data: updated }
 }

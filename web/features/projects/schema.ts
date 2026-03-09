@@ -9,6 +9,8 @@ import {
   ViewportsSchema,
 } from '@/features/page-rules/schema'
 
+export const ProjectNameSchema = z.string().min(2, 'Project name must be at least 2 characters')
+
 export const ProjectBrowserEnum = z.enum(['chrome', 'firefox', 'edge'], 'Invalid browser option')
 
 export const BaseUrlSchema = z.url('Base URL must be a valid URL').refine((url) => url.endsWith('/'), {
@@ -16,19 +18,21 @@ export const BaseUrlSchema = z.url('Base URL must be a valid URL').refine((url) 
 })
 
 export const ProjectBaseSchema = z.object({
-  name: z.string().min(2, 'Project name must be at least 2 characters'),
+  name: ProjectNameSchema,
   baseUrl: BaseUrlSchema,
-  token: z.string().optional(),
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,
   snapshotSelector: SelectorSchema,
-  pagePaths: PagePathsSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
 
-export const ProjectCreateSchema = ProjectBaseSchema
+export const ProjectCreateSchema = z.object({
+  ...ProjectBaseSchema.shape,
+  pagePaths: PagePathsSchema,
+})
 
-export const ProjectUpdateSchema = ProjectBaseSchema.extend({
-  id: z.uuid('Invalid id'),
+export const ProjectUpdateSchema = z.object({
+  ...ProjectBaseSchema.shape,
+  token: z.string().optional(),
 })

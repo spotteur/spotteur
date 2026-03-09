@@ -29,7 +29,7 @@ export default function EditProjectPage() {
   })
 
   const mutation = useMutation({
-    mutationFn: async (values: ProjectFormInput) => updateProject(values),
+    mutationFn: async (payload: ProjectFormInput) => updateProject({ projectId: params.id, payload }),
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Project updated', { description: 'Your changes were successfully saved.' })
@@ -82,9 +82,7 @@ export default function EditProjectPage() {
             <ProjectFormSkeleton />
           ) : (
             <ProjectForm
-              key={data.id}
               defaultValues={{
-                id: data.id,
                 name: data.name,
                 baseUrl: data.baseUrl,
                 snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
@@ -97,6 +95,7 @@ export default function EditProjectPage() {
               }}
               onSubmit={(values) => mutation.mutate(values)}
               submitLabel="Update"
+              isCreate={false}
               isSubmitting={mutation.isPending}
               errors={formErrors}
             />
