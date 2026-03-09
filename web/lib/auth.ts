@@ -3,13 +3,14 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin } from 'better-auth/plugins'
 
-import { BETTER_AUTH_SECRET, DISABLE_REGISTRATION, TRUSTED_ORIGINS } from '@/constants/env'
+import { BETTER_AUTH_SECRET, BETTER_AUTH_URL, DISABLE_REGISTRATION, TRUSTED_ORIGINS } from '@/constants/env'
 import db from '@/db/drizzle'
 import { accounts, sessions, users, verifications } from '@/db/schema'
 import ResetPasswordEmail from '@/emails/reset-password'
 import { sendEmail } from '@/lib/mailer'
 
 export const auth = betterAuth({
+  baseURL: BETTER_AUTH_URL,
   secret: BETTER_AUTH_SECRET,
   trustedOrigins: TRUSTED_ORIGINS,
   database: drizzleAdapter(db, {

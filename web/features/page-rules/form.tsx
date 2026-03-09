@@ -45,9 +45,9 @@ import {
 import { setFormErrors } from '@/lib/utils'
 
 import {
-  type CreatePageRuleFormInput,
+  type PageRuleCreateFormInput,
   PageRuleBaseSchema,
-  PageRuleCreateV2Schema,
+  PageRuleCreateSchema,
   type PageRuleFormInput,
 } from './schema'
 
@@ -70,11 +70,11 @@ const hasErrorForPrefixes = (fieldNames: string[], prefixes: string[]) => {
 }
 
 interface CreatePageRuleFormProps {
-  defaultValues: CreatePageRuleFormInput
-  onSubmit: (values: CreatePageRuleFormInput) => void
+  defaultValues: PageRuleCreateFormInput
+  onSubmit: (values: PageRuleCreateFormInput) => void
   onCancel: () => void
   isSubmitting: boolean
-  errors?: z.core.$ZodFlattenedError<CreatePageRuleFormInput>
+  errors?: z.core.$ZodFlattenedError<PageRuleCreateFormInput>
 }
 
 export function CreatePageRuleForm({
@@ -87,7 +87,7 @@ export function CreatePageRuleForm({
   const form = useForm({
     defaultValues,
     validators: {
-      onSubmit: PageRuleCreateV2Schema,
+      onSubmit: PageRuleCreateSchema,
     },
     onSubmitInvalid: () => {
       const InvalidInput = document.querySelector('[aria-invalid="true"]') as HTMLInputElement
@@ -99,7 +99,7 @@ export function CreatePageRuleForm({
   })
 
   useEffect(() => {
-    setFormErrors<CreatePageRuleFormInput>(form, errors)
+    setFormErrors<PageRuleCreateFormInput>(form, errors)
   }, [errors, form])
 
   return (

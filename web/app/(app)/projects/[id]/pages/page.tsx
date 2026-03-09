@@ -36,14 +36,14 @@ import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialo
 import { CreatePagesDialog } from '@/features/page-rules/create-pages-dialog'
 import { ManagePageContent } from '@/features/page-rules/manage-page-content'
 import { ManagePagesTree } from '@/features/page-rules/manage-page-tree'
-import { type CreatePageRuleFormInput, type PageRuleFormInput } from '@/features/page-rules/schema'
+import { type PageRuleCreateFormInput, type PageRuleFormInput } from '@/features/page-rules/schema'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
 export default function ManagePages() {
   const queryClient = useQueryClient()
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
-  const [createFormErrors, setCreateFormErrors] = useState<$ZodFlattenedError<CreatePageRuleFormInput> | undefined>(
+  const [createFormErrors, setCreateFormErrors] = useState<$ZodFlattenedError<PageRuleCreateFormInput> | undefined>(
     undefined,
   )
   const [isFormDirty, setIsFormDirty] = useState(false)
@@ -93,7 +93,7 @@ export default function ManagePages() {
   }, [selectedPath, pageRules, setSelectedPath])
 
   const updatePageMutation = useMutation({
-    mutationFn: async (values: PageRuleFormInput) => manageRule(values, project ? project.id : ''),
+    mutationFn: async (payload: PageRuleFormInput) => manageRule({ projectId: params.id, payload }),
     onSuccess: (res) => {
       if (res.ok) {
         setIsFormDirty(false)
@@ -176,24 +176,35 @@ export default function ManagePages() {
       }
 
       if (res.errors) {
-        toast.error('Failed to update pages', {
-          description: (
-            <ul>
-              {Object.values(res.errors.fieldErrors).map((row, index) => {
-                return (
-                  <li key={index}>
-                    {(row || []).map((message, i) => (
-                      <p key={i}>
-                        {index + 1} - {message}
-                      </p>
-                    ))}
-                  </li>
-                )
-              })}
-            </ul>
-          ),
-        })
-        return
+        const fieldErrors = Object.values(res.errors.fieldErrors)
+        if (fieldErrors.length > 0) {
+          toast.error('Failed to update pages', {
+            description: (
+              <ul>
+                {fieldErrors.map((row, index) => {
+                  return (
+                    <li key={index}>
+                      {(row || []).map((message, i) => (
+                        <p key={i}>
+                          {index + 1} - {message}
+                        </p>
+                      ))}
+                    </li>
+                  )
+                })}
+              </ul>
+            ),
+          })
+          return
+        }
+
+        const formErrors = Object.values(res.errors.formErrors)
+        if (formErrors.length > 0) {
+          toast.error('Failed to update pages', {
+            description: formErrors.map((message, index) => <p key={index}>{message}</p>),
+          })
+          return
+        }
       }
 
       throw new Error(res.error)

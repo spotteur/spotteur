@@ -99,8 +99,8 @@ export async function createProject(input: unknown) {
   return { ok: true, data: project } as const
 }
 
-export async function updateProject(input: unknown) {
-  const parsed = ProjectUpdateSchema.safeParse(input)
+export async function updateProject({ projectId, payload }: { projectId: string; payload: unknown }) {
+  const parsed = ProjectUpdateSchema.safeParse(payload)
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
@@ -111,16 +111,11 @@ export async function updateProject(input: unknown) {
   const [updated] = await db
     .update(projects)
     .set({
-      name: data.name,
-      baseUrl: data.baseUrl,
+      ...data,
       token,
       snapshotBrowsers: data.snapshotBrowsers as Browser[],
-      snapshotSelector: data.snapshotSelector,
-      viewports: data.viewports,
-      hookAfterPageLoad: data.hookAfterPageLoad,
-      hookBeforeScreenshot: data.hookBeforeScreenshot,
     })
-    .where(eq(projects.id, data.id))
+    .where(eq(projects.id, projectId))
     .returning()
   return { ok: true, data: updated }
 }

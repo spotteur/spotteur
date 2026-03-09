@@ -10,12 +10,7 @@ import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { Browser, RuleAttrType } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
-import {
-  PageRuleCreateSchema,
-  PageRuleCreateV2Schema,
-  PageRulesUpsertSchema,
-  type PageRuleFormInput,
-} from '@/features/page-rules/schema'
+import { PageRuleCreateSchema, PageRulesUpsertSchema, PageRuleBaseSchema } from '@/features/page-rules/schema'
 import { defaultValuePageRule } from '@/features/page-rules/template'
 import { logger } from '@/lib/logger'
 
@@ -40,40 +35,9 @@ export async function listPageRulesByProject({ projectId }: { projectId: string 
   }
 }
 
-export async function createRule(input: unknown, projectId: string) {
-  const parsed = PageRuleCreateSchema.safeParse(input)
-  if (!parsed.success) {
-    return { ok: false, error: z.flattenError(parsed.error) }
-  }
-  const isExists = await isPagePathExists(parsed.data.pagePath)
-  if (isExists) {
-    return {
-      ok: false,
-      error: {
-        formErrors: [],
-        fieldErrors: {
-          pagePath: ['This page path already exists'],
-        },
-      },
-    }
-  }
-  const data = parsed.data
-
-  const [created] = await db
-    .insert(pageRules)
-    .values({
-      projectId,
-      ...data,
-      snapshotBrowsers: data.snapshotBrowsers as Browser[],
-    })
-    .returning()
-
-  return { ok: true, data: created }
-}
-
 export async function createPageRule({ projectId, payload }: { projectId: string; payload: unknown }) {
   try {
-    const parseResult = PageRuleCreateV2Schema.safeParse(payload)
+    const parseResult = PageRuleCreateSchema.safeParse(payload)
     if (!parseResult.success) {
       throw parseResult.error
     }
@@ -116,8 +80,8 @@ export async function createPageRule({ projectId, payload }: { projectId: string
   }
 }
 
-export async function manageRule(input: PageRuleFormInput, projectId: string) {
-  const parsed = PageRuleCreateSchema.safeParse(input)
+export async function manageRule({ projectId, payload }: { projectId: string; payload: unknown }) {
+  const parsed = PageRuleBaseSchema.safeParse(payload)
   if (!parsed.success) {
     return { ok: false, error: z.flattenError(parsed.error) }
   }
@@ -217,7 +181,11 @@ export async function isPagePathExists(path: string) {
 }
 
 export async function existingPageRules(projectId: string) {
-  const rules = await db.select().from(pageRules).where(eq(pageRules.projectId, projectId))
+  const rules = await db
+    .select()
+    .from(pageRules)
+    .where(eq(pageRules.projectId, projectId))
+    .orderBy(asc(pageRules.pagePath))
 
   const exportedRules = rules.length
     ? // eslint-disable-next-line @typescript-eslint/no-unused-vars

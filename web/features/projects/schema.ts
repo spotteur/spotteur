@@ -27,11 +27,12 @@ export const ProjectBaseSchema = z.object({
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
 
-export const ProjectCreateSchema = ProjectBaseSchema.extend({
+export const ProjectCreateSchema = z.object({
+  ...ProjectBaseSchema.shape,
   pagePaths: PagePathsSchema,
 })
 
-export const ProjectUpdateSchema = ProjectBaseSchema.extend({
-  id: z.uuid('Invalid id'),
+export const ProjectUpdateSchema = z.object({
+  ...ProjectBaseSchema.shape,
   token: z.string().optional(),
 })

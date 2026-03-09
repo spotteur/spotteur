@@ -5,14 +5,14 @@ import { type z } from 'zod'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { CreatePageRuleForm } from './form'
-import { type CreatePageRuleFormInput } from './schema'
+import { type PageRuleCreateFormInput } from './schema'
 
 type AddPagesDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (value: CreatePageRuleFormInput) => void
+  onSubmit: (value: PageRuleCreateFormInput) => void
   isSubmitting: boolean
-  errors?: z.core.$ZodFlattenedError<CreatePageRuleFormInput>
+  errors?: z.core.$ZodFlattenedError<PageRuleCreateFormInput>
 }
 
 export function CreatePagesDialog({ open, onOpenChange, onSubmit, isSubmitting, errors }: AddPagesDialogProps) {

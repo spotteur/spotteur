@@ -174,56 +174,52 @@ export const PageRuleBaseSchema = z.object({
 
 export type PageRuleFormInput = z.input<typeof PageRuleBaseSchema>
 
-export const PageRuleCreateSchema = PageRuleBaseSchema
-
-export const PageRuleCreateV2Schema = z.object({
+export const PageRuleCreateSchema = z.object({
   pagePaths: PagePathsSchema.transform((pagePaths) => Array.from(new Set(pagePaths))),
 })
 
-export type CreatePageRuleFormInput = z.input<typeof PageRuleCreateV2Schema>
+export type PageRuleCreateFormInput = z.input<typeof PageRuleCreateSchema>
 
-export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {
-  const map = new Map<string, number[]>()
+export const PageRulesUpsertSchema = z
+  .array(PageRuleBaseSchema, 'Invalid page rule format')
+  .superRefine((items, ctx) => {
+    const map = new Map<string, number[]>()
 
-  items.forEach((item, index) => {
-    const key = item.pagePath
+    items.forEach((item, index) => {
+      const key = item.pagePath
 
-    if (!map.has(key)) {
-      map.set(key, [index])
-    } else {
-      map.get(key)!.push(index)
-    }
-  })
+      if (!map.has(key)) {
+        map.set(key, [index])
+      } else {
+        map.get(key)!.push(index)
+      }
+    })
 
-  map.forEach((indexes, path) => {
-    if (indexes.length > 1) {
-      indexes.forEach((index) => {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Duplicate path "${path}"`,
-          path: [index, 'path'],
+    map.forEach((indexes, path) => {
+      if (indexes.length > 1) {
+        indexes.forEach((index) => {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate path "${path}"`,
+            path: [index, 'path'],
+          })
         })
-      })
-    }
+      }
+    })
   })
-})
-
-export const PageRuleUpdateSchema = PageRuleBaseSchema.extend({
-  id: z.uuid('Invalid id'),
-})
 
 export const SpotteurGlobalVariablesSchema = z.object({
   options: z
     .object({
       mediaReset: MediaResetSchema,
       reducedMotion: ReducedMotionSchema,
-      rules: z.optional(RulesSchema),
+      rules: RulesSchema,
     })
     .optional(),
   hooks: z
     .object({
-      'after-page-load': z.string().optional(),
-      'before-screenshot': z.string().optional(),
+      'after-page-load': HookAfterPageLoadSchema,
+      'before-screenshot': HookBeforeScreenshotSchema,
     })
     .optional(),
 })
