@@ -90,7 +90,7 @@ const buildPageTree = (pageRules: PageRulesListItemV2Res[]) => {
   return root
 }
 
-export function PageRulesTree({ pageRules, selectedPath, onSelectNode, filterApplied }: PageTreeProps) {
+export function ManagePagesTree({ pageRules, selectedPath, onSelectNode, filterApplied }: PageTreeProps) {
   const treeNodes = useMemo(() => buildPageTree(pageRules), [pageRules])
 
   return (

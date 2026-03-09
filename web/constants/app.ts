@@ -22,7 +22,7 @@ export const projectsMenu = (projectId: string): NavigationType[] => {
     },
     {
       label: 'Pages',
-      url: `/projects/${projectId}/pages` as Route,
+      url: `/projects/${projectId}/pages/manage` as Route,
     },
     {
       label: 'Builds',

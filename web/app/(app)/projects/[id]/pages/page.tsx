@@ -6,13 +6,13 @@ import { notFound, useParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { deletePageRule, existingPageRules, upsertPageRules } from '@/features/page-rules/actions'
-import { BulkEditPageRulesDialog } from '@/features/page-rules/bulk-edit-page-rules-dialog'
-import { ConfirmDeletePageDialog } from '@/features/page-rules/confirm-delete-path-dialog'
+import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialog'
 import { PageListCard } from '@/features/page-rules/list'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
@@ -37,9 +37,15 @@ export default function ManagePagesPage() {
 
   const mutation = useMutation({
     mutationFn: (id: string) => deletePageRule(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
-      toast.success('Page deleted', { description: 'The page was successfully deleted.' })
+    onSuccess: (res) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        toast.success('Page deleted', { description: 'The page was successfully deleted.' })
+        setPendingDelete(null)
+        return
+      }
+
+      throw new Error('Failed to delete page')
     },
     onError: () => {
       toast.error('Failed to delete page', { description: 'Something went wrong. Please try again later.' })
@@ -104,7 +110,6 @@ export default function ManagePagesPage() {
       ) : null,
     [data, params.id],
   )
-
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
   const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
@@ -121,18 +126,20 @@ export default function ManagePagesPage() {
         onRequestDelete={(val) => setPendingDelete(val)}
         onBulkEditTrigger={() => setOpenBulkEdit(true)}
       />
-      <ConfirmDeletePageDialog
+      <ConfirmDeleteDialog
         open={!!pendingDelete}
-        pagePath={pendingDelete?.path ?? ''}
+        valueToMatch={pendingDelete?.path ?? ''}
+        title="Delete Page"
+        instruction="Type the page path to confirm"
+        confirmButtonText="Delete Page"
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
           if (pendingDelete) {
             mutation.mutate(pendingDelete.id)
-            setPendingDelete(null)
           }
         }}
       />
-      <BulkEditPageRulesDialog
+      <BulkEditPagesDialog
         open={openBulkEdit}
         codeYaml={existingPagesData || pendingUpdate}
         onImport={(code) => {
