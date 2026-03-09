@@ -20,17 +20,18 @@ export const BaseUrlSchema = z.url('Base URL must be a valid URL').refine((url) 
 export const ProjectBaseSchema = z.object({
   name: ProjectNameSchema,
   baseUrl: BaseUrlSchema,
-  token: z.string().optional(),
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,
   snapshotSelector: SelectorSchema,
-  pagePaths: PagePathsSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
 })
 
-export const ProjectCreateSchema = ProjectBaseSchema
+export const ProjectCreateSchema = ProjectBaseSchema.extend({
+  pagePaths: PagePathsSchema,
+})
 
 export const ProjectUpdateSchema = ProjectBaseSchema.extend({
   id: z.uuid('Invalid id'),
+  token: z.string().optional(),
 })

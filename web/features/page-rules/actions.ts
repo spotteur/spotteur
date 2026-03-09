@@ -1,27 +1,23 @@
 'use server'
 
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
-import { parse } from 'yaml'
+import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
+import { parse as parseYaml } from 'yaml'
 import YAML from 'yaml'
 import { z } from 'zod'
+import { $ZodError } from 'zod/v4/core'
 
+import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { Browser, RuleAttrType } from '@/constants/enum'
 import db from '@/db/drizzle'
 import { pageRules, projects } from '@/db/schema'
-import { PageRuleCreateSchema, PageRulesUpsertSchema, type PageRuleFormInput } from '@/features/page-rules/schema'
+import {
+  PageRuleCreateSchema,
+  PageRuleCreateV2Schema,
+  PageRulesUpsertSchema,
+  type PageRuleFormInput,
+} from '@/features/page-rules/schema'
 import { defaultValuePageRule } from '@/features/page-rules/template'
-
-type SortKey = 'createdAt' | 'updatedAt' | ''
-
-const sortColumn = (key: SortKey) => {
-  switch (key) {
-    case 'updatedAt':
-      return pageRules.updatedAt
-    case 'createdAt':
-    default:
-      return pageRules.id
-  }
-}
+import { logger } from '@/lib/logger'
 
 export async function getRule(id: string) {
   const [row] = await db.select().from(pageRules).where(eq(pageRules.id, id)).limit(1)
@@ -30,13 +26,18 @@ export async function getRule(id: string) {
 }
 
 export async function listPageRulesByProject({ projectId }: { projectId: string }) {
-  const rows = await db
-    .select()
-    .from(pageRules)
-    .where(eq(pageRules.projectId, projectId))
-    .orderBy(asc(pageRules.pagePath))
+  try {
+    const rows = await db
+      .select()
+      .from(pageRules)
+      .where(eq(pageRules.projectId, projectId))
+      .orderBy(asc(pageRules.pagePath))
 
-  return { data: rows }
+    return { ok: true, data: rows } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, data: [], error: DEFAULT_ERROR_MESSAGE } as const
+  }
 }
 
 export async function createRule(input: unknown, projectId: string) {
@@ -68,6 +69,51 @@ export async function createRule(input: unknown, projectId: string) {
     .returning()
 
   return { ok: true, data: created }
+}
+
+export async function createPageRule({ projectId, payload }: { projectId: string; payload: unknown }) {
+  try {
+    const parseResult = PageRuleCreateV2Schema.safeParse(payload)
+    if (!parseResult.success) {
+      throw parseResult.error
+    }
+
+    await db.transaction(async (tx) => {
+      const [project] = await tx.select().from(projects).where(eq(projects.id, projectId)).limit(1)
+
+      await tx
+        .insert(pageRules)
+        .values(
+          parseResult.data.pagePaths.map((pagePath) => ({
+            pagePath,
+            projectId,
+            snapshotBrowsers: project.snapshotBrowsers,
+            viewports: project.viewports,
+          })),
+        )
+        .onConflictDoNothing()
+
+      const pageRuleRows = await tx
+        .select({ pagePath: pageRules.pagePath })
+        .from(pageRules)
+        .where(eq(pageRules.projectId, projectId))
+        .orderBy(desc(pageRules.createdAt))
+
+      await tx
+        .update(projects)
+        .set({ pagePaths: pageRuleRows.map((p) => p.pagePath) })
+        .where(eq(projects.id, projectId))
+    })
+
+    return { ok: true } as const
+  } catch (error) {
+    if (error instanceof $ZodError) {
+      return { ok: false, error: z.prettifyError(error), errors: z.flattenError(error) } as const
+    }
+
+    logger.error(error)
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
+  }
 }
 
 export async function manageRule(input: PageRuleFormInput, projectId: string) {
@@ -106,38 +152,54 @@ export async function deletePageRule(id: string) {
 }
 
 export async function upsertPageRules(schema: string, projectId: string) {
-  const parsed = parse(schema)
-  const payload = await PageRulesUpsertSchema.safeParseAsync(parsed)
-  if (payload.error) {
-    return { ok: false, error: z.flattenError(payload.error) }
-  }
+  try {
+    const parsed = parseYaml(schema)
+    const payload = await PageRulesUpsertSchema.safeParseAsync(parsed)
+    if (!payload.success) {
+      return { ok: false, error: z.prettifyError(payload.error), errors: z.flattenError(payload.error) } as const
+    }
 
-  const data = await db
-    .insert(pageRules)
-    .values(
-      payload.data.map((rule) => {
-        return {
-          projectId,
-          ...rule,
-          snapshotBrowsers: rule.snapshotBrowsers as Browser[],
-        }
-      }),
+    const data = await db
+      .insert(pageRules)
+      .values(
+        payload.data.map((rule) => {
+          return {
+            projectId,
+            ...rule,
+            snapshotBrowsers: rule.snapshotBrowsers as Browser[],
+          }
+        }),
+      )
+      .onConflictDoUpdate({
+        target: [pageRules.projectId, pageRules.pagePath],
+        set: {
+          snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
+          viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
+          mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
+          reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
+          rules: sql.raw(`excluded.${pageRules.rules.name}`),
+          hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
+          hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
+        },
+      })
+      .returning({ id: pageRules.id })
+
+    // Delete rules that are not provided in the payload
+    await db.delete(pageRules).where(
+      and(
+        eq(pageRules.projectId, projectId),
+        notInArray(
+          pageRules.id,
+          data.map((rule) => rule.id),
+        ),
+      ),
     )
-    .onConflictDoUpdate({
-      target: [pageRules.projectId, pageRules.pagePath],
-      set: {
-        snapshotBrowsers: sql.raw(`excluded.${pageRules.snapshotBrowsers.name}`),
-        viewports: sql.raw(`excluded.${pageRules.viewports.name}`),
-        mediaReset: sql.raw(`excluded.${pageRules.mediaReset.name}`),
-        reducedMotion: sql.raw(`excluded.${pageRules.reducedMotion.name}`),
-        rules: sql.raw(`excluded.${pageRules.rules.name}`),
-        hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
-        hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
-      },
-    })
-    .returning()
 
-  return { ok: true, data }
+    return { ok: true }
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
+  }
 }
 
 export async function pageRuleByPath(projectId: string, path: string) {

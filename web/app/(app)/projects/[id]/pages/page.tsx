@@ -17,9 +17,15 @@ import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, projectsMenu } from '@/constants/app'
+import {
+  DEFAULT_ERROR_DESCRIPTION,
+  DEFAULT_ERROR_MESSAGE,
+  projectsMenu,
+  VALIDATION_ERROR_DESCRIPTION,
+} from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import {
+  createPageRule,
   deletePageRule,
   existingPageRules,
   listPageRulesByProject,
@@ -27,15 +33,19 @@ import {
   upsertPageRules,
 } from '@/features/page-rules/actions'
 import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialog'
+import { CreatePagesDialog } from '@/features/page-rules/create-pages-dialog'
 import { ManagePageContent } from '@/features/page-rules/manage-page-content'
 import { ManagePagesTree } from '@/features/page-rules/manage-page-tree'
-import { type PageRuleFormInput } from '@/features/page-rules/schema'
+import { type CreatePageRuleFormInput, type PageRuleFormInput } from '@/features/page-rules/schema'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
 export default function ManagePages() {
   const queryClient = useQueryClient()
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
+  const [createFormErrors, setCreateFormErrors] = useState<$ZodFlattenedError<CreatePageRuleFormInput> | undefined>(
+    undefined,
+  )
   const [isFormDirty, setIsFormDirty] = useState(false)
   const [pendingSelectedPath, setPendingSelectedPath] = useState<string>('')
   const [openUnsavedChangesDialog, setOpenUnsavedChangesDialog] = useState(false)
@@ -44,70 +54,6 @@ export default function ManagePages() {
 
   const [selectedPath, setSelectedPath] = useQueryState('path', parseAsString.withDefault(''))
   const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault(''))
-
-  const [pendingDeletePage, setPendingDeletePage] = useState<{ id: string; path: string } | null>(null)
-  const deletePageMutation = useMutation({
-    mutationFn: (id: string) => deletePageRule(id),
-    onSuccess: (res) => {
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
-        toast.success('Page deleted', { description: 'The page was successfully deleted.' })
-        setPendingDeletePage(null)
-        setSelectedPath('')
-
-        return
-      }
-
-      throw new Error('Failed to delete page')
-    },
-    onError: (error) => {
-      console.error(error)
-      toast.error(DEFAULT_ERROR_MESSAGE, {
-        description: DEFAULT_ERROR_DESCRIPTION,
-      })
-    },
-  })
-
-  const [openBulkEditDialog, setOpenBulkEditDialog] = useState<boolean>(false)
-  const { data: existingPagesData } = useQuery({
-    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
-    queryFn: () => existingPageRules(params.id),
-    enabled: !!params.id,
-  })
-  const importMutation = useMutation({
-    mutationFn: (schema: string) => upsertPageRules(schema, params.id),
-    onSuccess: (res) => {
-      if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'] })
-        toast.success('Pages updated', { description: 'Pages were successfully updated.' })
-        setOpenBulkEditDialog(false)
-      } else {
-        toast.error('Failed to update pages', {
-          description: (
-            <ul>
-              {Object.values(res.error?.fieldErrors || []).map((row, index) => {
-                return (
-                  <li key={index}>
-                    {(row || []).map((message, i) => (
-                      <p key={i}>
-                        {index + 1} - {message}
-                      </p>
-                    ))}
-                  </li>
-                )
-              })}
-            </ul>
-          ),
-        })
-      }
-    },
-    onError: (error) => {
-      console.error(error)
-      toast.error(DEFAULT_ERROR_MESSAGE, {
-        description: DEFAULT_ERROR_DESCRIPTION,
-      })
-    },
-  })
 
   const { data: project, isLoading } = useQuery({
     queryKey: [QUERY_KEY_PROJECTS, params.id],
@@ -157,6 +103,100 @@ export default function ManagePages() {
         setFormErrors(res.error)
         toast.error('Failed to update page', { description: 'Please review the error and try again.' })
       }
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
+    },
+  })
+
+  const createPagesMutation = useMutation({
+    mutationFn: async (payload: unknown) => createPageRule({ projectId: project ? project.id : '', payload }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        toast.success('Pages created', {
+          description: 'Page successfully created.',
+        })
+        setOpenAddPagesDialog(false)
+        return
+      } else {
+        setCreateFormErrors(res.errors)
+        toast.error('Failed to create page', { description: VALIDATION_ERROR_DESCRIPTION })
+      }
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
+    },
+  })
+
+  const [pendingDeletePage, setPendingDeletePage] = useState<{ id: string; path: string } | null>(null)
+  const deletePageMutation = useMutation({
+    mutationFn: (id: string) => deletePageRule(id),
+    onSuccess: (res) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        toast.success('Page deleted', { description: 'The page was successfully deleted.' })
+        setPendingDeletePage(null)
+        setSelectedPath('')
+
+        return
+      }
+
+      throw new Error('Failed to delete page')
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
+    },
+  })
+
+  const [openBulkEditDialog, setOpenBulkEditDialog] = useState<boolean>(false)
+  const [openAddPagesDialog, setOpenAddPagesDialog] = useState<boolean>(false)
+  const { data: existingPagesData } = useQuery({
+    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
+    queryFn: () => existingPageRules(params.id),
+    enabled: !!params.id,
+  })
+  const importMutation = useMutation({
+    mutationFn: (schema: string) => upsertPageRules(schema, params.id),
+    onSuccess: (res) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'] })
+        toast.success('Pages updated', { description: 'Pages were successfully updated.' })
+        setOpenBulkEditDialog(false)
+        return
+      }
+
+      if (res.errors) {
+        toast.error('Failed to update pages', {
+          description: (
+            <ul>
+              {Object.values(res.errors.fieldErrors).map((row, index) => {
+                return (
+                  <li key={index}>
+                    {(row || []).map((message, i) => (
+                      <p key={i}>
+                        {index + 1} - {message}
+                      </p>
+                    ))}
+                  </li>
+                )
+              })}
+            </ul>
+          ),
+        })
+        return
+      }
+
+      throw new Error(res.error)
     },
     onError: (error) => {
       console.error(error)
@@ -245,7 +285,12 @@ export default function ManagePages() {
           </InputGroup>
         </div>
         <div className="space-x-3">
-          <Button>
+          <Button
+            onClick={() => {
+              setCreateFormErrors(undefined)
+              setOpenAddPagesDialog(true)
+            }}
+          >
             <Plus />
             Add new page
           </Button>
@@ -315,6 +360,18 @@ export default function ManagePages() {
         codeYaml={existingPagesData || ''}
         onImport={importMutation.mutate}
         onCancel={() => setOpenBulkEditDialog(false)}
+      />
+      <CreatePagesDialog
+        open={openAddPagesDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateFormErrors(undefined)
+          }
+          setOpenAddPagesDialog(open)
+        }}
+        onSubmit={createPagesMutation.mutate}
+        isSubmitting={createPagesMutation.isPending}
+        errors={createFormErrors}
       />
     </div>
   )

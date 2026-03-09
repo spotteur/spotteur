@@ -175,6 +175,13 @@ export const PageRuleBaseSchema = z.object({
 export type PageRuleFormInput = z.input<typeof PageRuleBaseSchema>
 
 export const PageRuleCreateSchema = PageRuleBaseSchema
+
+export const PageRuleCreateV2Schema = z.object({
+  pagePaths: PagePathsSchema.transform((pagePaths) => Array.from(new Set(pagePaths))),
+})
+
+export type CreatePageRuleFormInput = z.input<typeof PageRuleCreateV2Schema>
+
 export const PageRulesUpsertSchema = z.array(PageRuleBaseSchema).superRefine((items, ctx) => {
   const map = new Map<string, number[]>()
 

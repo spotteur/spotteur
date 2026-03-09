@@ -44,7 +44,12 @@ import {
 } from '@/constants/enum'
 import { setFormErrors } from '@/lib/utils'
 
-import { PageRuleBaseSchema, type PageRuleFormInput } from './schema'
+import {
+  type CreatePageRuleFormInput,
+  PageRuleBaseSchema,
+  PageRuleCreateV2Schema,
+  type PageRuleFormInput,
+} from './schema'
 
 interface PageRuleFormProps {
   defaultValues: PageRuleFormInput
@@ -61,6 +66,81 @@ const hasErrorForPrefixes = (fieldNames: string[], prefixes: string[]) => {
     prefixes.some(
       (prefix) => fieldName === prefix || fieldName.startsWith(`${prefix}.`) || fieldName.startsWith(`${prefix}[`),
     ),
+  )
+}
+
+interface CreatePageRuleFormProps {
+  defaultValues: CreatePageRuleFormInput
+  onSubmit: (values: CreatePageRuleFormInput) => void
+  onCancel: () => void
+  isSubmitting: boolean
+  errors?: z.core.$ZodFlattenedError<CreatePageRuleFormInput>
+}
+
+export function CreatePageRuleForm({
+  defaultValues,
+  onSubmit,
+  onCancel,
+  isSubmitting = false,
+  errors = undefined,
+}: CreatePageRuleFormProps) {
+  const form = useForm({
+    defaultValues,
+    validators: {
+      onSubmit: PageRuleCreateV2Schema,
+    },
+    onSubmitInvalid: () => {
+      const InvalidInput = document.querySelector('[aria-invalid="true"]') as HTMLInputElement
+      InvalidInput?.focus()
+    },
+    onSubmit: async ({ value }) => {
+      onSubmit(value)
+    },
+  })
+
+  useEffect(() => {
+    setFormErrors<CreatePageRuleFormInput>(form, errors)
+  }, [errors, form])
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
+      }}
+      className="space-y-4"
+    >
+      <form.Field
+        name="pagePaths"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="createPage-pagePaths">Page paths</FieldLabel>
+              <Textarea
+                id="createPage-pagePaths"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={isInvalid}
+              />
+              <FieldDescription>Each path must start with a slash (e.g., /pricing)</FieldDescription>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
+      <div className="flex gap-3">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Spinner />}
+          Submit
+        </Button>
+        <Button variant="secondary" onClick={onCancel} disabled={isSubmitting}>
+          Cancel
+        </Button>
+      </div>
+    </form>
   )
 }
 
