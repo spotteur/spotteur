@@ -330,7 +330,7 @@ export function PageRuleForm({
                 <CollapsibleContent asChild>
                   <CardContent className="space-y-6 pt-6">
                     <Field data-invalid={isViewportsInvalid}>
-                      {(viewportsField.state.value || []).map((_, viewportIndex) => (
+                      {viewportsField.state.value.map((_, viewportIndex) => (
                         <div key={viewportIndex} className="flex items-start justify-between gap-3">
                           <FieldGroup className="grid grid-cols-2 gap-3">
                             <form.Field
@@ -728,6 +728,7 @@ export function PageRuleForm({
                         value={field.state.value ?? undefined}
                         onChange={(value) => field.handleChange(value)}
                       />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                   )
                 }}
@@ -746,6 +747,7 @@ export function PageRuleForm({
                         value={field.state.value ?? undefined}
                         onChange={(value) => field.handleChange(value)}
                       />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                   )
                 }}

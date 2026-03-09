@@ -36,7 +36,7 @@ export default function NewProjectPage() {
       if (res.ok) {
         toast.success('Project created', { description: 'Your project was successfully created.' })
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
-        router.push('/projects')
+        router.push(`/projects/${res.data.id}`)
         return
       }
 

@@ -221,7 +221,10 @@ export async function existingPageRules(projectId: string) {
 
   const exportedRules = rules.length
     ? // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      rules.map(({ id, projectId, createdAt, updatedAt, ...rest }) => rest)
+      rules.map(({ id, projectId, createdAt, updatedAt, pagePath, ...rest }) => ({
+        pagePath,
+        ...rest,
+      }))
     : defaultValuePageRule
   const doc = new YAML.Document(exportedRules)
   exportedRules.forEach((_, pageIndex) => {
