@@ -136,7 +136,7 @@ export function CreatePageRuleForm({
           {isSubmitting && <Spinner />}
           Submit
         </Button>
-        <Button variant="secondary" onClick={onCancel} disabled={isSubmitting}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
       </div>
