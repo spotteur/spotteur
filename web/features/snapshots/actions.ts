@@ -224,25 +224,29 @@ export async function getSnapshotDetail({
 
   if (!snapshot) return null
 
+  const [screenshotUrl, baselineUrl, diffUrl, prev, next] = await Promise.all([
+    snapshot.screenshotMedia ? getPresignUrl({ key: snapshot.screenshotMedia.path }) : Promise.resolve(''),
+    snapshot.baselineScreenshotMedia
+      ? getPresignUrl({ key: snapshot.baselineScreenshotMedia.path })
+      : Promise.resolve(''),
+    snapshot.diffScreenshotMedia ? getPresignUrl({ key: snapshot.diffScreenshotMedia.path }) : Promise.resolve(''),
+    getPrevSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
+    getNextSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
+  ])
+
   if (snapshot.screenshotMedia) {
-    const path = await getPresignUrl({ key: snapshot.screenshotMedia.path })
-    snapshot.screenshotMedia = { ...snapshot.screenshotMedia, path }
+    snapshot.screenshotMedia = { ...snapshot.screenshotMedia, path: screenshotUrl }
   }
 
   if (snapshot.baselineScreenshotMedia) {
-    const path = await getPresignUrl({ key: snapshot.baselineScreenshotMedia.path })
-    snapshot.baselineScreenshotMedia = { ...snapshot.baselineScreenshotMedia, path }
+    snapshot.baselineScreenshotMedia = { ...snapshot.baselineScreenshotMedia, path: baselineUrl }
   }
 
   if (snapshot.diffScreenshotMedia) {
-    const path = await getPresignUrl({ key: snapshot.diffScreenshotMedia.path })
-    snapshot.diffScreenshotMedia = { ...snapshot.diffScreenshotMedia, path }
+    snapshot.diffScreenshotMedia = { ...snapshot.diffScreenshotMedia, path: diffUrl }
   }
 
-  const action: { prev: string; next: string } = {
-    prev: await getPrevSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
-    next: await getNextSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
-  }
+  const action = { prev, next }
 
   return { build, snapshot, action }
 }
