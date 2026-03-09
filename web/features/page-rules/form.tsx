@@ -42,7 +42,6 @@ import {
   RULE_ATTR_TYPE_LABEL_MAP,
   type Browser,
 } from '@/constants/enum'
-import { type projects } from '@/db/schema'
 import { setFormErrors } from '@/lib/utils'
 
 import { PageRuleBaseSchema, type PageRuleFormInput } from './schema'
@@ -52,7 +51,7 @@ interface PageRuleFormProps {
   onSubmit: (values: PageRuleFormInput) => void
   isSubmitting?: boolean
   errors?: z.core.$ZodFlattenedError<PageRuleFormInput>
-  project: typeof projects.$inferSelect
+  projectId: string
   onDirtyChange: (isDirty: boolean) => void
   onFormReady?: (resetForm: (values: PageRuleFormInput) => void) => void
 }
@@ -70,7 +69,7 @@ export function PageRuleForm({
   onSubmit,
   isSubmitting = false,
   errors = undefined,
-  project,
+  projectId,
   onDirtyChange,
   onFormReady,
 }: PageRuleFormProps) {
@@ -222,7 +221,7 @@ export function PageRuleForm({
                 <CardHeader>
                   <CardTitle className="relative w-fit">
                     <span>Viewports</span>
-                    {Array.isArray(viewportsField.state.value) && viewportsField.state.value.length > 0 && (
+                    {viewportsField.state.value.length > 0 && (
                       <Badge className="absolute -top-2.5 -right-5.5 h-5 min-w-5 px-1 tabular-nums">
                         {viewportsField.state.value.length}
                       </Badge>
@@ -334,9 +333,9 @@ export function PageRuleForm({
                 <CardHeader>
                   <CardTitle className="relative w-fit">
                     <span>Rules</span>
-                    {Array.isArray(rulesField.state.value) && rulesField.state.value.length > 0 && (
+                    {(rulesField.state.value || []).length > 0 && (
                       <Badge className="absolute -top-2.5 -right-5.5 h-5 min-w-5 px-1 tabular-nums">
-                        {rulesField.state.value.length}
+                        {rulesField.state.value?.length}
                       </Badge>
                     )}
                   </CardTitle>
@@ -446,43 +445,42 @@ export function PageRuleForm({
                                         Add selector
                                       </Button>
                                     </div>
-                                    {Array.isArray(ruleSelectorsField.state.value) &&
-                                      ruleSelectorsField.state.value.map((_, ruleSelectorIndex) => (
-                                        <div key={ruleSelectorIndex} className="flex items-start justify-between gap-3">
-                                          <form.Field
-                                            name={`rules[${ruleIndex}].selectors[${ruleSelectorIndex}]`}
-                                            children={(field) => {
-                                              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                                              return (
-                                                <Field data-invalid={isInvalid}>
-                                                  <Textarea
-                                                    name={field.name}
-                                                    value={field.state.value}
-                                                    onBlur={field.handleBlur}
-                                                    onChange={(e) => field.handleChange(e.target.value)}
-                                                    className="min-h-18"
-                                                    placeholder="Write any valid CSS selector, e.g. #main-content"
-                                                    aria-invalid={isInvalid}
-                                                  />
-                                                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                                </Field>
-                                              )
-                                            }}
-                                          />
+                                    {(ruleSelectorsField.state.value || []).map((_, ruleSelectorIndex) => (
+                                      <div key={ruleSelectorIndex} className="flex items-start justify-between gap-3">
+                                        <form.Field
+                                          name={`rules[${ruleIndex}].selectors[${ruleSelectorIndex}]`}
+                                          children={(field) => {
+                                            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                                            return (
+                                              <Field data-invalid={isInvalid}>
+                                                <Textarea
+                                                  name={field.name}
+                                                  value={field.state.value}
+                                                  onBlur={field.handleBlur}
+                                                  onChange={(e) => field.handleChange(e.target.value)}
+                                                  className="min-h-18"
+                                                  placeholder="Write any valid CSS selector, e.g. #main-content"
+                                                  aria-invalid={isInvalid}
+                                                />
+                                                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                              </Field>
+                                            )
+                                          }}
+                                        />
 
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            disabled={ruleSelectorsField.state.value?.length === 1}
-                                            onClick={() => ruleSelectorsField.removeValue(ruleSelectorIndex)}
-                                            className="self-center"
-                                          >
-                                            <X />
-                                            <span className="sr-only">Remove selector</span>
-                                          </Button>
-                                        </div>
-                                      ))}
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          disabled={ruleSelectorsField.state.value?.length === 1}
+                                          onClick={() => ruleSelectorsField.removeValue(ruleSelectorIndex)}
+                                          className="self-center"
+                                        >
+                                          <X />
+                                          <span className="sr-only">Remove selector</span>
+                                        </Button>
+                                      </div>
+                                    ))}
                                     {isInvalid && <FieldError errors={ruleSelectorsField.state.meta.errors} />}
                                   </Field>
                                 )
@@ -513,8 +511,9 @@ export function PageRuleForm({
                                             {RULE_ATTR_TYPE_OPTIONS.filter(
                                               // Filter out options that already exist in the current attributes
                                               (option) =>
-                                                !Array.isArray(ruleAttrsField.state.value) ||
-                                                !ruleAttrsField.state.value.some((attr) => attr.name === option.value),
+                                                !(ruleAttrsField.state.value || []).some(
+                                                  (attr) => attr.name === option.value,
+                                                ),
                                             ).map(({ value, label }) => (
                                               <DropdownMenuItem
                                                 key={value}
@@ -534,71 +533,70 @@ export function PageRuleForm({
                                       </DropdownMenu>
                                     </div>
                                     <div className="flex flex-1 flex-col gap-3 space-y-2">
-                                      {Array.isArray(ruleAttrsField.state.value) &&
-                                        ruleAttrsField.state.value.map((attrObj, ruleAttrIndex) => (
-                                          <div key={ruleAttrIndex} className="flex items-start justify-between gap-3">
-                                            <FieldGroup className="grid grid-cols-2">
-                                              <form.Field
-                                                name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].name`}
-                                                children={(field) => {
-                                                  const isInvalid =
-                                                    field.state.meta.isTouched && !field.state.meta.isValid
-                                                  return (
-                                                    <Field data-invalid={isInvalid}>
-                                                      <Input
-                                                        name={field.name}
-                                                        value={
-                                                          field.state.value
-                                                            ? RULE_ATTR_TYPE_LABEL_MAP[field.state.value]
-                                                            : ''
-                                                        }
-                                                        onBlur={field.handleBlur}
-                                                        readOnly
-                                                        aria-invalid={isInvalid}
-                                                      />
-                                                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                                    </Field>
-                                                  )
-                                                }}
-                                              />
-                                              <form.Field
-                                                name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].value`}
-                                                children={(field) => {
-                                                  const isInvalid =
-                                                    field.state.meta.isTouched && !field.state.meta.isValid
-                                                  return (
-                                                    <Field data-invalid={isInvalid}>
-                                                      <Input
-                                                        id={`pageRule-rules[${ruleIndex}]-attrs[${ruleAttrIndex}]-value`}
-                                                        value={field.state.value?.toString()}
-                                                        onBlur={field.handleBlur}
-                                                        aria-invalid={isInvalid}
-                                                        placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
-                                                        onChange={(e) => field.handleChange(e.target.value)}
-                                                        readOnly={
-                                                          !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
-                                                            (r) => r.toString() === attrObj.name,
-                                                          )
-                                                        }
-                                                      />
-                                                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                                                    </Field>
-                                                  )
-                                                }}
-                                              />
-                                            </FieldGroup>
+                                      {(ruleAttrsField.state.value || []).map((attrObj, ruleAttrIndex) => (
+                                        <div key={ruleAttrIndex} className="flex items-start justify-between gap-3">
+                                          <FieldGroup className="grid grid-cols-2">
+                                            <form.Field
+                                              name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].name`}
+                                              children={(field) => {
+                                                const isInvalid =
+                                                  field.state.meta.isTouched && !field.state.meta.isValid
+                                                return (
+                                                  <Field data-invalid={isInvalid}>
+                                                    <Input
+                                                      name={field.name}
+                                                      value={
+                                                        field.state.value
+                                                          ? RULE_ATTR_TYPE_LABEL_MAP[field.state.value]
+                                                          : ''
+                                                      }
+                                                      onBlur={field.handleBlur}
+                                                      readOnly
+                                                      aria-invalid={isInvalid}
+                                                    />
+                                                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                                  </Field>
+                                                )
+                                              }}
+                                            />
+                                            <form.Field
+                                              name={`rules[${ruleIndex}].attrs[${ruleAttrIndex}].value`}
+                                              children={(field) => {
+                                                const isInvalid =
+                                                  field.state.meta.isTouched && !field.state.meta.isValid
+                                                return (
+                                                  <Field data-invalid={isInvalid}>
+                                                    <Input
+                                                      id={`pageRule-rules[${ruleIndex}]-attrs[${ruleAttrIndex}]-value`}
+                                                      value={field.state.value?.toString()}
+                                                      onBlur={field.handleBlur}
+                                                      aria-invalid={isInvalid}
+                                                      placeholder={RULE_ATTR_TYPE_PLACEHOLDER_MAP[attrObj.name]}
+                                                      onChange={(e) => field.handleChange(e.target.value)}
+                                                      readOnly={
+                                                        !!RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find(
+                                                          (r) => r.toString() === attrObj.name,
+                                                        )
+                                                      }
+                                                    />
+                                                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                                                  </Field>
+                                                )
+                                              }}
+                                            />
+                                          </FieldGroup>
 
-                                            <Button
-                                              type="button"
-                                              variant="ghost"
-                                              onClick={() => ruleAttrsField.removeValue(ruleAttrIndex)}
-                                              className="self-center"
-                                            >
-                                              <X />
-                                              <span className="sr-only">Remove rule attribute</span>
-                                            </Button>
-                                          </div>
-                                        ))}
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={() => ruleAttrsField.removeValue(ruleAttrIndex)}
+                                            className="self-center"
+                                          >
+                                            <X />
+                                            <span className="sr-only">Remove rule attribute</span>
+                                          </Button>
+                                        </div>
+                                      ))}
                                     </div>
                                     {isInvalid && <FieldError errors={ruleAttrsField.state.meta.errors} />}
                                   </Field>
@@ -683,7 +681,7 @@ export function PageRuleForm({
           Submit
         </Button>
         <Button variant="secondary" asChild>
-          <Link href={`/projects/${project.id}/pages`}>Cancel</Link>
+          <Link href={`/projects/${projectId}/pages`}>Cancel</Link>
         </Button>
       </div>
     </form>

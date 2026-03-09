@@ -29,39 +29,7 @@ export async function getRule(id: string) {
   return { rule: row, project }
 }
 
-export async function listPageRulesByProject({
-  projectId,
-  page = 1,
-  pageSize = 10,
-  sortBy = 'createdAt',
-  sortDir = 'desc',
-}: {
-  projectId: string
-  page?: number
-  pageSize?: number
-  sortBy?: SortKey
-  sortDir?: 'asc' | 'desc'
-}) {
-  const offset = (page - 1) * pageSize
-  const column = sortColumn(sortBy)
-  const order = sortDir === 'asc' ? asc(column) : desc(column)
-
-  const rowsQuery = db
-    .select()
-    .from(pageRules)
-    .where(eq(pageRules.projectId, projectId))
-    .orderBy(order)
-    .limit(pageSize)
-    .offset(offset)
-
-  const countQuery = db.select({ total: count() }).from(pageRules).where(eq(pageRules.projectId, projectId))
-
-  const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
-
-  return { data: rows, total }
-}
-
-export async function listPageRulesByProjectV2({ projectId }: { projectId: string }) {
+export async function listPageRulesByProject({ projectId }: { projectId: string }) {
   const rows = await db
     .select()
     .from(pageRules)
@@ -227,5 +195,5 @@ export async function unUsedPagePath(projectId: string) {
   return unusedPaths[0]
 }
 
-export type PageRulesListV2Res = Awaited<ReturnType<typeof listPageRulesByProjectV2>>
-export type PageRulesListItemV2Res = PageRulesListV2Res['data'][number]
+export type PageRulesListRes = Awaited<ReturnType<typeof listPageRulesByProject>>
+export type PageRulesListItemRes = PageRulesListRes['data'][number]

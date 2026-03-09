@@ -14,7 +14,7 @@ export const RuleAttrSchema = z
   })
   .refine(
     (data) => {
-      if (RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.includes(data.name as RuleAttrType)) {
+      if (RULE_ATTR_TYPE_WITH_TRUE_VALUE_OPTIONS.find((attr) => attr === data.name)) {
         return data.value === 'true'
       }
       return true

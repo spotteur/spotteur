@@ -1,95 +1,174 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Edit, Plus, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { parseAsString, useQueryState } from 'nuqs'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { type $ZodFlattenedError } from 'zod/v4/core'
 
+import { ConfirmUnsavedChangesDialog } from '@/components/confim-unsaved-changes-dialog'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { projectsMenu } from '@/constants/app'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { Skeleton } from '@/components/ui/skeleton'
+import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, projectsMenu } from '@/constants/app'
 import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
-import { deletePageRule, existingPageRules, upsertPageRules } from '@/features/page-rules/actions'
+import {
+  deletePageRule,
+  existingPageRules,
+  listPageRulesByProject,
+  manageRule,
+  upsertPageRules,
+} from '@/features/page-rules/actions'
 import { BulkEditPagesDialog } from '@/features/page-rules/bulk-edit-pages-dialog'
-import { PageListCard } from '@/features/page-rules/list'
+import { ManagePageContent } from '@/features/page-rules/manage-page-content'
+import { ManagePagesTree } from '@/features/page-rules/manage-page-tree'
+import { type PageRuleFormInput } from '@/features/page-rules/schema'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
-export default function ManagePagesPage() {
+export default function ManagePages() {
   const queryClient = useQueryClient()
-  const [pendingDelete, setPendingDelete] = useState<{ id: string; path: string } | null>(null)
-  const [openBulkEdit, setOpenBulkEdit] = useState<boolean>(false)
-  const [pendingUpdate, setPendingUpdate] = useState<string>('')
+  const [formErrors, setFormErrors] = useState<$ZodFlattenedError<PageRuleFormInput> | undefined>(undefined)
+  const [isFormDirty, setIsFormDirty] = useState(false)
+  const [pendingSelectedPath, setPendingSelectedPath] = useState<string>('')
+  const [openUnsavedChangesDialog, setOpenUnsavedChangesDialog] = useState(false)
+  const resetFormRef = useRef<((values: PageRuleFormInput) => void) | null>(null)
   const params = useParams<{ id: string }>()
 
-  const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
-    queryFn: () => getProject(params.id),
-  })
+  const [selectedPath, setSelectedPath] = useQueryState('path', parseAsString.withDefault(''))
+  const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault(''))
 
-  const { data: existingPagesData } = useQuery({
-    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
-    queryFn: () => existingPageRules(params.id),
-    enabled: !!params.id,
-  })
-
-  const mutation = useMutation({
+  const [pendingDeletePage, setPendingDeletePage] = useState<{ id: string; path: string } | null>(null)
+  const deletePageMutation = useMutation({
     mutationFn: (id: string) => deletePageRule(id),
     onSuccess: (res) => {
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
         toast.success('Page deleted', { description: 'The page was successfully deleted.' })
-        setPendingDelete(null)
+        setPendingDeletePage(null)
+        setSelectedPath('')
+
         return
       }
 
       throw new Error('Failed to delete page')
     },
-    onError: () => {
-      toast.error('Failed to delete page', { description: 'Something went wrong. Please try again later.' })
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
     },
   })
 
+  const [openBulkEditDialog, setOpenBulkEditDialog] = useState<boolean>(false)
+  const { data: existingPagesData } = useQuery({
+    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
+    queryFn: () => existingPageRules(params.id),
+    enabled: !!params.id,
+  })
   const importMutation = useMutation({
     mutationFn: (schema: string) => upsertPageRules(schema, params.id),
     onSuccess: (res) => {
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id] })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'] })
         toast.success('Pages updated', { description: 'Pages were successfully updated.' })
-        setOpenBulkEdit(false)
+        setOpenBulkEditDialog(false)
       } else {
         toast.error('Failed to update pages', {
           description: (
             <ul>
-              {res.error &&
-                Object.values(res.error.fieldErrors).map((row, index) => {
-                  return (
-                    <li key={index}>
-                      {row && Array.isArray(row)
-                        ? row.map((message, i) => (
-                            <p key={i}>
-                              {index + 1} - {message}
-                            </p>
-                          ))
-                        : row}
-                    </li>
-                  )
-                })}
+              {Object.values(res.error?.fieldErrors || []).map((row, index) => {
+                return (
+                  <li key={index}>
+                    {(row || []).map((message, i) => (
+                      <p key={i}>
+                        {index + 1} - {message}
+                      </p>
+                    ))}
+                  </li>
+                )
+              })}
             </ul>
           ),
         })
       }
     },
-    onError: () => {
-      toast.error('Failed to update pages', { description: 'Something went wrong. Please try again later.' })
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
+    },
+  })
+
+  const { data: project, isLoading } = useQuery({
+    queryKey: [QUERY_KEY_PROJECTS, params.id],
+    queryFn: () => getProject(params.id),
+  })
+
+  const { data: pageRulesData, isLoading: isPageRulesLoading } = useQuery({
+    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'],
+    queryFn: () => listPageRulesByProject({ projectId: params.id }),
+  })
+
+  const pageRules = useMemo(() => {
+    return (pageRulesData?.data ?? []).filter((pageRule) => {
+      const matchesSearch = pageRule.pagePath.toLowerCase().includes(searchQuery.toLowerCase())
+
+      return matchesSearch
+    })
+  }, [pageRulesData, searchQuery])
+
+  const selectedPageRule = useMemo(() => {
+    if (pageRules.length === 0) {
+      return undefined
+    }
+
+    if (selectedPath) {
+      return pageRules.find((pageRule) => pageRule.pagePath === selectedPath)
+    }
+
+    return pageRules[0]
+  }, [selectedPath, pageRules])
+
+  // Pre-select the first page if no page is selected yet
+  useEffect(() => {
+    if (!selectedPath && pageRules.length > 0) {
+      setSelectedPath(pageRules[0].pagePath)
+    }
+  }, [selectedPath, pageRules, setSelectedPath])
+
+  const updatePageMutation = useMutation({
+    mutationFn: async (values: PageRuleFormInput) => manageRule(values, project ? project.id : ''),
+    onSuccess: (res) => {
+      if (res.ok) {
+        setIsFormDirty(false)
+        toast.success('Page updated', { description: 'Your page was successfully updated.' })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+      } else {
+        setFormErrors(res.error)
+        toast.error('Failed to update page', { description: 'Please review the error and try again.' })
+      }
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, {
+        description: DEFAULT_ERROR_DESCRIPTION,
+      })
     },
   })
 
   const breadcrumbs = useMemo(
     () =>
-      data ? (
+      project ? (
         <>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -99,7 +178,7 @@ export default function ManagePagesPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}`}>{data.name}</Link>
+              <Link href={`/projects/${params.id}`}>{project.name}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -108,47 +187,134 @@ export default function ManagePagesPage() {
           </BreadcrumbItem>
         </>
       ) : null,
-    [data, params.id],
+    [project, params.id],
   )
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
   const navigations = useMemo<NavigationType[]>(() => projectsMenu(params.id), [params.id])
   useHeaderNavigations(navigations)
 
-  if (!isLoading && !data) {
+  const handleFormReady = useCallback((reset: (values: PageRuleFormInput) => void) => {
+    resetFormRef.current = reset
+  }, [])
+
+  // Reset the form with new values when a different page is selected
+  useEffect(() => {
+    if (selectedPageRule && resetFormRef.current) {
+      resetFormRef.current(selectedPageRule)
+    }
+  }, [selectedPageRule])
+
+  if (!isLoading && !project) {
     notFound()
   }
 
+  if (isLoading || isPageRulesLoading) {
+    return (
+      <div className="flex flex-col space-y-3">
+        <Skeleton className="flex h-9 flex-row items-center gap-3 p-2 shadow-none" />
+        <Skeleton className="min-h-screen w-full" />
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-4 p-4">
-      <PageListCard
-        projectId={data?.id}
-        onRequestDelete={(val) => setPendingDelete(val)}
-        onBulkEditTrigger={() => setOpenBulkEdit(true)}
+    <div className="flex flex-col space-y-3">
+      <div className="flex justify-between">
+        <div className="flex flex-row items-center gap-3 rounded-lg shadow-none">
+          <InputGroup className="w-sm">
+            <InputGroupInput
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setSelectedPath('')
+              }}
+              placeholder="Filter by page paths..."
+            />
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            {searchQuery && (
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton onClick={() => setSearchQuery('')}>
+                  <span className="sr-only">Clear search</span>
+                  <X />
+                </InputGroupButton>
+              </InputGroupAddon>
+            )}
+          </InputGroup>
+        </div>
+        <div className="space-x-3">
+          <Button>
+            <Plus />
+            Add new page
+          </Button>
+          <Button onClick={() => setOpenBulkEditDialog(true)}>
+            <Edit />
+            Bulk edit pages
+          </Button>
+        </div>
+      </div>
+      <ResizablePanelGroup orientation="horizontal" className="min-h-screen w-full rounded-lg border">
+        <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%">
+          <ManagePagesTree
+            pageRules={pageRules}
+            selectedPath={selectedPath}
+            onSelectNode={(node) => {
+              if (isFormDirty && node.path !== selectedPath) {
+                setPendingSelectedPath(node.path)
+                setOpenUnsavedChangesDialog(true)
+                return
+              }
+
+              setSelectedPath(node.path)
+            }}
+            filterApplied={searchQuery.length > 0}
+          />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel>
+          <ManagePageContent
+            selectedPageRule={selectedPageRule}
+            errors={formErrors}
+            isSubmitting={updatePageMutation.isPending}
+            onSubmit={(values) => updatePageMutation.mutate(values)}
+            onDirtyChange={setIsFormDirty}
+            onFormReady={handleFormReady}
+            onDeletePage={(page) => setPendingDeletePage(page)}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      <ConfirmUnsavedChangesDialog
+        open={openUnsavedChangesDialog}
+        onConfirm={() => {
+          setSelectedPath(pendingSelectedPath)
+          setPendingSelectedPath('')
+          setOpenUnsavedChangesDialog(false)
+        }}
+        onCancel={() => {
+          setPendingSelectedPath('')
+          setOpenUnsavedChangesDialog(false)
+        }}
       />
       <ConfirmDeleteDialog
-        open={!!pendingDelete}
-        valueToMatch={pendingDelete?.path ?? ''}
+        open={!!pendingDeletePage}
+        valueToMatch={pendingDeletePage?.path ?? ''}
         title="Delete Page"
         instruction="Type the page path to confirm"
         confirmButtonText="Delete Page"
-        onCancel={() => setPendingDelete(null)}
+        onCancel={() => setPendingDeletePage(null)}
         onConfirm={() => {
-          if (pendingDelete) {
-            mutation.mutate(pendingDelete.id)
+          if (pendingDeletePage) {
+            deletePageMutation.mutate(pendingDeletePage.id)
           }
         }}
       />
       <BulkEditPagesDialog
-        open={openBulkEdit}
-        codeYaml={existingPagesData || pendingUpdate}
-        onImport={(code) => {
-          if (code) {
-            setPendingUpdate(code)
-            importMutation.mutate(code)
-          }
-        }}
-        onCancel={() => setOpenBulkEdit(false)}
+        open={openBulkEditDialog}
+        codeYaml={existingPagesData || ''}
+        onImport={importMutation.mutate}
+        onCancel={() => setOpenBulkEditDialog(false)}
       />
     </div>
   )

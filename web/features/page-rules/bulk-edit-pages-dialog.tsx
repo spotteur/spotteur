@@ -1,8 +1,8 @@
 'use client'
 
-import Editor from '@monaco-editor/react'
 import { useState } from 'react'
 
+import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -26,13 +26,11 @@ export function BulkEditPagesDialog({
           <DialogTitle>Bulk Edit Pages</DialogTitle>
         </DialogHeader>
         <div className="py-5">
-          <Editor
-            width="100%"
+          <MonacoEditorInput
             height="70vh"
             language="yaml"
             value={codeYaml}
             onChange={(value) => setCode(value || '')}
-            theme="vs-dark"
           />
         </div>
         <DialogFooter>

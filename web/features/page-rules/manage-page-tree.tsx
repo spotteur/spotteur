@@ -4,10 +4,10 @@ import { useMemo } from 'react'
 
 import { type TreeNode, TreeRoot } from '@/components/file-tree'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-import { type PageRulesListItemV2Res } from '@/features/page-rules/actions'
+import { type PageRulesListItemRes } from '@/features/page-rules/actions'
 
 interface PageTreeProps {
-  pageRules: PageRulesListItemV2Res[]
+  pageRules: PageRulesListItemRes[]
   selectedPath: string
   onSelectNode: (node: TreeNode) => void
   filterApplied: boolean
@@ -34,7 +34,7 @@ const findOrCreateFolder = (
   return { nodes: nodes, folder: folder }
 }
 
-const buildPageTree = (pageRules: PageRulesListItemV2Res[]) => {
+const buildPageTree = (pageRules: PageRulesListItemRes[]) => {
   const rootSet: Set<string> = new Set()
   const root: TreeNode[] = []
 
