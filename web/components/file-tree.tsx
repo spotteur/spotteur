@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, File } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useState, type ReactNode, type MouseEvent } from 'react'
 
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
@@ -76,7 +76,7 @@ function TreeNode({ node, level, onSelectNode, selectedNodeId, expandedNodes, on
         ) : (
           <>
             <div className="w-px" />
-            {node.icon ? node.icon : <File size={16} className="shrink-0" />}
+            {node.icon}
           </>
         )}
         <span className="flex-1" title={isFolder ? undefined : `Open ${node.path}`}>

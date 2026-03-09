@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof $ZodError) {
       return NextResponse.json(
-        { ok: false, message: z.prettifyError(error), errors: z.treeifyError(error) },
+        { ok: false, message: z.prettifyError(error), errors: z.flattenError(error) },
         { status: 400 },
       )
     }

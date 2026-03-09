@@ -37,6 +37,7 @@ export function Providers({ children }: { children: ReactNode }) {
                   {children}
                 </Link>
               )}
+              redirectTo="/projects"
               signUp={!DISABLE_REGISTRATION}
               additionalFields={{
                 itemPerPage: {
