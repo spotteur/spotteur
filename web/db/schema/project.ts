@@ -74,6 +74,7 @@ export const snapshots = pgTable('snapshots', {
   pagePath: varchar('page_path').notNull(),
   diffPercentage: doublePrecision('diff_percentage').notNull(),
   approvalStatus: varchar('approval_status').notNull().$type<SnapshotApprovalStatus>(),
+  notes: text('notes'),
   screenshotMediaId: uuid('screenshot_media_id')
     .references(() => media.id)
     .notNull(),

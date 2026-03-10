@@ -120,6 +120,13 @@
       "when": 1772591834519,
       "tag": "0016_chemical_harpoon",
       "breakpoints": false
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1773124513022,
+      "tag": "0017_aspiring_colonel_america",
+      "breakpoints": false
     }
   ]
 }

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { parseAsArrayOf, parseAsBoolean, parseAsString, useQueryState } from 'nuqs'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -85,13 +85,35 @@ export default function SnapshotReviewPage() {
     return snapshotItems[0]?.id
   }, [selectedPath, snapshotItems])
 
+  const [openedSnapshotIds, setOpenedSnapshotIds] = useState<string[]>([])
+
   useEffect(() => {
     if (!selectedPath && snapshotItems.length > 0) {
       setSelectedPath(snapshotItems[0].pagePath)
     }
   }, [selectedPath, snapshotItems, setSelectedPath])
 
-  const onChangeOpenedSnapshot = (snapshotId: string) => {
+  useEffect(() => {
+    if (!selectedSnapshotId) {
+      return
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpenedSnapshotIds((prev) => (prev.includes(selectedSnapshotId) ? prev : [...prev, selectedSnapshotId]))
+  }, [selectedSnapshotId])
+
+  const onChangeOpenedSnapshot = (snapshotId: string, open: boolean) => {
+    setOpenedSnapshotIds((prev) => {
+      if (open) {
+        return prev.includes(snapshotId) ? prev : [...prev, snapshotId]
+      }
+
+      return prev.filter((id) => id !== snapshotId)
+    })
+
+    if (!open) {
+      return
+    }
     const snapshot = snapshotItems.find((s) => s.id === snapshotId)
     if (snapshot) {
       setSelectedPath(snapshot.pagePath)
@@ -163,7 +185,7 @@ export default function SnapshotReviewPage() {
   }
 
   return (
-    <div className="flex flex-col space-y-3">
+    <div className="flex h-[calc(100vh-148px)] flex-col space-y-3">
       <SnapshotReviewFilters
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -174,8 +196,8 @@ export default function SnapshotReviewPage() {
         hideNewPage={hideNewPage}
         setHideNewPage={setHideNewPage}
       />
-      <ResizablePanelGroup orientation="horizontal" className="min-h-screen w-full rounded-lg border">
-        <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%">
+      <ResizablePanelGroup orientation="horizontal" className="flex-1 rounded-lg border">
+        <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%" className="overflow-auto">
           <SnapshotReviewTree
             snapshotItems={snapshotItems}
             selectedPath={selectedPath}
@@ -184,10 +206,11 @@ export default function SnapshotReviewPage() {
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel>
+        <ResizablePanel className="overflow-hidden">
           <SnapshotReviewContent
             snapshotItems={snapshotItems}
-            openedSnapshotId={selectedSnapshotId}
+            selectedSnapshotId={selectedSnapshotId}
+            openedSnapshotIds={openedSnapshotIds}
             onChangeOpenedSnapshot={onChangeOpenedSnapshot}
             projectId={params.id}
             buildId={params.buildId}

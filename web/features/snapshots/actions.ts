@@ -2,11 +2,14 @@
 
 import { and, count, asc, desc, eq, ilike, type SQL, lt, gt } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
+import { z } from 'zod'
 
+import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
 import { builds, media, snapshots } from '@/db/schema'
 import { syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
+import { UpdateSnapshotNotesSchema } from '@/features/snapshots/schema'
 import { logger } from '@/lib/logger'
 import { getPresignUrl } from '@/lib/s3'
 import { sha256Hex } from '@/lib/utils'
@@ -37,6 +40,7 @@ export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
       browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
+      notes: snapshots.notes,
       screenshotMedia: {
         id: media.id,
         path: media.path,
@@ -135,6 +139,7 @@ export async function listSnapshotsByBuild({
       viewportHeight: snapshots.viewportHeight,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
+      notes: snapshots.notes,
       screenshotMedia: {
         id: media.id,
         path: media.path,
@@ -194,6 +199,7 @@ export async function getSnapshotDetail({
       browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
+      notes: snapshots.notes,
       screenshotMedia: {
         id: media.id,
         path: media.path,
@@ -279,7 +285,34 @@ export async function updateSnapshotApprovalStatus({
     return { ok: true } as const
   } catch (error) {
     logger.error(error)
-    return { ok: false, error: 'Failed to update snapshot approval' } as const
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
+  }
+}
+
+export async function updateSnapshotNotes({ snapshotId, payload }: { snapshotId: string; payload: unknown }) {
+  try {
+    const parseResult = UpdateSnapshotNotesSchema.safeParse(payload)
+    if (!parseResult.success) {
+      return {
+        ok: false,
+        error: z.prettifyError(parseResult.error),
+        errors: z.flattenError(parseResult.error),
+      } as const
+    }
+
+    const { notes } = parseResult.data
+
+    await db
+      .update(snapshots)
+      .set({
+        notes: notes ?? null,
+      })
+      .where(eq(snapshots.id, snapshotId))
+
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
   }
 }
 
