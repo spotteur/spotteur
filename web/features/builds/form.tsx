@@ -87,7 +87,7 @@ export function TriggerBuildForm({ defaultValues, onSubmit, onCancel, isSubmitti
         }}
       />
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={() => onCancel()} disabled={isSubmitting} className="ml-2">
+        <Button type="button" variant="outline" onClick={() => onCancel()} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
@@ -155,7 +155,7 @@ export function UpdateBuildNotesForm({
         }}
       />
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={() => onCancel()} disabled={isSubmitting} className="ml-2">
+        <Button type="button" variant="outline" onClick={() => onCancel()} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
