@@ -22,7 +22,7 @@ export async function getSitemapUrls(sitemapUrl: string): Promise<string[]> {
 
     // Handle sitemap index (contains <sitemap> elements)
     if (result.sitemapindex[0] && result.sitemapindex[0].sitemap) {
-      const sitemapEntries = result.sitemapindex.sitemap
+      const sitemapEntries = result.sitemapindex[0].sitemap
       for (const entry of sitemapEntries) {
         if (entry.loc && entry.loc[0]) {
           const nestedUrl = entry.loc[0]
