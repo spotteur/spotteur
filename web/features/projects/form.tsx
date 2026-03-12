@@ -1,12 +1,13 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { CheckIcon, CopyIcon, Plus, RefreshCcwIcon, X } from 'lucide-react'
+import { CheckIcon, CopyIcon, Import, Plus, RefreshCcwIcon, X } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { type z } from 'zod'
 
 import { BrowserCombobox } from '@/components/browser-combobox'
+import { ImportFromSitemapDialog } from '@/components/import-from-sitemap-dialog'
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -53,6 +54,10 @@ export function ProjectForm({
       onSubmit(value)
     },
   })
+
+  type PagePathsFieldApi = ReturnType<typeof form.getFieldInfo<'pagePaths'>>['instance']
+  const pagePathsFieldRef = useRef<PagePathsFieldApi | null>(null)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
 
   const [copied, setCopied] = useState(false)
   const [regenerated, setRegenerated] = useState(false)
@@ -335,7 +340,20 @@ export function ProjectForm({
             const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor="project-pagePaths">Page Paths</FieldLabel>
+                <div className="flex justify-between">
+                  <FieldLabel htmlFor="project-pagePaths">Page paths</FieldLabel>
+                  <Button
+                    type="button"
+                    size="xs"
+                    onClick={() => {
+                      pagePathsFieldRef.current = field
+                      setImportDialogOpen(true)
+                    }}
+                  >
+                    <Import />
+                    Import from sitemap
+                  </Button>
+                </div>
                 <Textarea
                   id="project-pagePaths"
                   name={field.name}
@@ -406,6 +424,18 @@ export function ProjectForm({
           <Link href="/projects">Cancel</Link>
         </Button>
       </div>
+
+      <ImportFromSitemapDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={(paths) => {
+          if (pagePathsFieldRef.current) {
+            const currentValue = pagePathsFieldRef.current?.state.value
+            const newValue = currentValue ? `${currentValue}\n${paths}` : paths
+            pagePathsFieldRef.current.handleChange(newValue)
+          }
+        }}
+      />
     </form>
   )
 }
