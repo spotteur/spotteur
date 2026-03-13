@@ -16,7 +16,7 @@ import {
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { getSitemapUrls } from '@/lib/sitemap-scan'
+import { scanSitemapUrls } from '@/features/shared/actions/scan-sitemap-urls'
 
 interface ImportFromSitemapDialogProps {
   open: boolean
@@ -49,26 +49,24 @@ export function ImportFromSitemapDialog({ open, onOpenChange, onImport }: Import
     setError(null)
 
     try {
-      // TODO: Call sitemap scanning API route instead of fetching directly from the client
-      //   const urls = await getSitemapUrls(sitemapUrl)
-      //   if (urls.length === 0) {
-      //     setError('No URLs found in the sitemap')
-      //     setIsLoading(false)
-      //     return
-      //   }
+      const urls = await scanSitemapUrls(sitemapUrl)
+      if (urls.length === 0) {
+        setError('No URLs found in the sitemap')
+        setIsLoading(false)
+        return
+      }
 
-      //   // Convert full URLs to paths
-      //   const paths = urls
-      //     .map((url) => {
-      //       try {
-      //         return new URL(url).pathname
-      //       } catch {
-      //         return null
-      //       }
-      //     })
-      //     .filter((path) => path !== null && path !== '/') as string[]
+      // Convert full URLs to paths
+      const paths = urls
+        .map((url) => {
+          try {
+            return new URL(url).pathname
+          } catch {
+            return null
+          }
+        })
+        .filter((path) => path !== null && path !== '/') as string[]
 
-      const paths = ['/', '/pricing', '/about']
       if (paths.length === 0) {
         setError('No valid paths found in the sitemap URLs')
         setIsLoading(false)
