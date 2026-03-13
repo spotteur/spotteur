@@ -22,8 +22,8 @@ export async function scanSitemapUrls(sitemapUrl: string): Promise<string[]> {
     const urls: string[] = []
 
     // Handle sitemap index (contains <sitemap> elements)
-    if (result.sitemapindex[0] && result.sitemapindex[0].sitemap) {
-      const sitemapEntries = result.sitemapindex[0].sitemap
+    if (result.sitemapindex && result.sitemapindex.sitemap) {
+      const sitemapEntries = result.sitemapindex.sitemap
       for (const entry of sitemapEntries) {
         if (entry.loc && entry.loc[0]) {
           const nestedUrl = entry.loc[0]
@@ -35,8 +35,8 @@ export async function scanSitemapUrls(sitemapUrl: string): Promise<string[]> {
     }
 
     // Handle single sitemap (contains <url> elements)
-    if (result.urlset[0] && result.urlset[0].url) {
-      const urlEntries = result.urlset[0].url
+    if (result.urlset && result.urlset.url) {
+      const urlEntries = result.urlset.url
       for (const entry of urlEntries) {
         if (entry.loc && entry.loc[0]) {
           urls.push(entry.loc[0])
