@@ -88,22 +88,14 @@ export default function BuildDetailSnapshotsPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>
-                {buildData.identifier}
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Snapshots</BreadcrumbPage>
+            <BreadcrumbPage>{buildData.identifier}</BreadcrumbPage>
           </BreadcrumbItem>
         </>
       ) : null,
     [projectData, buildData, params],
   )
-
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
+
   const navigations = useMemo<NavigationType[]>(
     () => snapshotsMenu(params.id, params.buildId),
     [params.id, params.buildId],

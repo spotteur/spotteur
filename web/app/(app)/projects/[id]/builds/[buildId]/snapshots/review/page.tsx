@@ -151,12 +151,6 @@ export default function SnapshotReviewPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots`}>Snapshots</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
             <BreadcrumbPage>Review Changes</BreadcrumbPage>
           </BreadcrumbItem>
         </>
