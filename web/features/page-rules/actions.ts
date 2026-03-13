@@ -103,6 +103,7 @@ export async function manageRule({ projectId, payload }: { projectId: string; pa
         rules: sql.raw(`excluded.${pageRules.rules.name}`),
         hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
         hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
+        proxy: sql.raw(`excluded.${pageRules.proxy.name}`),
       },
     })
     .returning()
@@ -110,8 +111,21 @@ export async function manageRule({ projectId, payload }: { projectId: string; pa
   return { ok: true, data: upsert }
 }
 
-export async function deletePageRule(id: string) {
-  await db.delete(pageRules).where(eq(pageRules.id, id))
+export async function deletePageRule({ projectId, id }: { projectId: string; id: string }) {
+  await db.transaction(async (tx) => {
+    await tx.delete(pageRules).where(and(eq(pageRules.id, id), eq(pageRules.projectId, projectId)))
+
+    const pageRuleRows = await tx
+      .select({ pagePath: pageRules.pagePath })
+      .from(pageRules)
+      .where(eq(pageRules.projectId, projectId))
+      .orderBy(desc(pageRules.createdAt))
+
+    await tx
+      .update(projects)
+      .set({ pagePaths: pageRuleRows.map((p) => p.pagePath) })
+      .where(eq(projects.id, projectId))
+  })
   return { ok: true }
 }
 
@@ -144,6 +158,7 @@ export async function upsertPageRules(schema: string, projectId: string) {
           rules: sql.raw(`excluded.${pageRules.rules.name}`),
           hookAfterPageLoad: sql.raw(`excluded.${pageRules.hookAfterPageLoad.name}`),
           hookBeforeScreenshot: sql.raw(`excluded.${pageRules.hookBeforeScreenshot.name}`),
+          proxy: sql.raw(`excluded.${pageRules.proxy.name}`),
         },
       })
       .returning({ id: pageRules.id })

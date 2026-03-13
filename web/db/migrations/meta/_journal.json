@@ -127,6 +127,13 @@
       "when": 1773124513022,
       "tag": "0017_aspiring_colonel_america",
       "breakpoints": false
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1773200000000,
+      "tag": "0018_lucky_patch",
+      "breakpoints": false
     }
   ]
 }

@@ -85,6 +85,7 @@ export function ManagePageContent({
             rules: selectedPageRule.rules,
             hookAfterPageLoad: selectedPageRule.hookAfterPageLoad,
             hookBeforeScreenshot: selectedPageRule.hookBeforeScreenshot,
+            proxy: selectedPageRule.proxy,
           }}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
