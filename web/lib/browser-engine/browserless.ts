@@ -3,7 +3,7 @@ import { chromium, firefox } from 'playwright-core'
 import { Browser } from '@/constants/enum'
 import { BROWSERLESS_TOKEN, BROWSERLESS_WS_ENDPOINT } from '@/constants/env'
 import { UnsupportedBrowserTypeError } from '@/lib/browser-engine'
-import { PlaywrightBrowserEngine } from '@/lib/browser-engine/playwright'
+import { PlaywrightBrowserEngine, PlaywrightBrowserEngineFactory } from '@/lib/browser-engine/playwright'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 export class BrowserlessBrowserEngine extends PlaywrightBrowserEngine {}
@@ -20,12 +20,7 @@ export class BrowserlessBrowserEngineFactory {
       throw new UnsupportedBrowserTypeError(browserType)
     }
 
-    const browserContext = await browser.newContext({
-      viewport: {
-        width: payload.viewportWidth,
-        height: payload.viewportHeight,
-      },
-    })
+    const browserContext = await PlaywrightBrowserEngineFactory.createBrowserContext(browser, payload)
     const page = await browserContext.newPage()
 
     return new BrowserlessBrowserEngine(browser, page)

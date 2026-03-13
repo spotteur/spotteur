@@ -161,6 +161,42 @@ export const HookAfterPageLoadSchema = z.string().nullable().optional()
 
 export const HookBeforeScreenshotSchema = z.string().nullable().optional()
 
+export const ProxySchema = z
+  .string()
+  .nullable()
+  .optional()
+  .transform((value) => value?.trim() || null)
+  .superRefine((value, ctx) => {
+    if (!value) {
+      return z.NEVER
+    }
+
+    try {
+      const proxyUrl = new URL(value.match(/^[a-zA-Z][a-zA-Z\d+.-]*:\/\//) ? value : `http://${value}`)
+      if (proxyUrl.username) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Only unauthenticated proxies are supported',
+        })
+        return z.NEVER
+      }
+
+      if (proxyUrl.protocol !== 'http:') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Only HTTP proxies are supported',
+        })
+        return z.NEVER
+      }
+    } catch {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Invalid proxy format. Expected format is host:port or protocol://host:port',
+      })
+      return z.NEVER
+    }
+  })
+
 export const PageRuleBaseSchema = z.object({
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,
@@ -170,6 +206,7 @@ export const PageRuleBaseSchema = z.object({
   rules: RulesSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
+  proxy: ProxySchema,
 })
 
 export type PageRuleFormInput = z.input<typeof PageRuleBaseSchema>

@@ -113,6 +113,7 @@ export const pageRules = pgTable(
       .default(sql`'[]'::jsonb`),
     hookAfterPageLoad: text('hook_after_page_load'),
     hookBeforeScreenshot: text('hook_before_screenshot'),
+    proxy: text('proxy'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

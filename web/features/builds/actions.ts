@@ -284,6 +284,7 @@ export async function populateSnapshotsPayload({
           fileName,
           reducedMotion: pageRule?.reducedMotion || false,
           mediaReset: pageRule?.mediaReset || false,
+          proxy: pageRule?.proxy ?? undefined,
           rules: pageRule?.rules,
           hooks: {
             'after-page-load': pageRule?.hookAfterPageLoad ?? undefined,

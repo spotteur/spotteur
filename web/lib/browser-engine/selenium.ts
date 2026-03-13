@@ -1,4 +1,4 @@
-import { Builder, By, until, Browser as SeleniumBrowser } from 'selenium-webdriver'
+import { Builder, By, until, Browser as SeleniumBrowser, type ProxyConfig } from 'selenium-webdriver'
 import chrome from 'selenium-webdriver/chrome'
 import edge from 'selenium-webdriver/edge'
 import firefox from 'selenium-webdriver/firefox'
@@ -183,6 +183,7 @@ export class SeleniumBrowserEngineFactory {
       .addArguments('--disable-dev-shm-usage') //https://stackoverflow.com/a/50725918/1689770
       .addArguments('--disable-browser-side-navigation') //https://stackoverflow.com/a/49123152/1689770
       .addArguments('--disable-gpu') //https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
+
     firefoxOpts.windowSize(windowSize).addArguments('--headless').addArguments('--no-sandbox')
     edgeOpts
       // Edge needs a bit more width to ensure the screenshot width is correct
@@ -193,6 +194,19 @@ export class SeleniumBrowserEngineFactory {
     const browser = payload.browser
 
     const builder = new Builder().usingServer(SELENIUM_REMOTE_URL)
+
+    if (payload.proxy) {
+      const proxyUrl = new URL(payload.proxy)
+      const hostWithPort = `${proxyUrl.hostname}${proxyUrl.port ? `:${proxyUrl.port}` : ''}`
+      const proxyConfig: ProxyConfig = {
+        proxyType: 'manual',
+        httpProxy: hostWithPort,
+        sslProxy: hostWithPort,
+        ftpProxy: hostWithPort,
+      }
+
+      builder.setProxy(proxyConfig)
+    }
 
     let driver
     if (browser.toString() === Browser.CHROME) {

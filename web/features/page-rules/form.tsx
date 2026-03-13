@@ -156,6 +156,7 @@ export function PageRuleForm({
   const [viewportsSectionOpen, setViewportsSectionOpen] = useState(false)
   const [rulesSectionOpen, setRulesSectionOpen] = useState(false)
   const [hooksSectionOpen, setHooksSectionOpen] = useState(false)
+  const [proxySectionOpen, setProxySectionOpen] = useState(false)
 
   const openSectionsWithInvalidFields = (fieldNames: string[]) => {
     if (hasErrorForPrefixes(fieldNames, ['viewports'])) {
@@ -168,6 +169,10 @@ export function PageRuleForm({
 
     if (hasErrorForPrefixes(fieldNames, ['hookAfterPageLoad', 'hookBeforeScreenshot'])) {
       setHooksSectionOpen(true)
+    }
+
+    if (hasErrorForPrefixes(fieldNames, ['proxy'])) {
+      setProxySectionOpen(true)
     }
   }
 
@@ -196,6 +201,7 @@ export function PageRuleForm({
   const hasServerViewportsErrors = hasErrorForPrefixes(serverFieldErrorKeys, ['viewports'])
   const hasServerRulesErrors = hasErrorForPrefixes(serverFieldErrorKeys, ['rules'])
   const hasServerHooksErrors = hasErrorForPrefixes(serverFieldErrorKeys, ['hookAfterPageLoad', 'hookBeforeScreenshot'])
+  const hasServerProxyErrors = hasErrorForPrefixes(serverFieldErrorKeys, ['proxy'])
 
   const isFormDirty = useStore(form.store, (state) => state.isDirty)
   useEffect(() => {
@@ -747,6 +753,53 @@ export function PageRuleForm({
                         value={field.state.value ?? undefined}
                         onChange={(value) => field.handleChange(value)}
                       />
+                      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    </Field>
+                  )
+                }}
+              />
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      <Card>
+        <Collapsible open={proxySectionOpen || hasServerProxyErrors} onOpenChange={setProxySectionOpen}>
+          <CardHeader>
+            <CardTitle>Proxy</CardTitle>
+            <CardDescription>Configure a proxy server to be used when accessing the page.</CardDescription>
+            <CardAction>
+              <CollapsibleTrigger asChild className="group">
+                <Button type="button" variant="ghost" size="icon-sm">
+                  <ChevronDown className="transition-transform group-data-[state=open]:rotate-180" />
+                  <span className="sr-only">Toggle</span>
+                </Button>
+              </CollapsibleTrigger>
+            </CardAction>
+          </CardHeader>
+          <CollapsibleContent asChild>
+            <CardContent className="pt-6">
+              <form.Field
+                name="proxy"
+                children={(field) => {
+                  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                  return (
+                    <Field data-invalid={isInvalid}>
+                      <FieldLabel htmlFor="pageRule-proxy">Proxy server</FieldLabel>
+                      <Input
+                        id="pageRule-proxy"
+                        name={field.name}
+                        value={field.state.value ?? ''}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value || null)}
+                        placeholder="http://1.1.1.1:8080"
+                        aria-invalid={isInvalid}
+                      />
+                      <FieldDescription>
+                        Only unauthenticated HTTP proxies are supported. Accepted format{' '}
+                        <code className="font-mono">host:port</code> or{' '}
+                        <code className="font-mono">protocol://host:port</code>.
+                      </FieldDescription>
                       {isInvalid && <FieldError errors={field.state.meta.errors} />}
                     </Field>
                   )

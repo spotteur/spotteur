@@ -147,14 +147,23 @@ export class PlaywrightBrowserEngineFactory {
       throw new UnsupportedBrowserTypeError(browserType)
     }
 
-    const browserContext = await browser.newContext({
+    const browserContext = await PlaywrightBrowserEngineFactory.createBrowserContext(browser, payload)
+    const page = await browserContext.newPage()
+
+    return new PlaywrightBrowserEngine(browser, page)
+  }
+
+  static async createBrowserContext(browser: PlaywrightBrowser, payload: SnapshotPayload) {
+    return await browser.newContext({
       viewport: {
         width: payload.viewportWidth,
         height: payload.viewportHeight,
       },
+      proxy: payload.proxy
+        ? {
+            server: payload.proxy,
+          }
+        : undefined,
     })
-    const page = await browserContext.newPage()
-
-    return new PlaywrightBrowserEngine(browser, page)
   }
 }

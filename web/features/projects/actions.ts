@@ -72,7 +72,7 @@ export async function createProject(input: unknown) {
   const token = 'sptpt_' + crypto.randomUUID().replaceAll('-', '')
 
   const project = await db.transaction(async (tx) => {
-    const [project] = await db
+    const [project] = await tx
       .insert(projects)
       .values({
         ...parsed.data,

@@ -14,6 +14,7 @@ export type SnapshotPayload = Pick<
   fileName: string
   reducedMotion: boolean
   mediaReset: boolean
+  proxy?: string
   rules?: NonNullable<z.infer<typeof SpotteurGlobalVariablesSchema>['options']>['rules']
   hooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']
   globalHooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']

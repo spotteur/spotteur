@@ -137,7 +137,7 @@ export default function ManagePages() {
 
   const [pendingDeletePage, setPendingDeletePage] = useState<{ id: string; path: string } | null>(null)
   const deletePageMutation = useMutation({
-    mutationFn: (id: string) => deletePageRule(id),
+    mutationFn: (id: string) => deletePageRule({ projectId: params.id, id }),
     onSuccess: (res) => {
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
