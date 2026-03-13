@@ -16,9 +16,8 @@ import {
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { scanSitemapUrls } from '@/features/shared/actions/scan-sitemap-urls'
-import { cn } from '@/lib/utils'
 
-import { Textarea } from './ui/textarea'
+import { Input } from './ui/input'
 
 interface ImportFromSitemapDialogProps {
   open: boolean
@@ -97,8 +96,7 @@ export function ImportFromSitemapDialog({ open, onOpenChange, onImport }: Import
 
         <Field data-invalid={!!error}>
           <FieldLabel htmlFor="sitemap-url">Sitemap URL</FieldLabel>
-          <Textarea
-            className={cn('max-h-64', 'overflow-y-auto')}
+          <Input
             id="sitemap-url"
             placeholder="https://example.com/sitemap.xml"
             value={sitemapUrl}

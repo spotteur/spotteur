@@ -137,6 +137,7 @@ export function CreatePageRuleForm({
               </div>
               <Textarea
                 id="createPage-pagePaths"
+                className="max-h-64"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
