@@ -3,6 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, X, Search } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ import { usePagination } from '@/hooks/use-pagination'
 import { type NavigationType } from '@/types/app'
 
 export default function ProjectsPage() {
+  const router = useRouter()
   const queryClient = useQueryClient()
   const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({})
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
@@ -120,6 +122,7 @@ export default function ProjectsPage() {
           columns={columns}
           data={data?.data ?? []}
           rowCount={data?.total ?? 0}
+          onRowClick={(row) => router.push(`/projects/${row.id}`)}
         />
       )}
 

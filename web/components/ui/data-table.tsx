@@ -19,6 +19,15 @@ interface DataTableProps<TData, TValue> {
   pagination: PaginationState
   rowCount: number
   onPaginationChange: OnChangeFn<PaginationState>
+  onRowClick?: (row: TData) => void
+}
+
+function isInteractiveElement(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false
+  }
+
+  return !!target.closest('a,button,[role="button"],[role="link"]')
 }
 
 export function DataTable<TData, TValue>({
@@ -27,6 +36,7 @@ export function DataTable<TData, TValue>({
   pagination,
   rowCount,
   onPaginationChange,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -60,13 +70,30 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={onRowClick ? 'cursor-pointer' : undefined}
+                    onClick={
+                      onRowClick
+                        ? (event) => {
+                            if (isInteractiveElement(event.target)) {
+                              return
+                            }
+
+                            onRowClick(row.original)
+                          }
+                        : undefined
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                )
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">

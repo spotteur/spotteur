@@ -1,11 +1,17 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, MoreHorizontal } from 'lucide-react'
+import { Cog, Edit, Eye, List, MoreHorizontal, Trash, Workflow } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { type projects } from '@/db/schema'
 
 export function getColumns(
@@ -38,20 +44,34 @@ export function getColumns(
         const name = row.original.name
         return (
           <div className="flex items-center justify-end gap-2">
-            <Link href={`/projects/${id}`} className="cursor-pointer">
-              <Button variant="ghost" size="sm">
-                <Eye className="size-4" />
-                View
-              </Button>
-            </Link>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/projects/${id}`}>
+                <Edit />
+                Edit
+              </Link>
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="size-4" />
+                  <MoreHorizontal />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onRequestDelete({ id, name })} variant="destructive">
+                <DropdownMenuItem asChild>
+                  <Link href={`/projects/${id}/builds`}>
+                    <Cog />
+                    Pages
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/projects/${id}/builds`}>
+                    <Workflow />
+                    Builds
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={() => onRequestDelete({ id, name })}>
+                  <Trash />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
