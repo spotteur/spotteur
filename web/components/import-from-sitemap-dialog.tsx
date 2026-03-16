@@ -17,7 +17,7 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { scanSitemapUrls } from '@/features/shared/actions/scan-sitemap-urls'
 
-import { Input } from './ui/input'
+import { Input } from '@/components/ui/input'
 
 interface ImportFromSitemapDialogProps {
   open: boolean
