@@ -14,10 +14,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { scanSitemapUrls } from '@/features/shared/actions/scan-sitemap-urls'
-
-import { Input } from '@/components/ui/input'
 
 interface ImportFromSitemapDialogProps {
   open: boolean
