@@ -1,12 +1,13 @@
 'use client'
 
 import { useForm, useStore } from '@tanstack/react-form'
-import { ChevronDown, Info, MoreHorizontal, Plus, Trash, X } from 'lucide-react'
+import { ChevronDown, Import, Info, MoreHorizontal, Plus, Trash, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type z } from 'zod'
 
 import { BrowserCombobox } from '@/components/browser-combobox'
+import { ImportFromSitemapDialog } from '@/components/import-from-sitemap-dialog'
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -98,6 +99,10 @@ export function CreatePageRuleForm({
     },
   })
 
+  type PagePathsFieldApi = ReturnType<typeof form.getFieldInfo<'pagePaths'>>['instance']
+  const pagePathsFieldRef = useRef<PagePathsFieldApi | null>(null)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+
   useEffect(() => {
     setFormErrors<PageRuleCreateFormInput>(form, errors)
   }, [errors, form])
@@ -116,9 +121,23 @@ export function CreatePageRuleForm({
           const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
           return (
             <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor="createPage-pagePaths">Page paths</FieldLabel>
+              <div className="flex justify-between">
+                <FieldLabel htmlFor="createPage-pagePaths">Page paths</FieldLabel>
+                <Button
+                  type="button"
+                  size="xs"
+                  onClick={() => {
+                    pagePathsFieldRef.current = field
+                    setImportDialogOpen(true)
+                  }}
+                >
+                  <Import />
+                  Import from sitemap
+                </Button>
+              </div>
               <Textarea
                 id="createPage-pagePaths"
+                className="max-h-64"
                 name={field.name}
                 value={field.state.value}
                 onBlur={field.handleBlur}
@@ -140,6 +159,18 @@ export function CreatePageRuleForm({
           Cancel
         </Button>
       </div>
+
+      <ImportFromSitemapDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={(paths) => {
+          if (pagePathsFieldRef.current) {
+            const currentValue = pagePathsFieldRef.current.state.value
+            const newValue = currentValue ? `${currentValue}\n${paths}` : paths
+            pagePathsFieldRef.current.handleChange(newValue)
+          }
+        }}
+      />
     </form>
   )
 }
