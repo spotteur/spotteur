@@ -16,7 +16,6 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus, SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
@@ -29,7 +28,7 @@ import { cn } from '@/lib/utils'
 
 export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect | null }) {
   const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({
-    defaultPageSize: 6,
+    defaultPageSize: 12,
   })
   const [isApprovalStatusFilterOpen, setIsApprovalStatusFilterOpen] = useState(false)
   const [pendingSearch, setPendingSearch] = useQueryState('search', parseAsString.withDefault(''))
@@ -175,7 +174,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
             </div>
           )}
         </div>
-        <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
+        <DataTablePagination table={table} pageSizeOptions={[12, 24, 48]} />
       </CardContent>
     </Card>
   )

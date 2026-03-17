@@ -1,7 +1,7 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, MoreHorizontal } from 'lucide-react'
+import { Eye, MoreHorizontal, Trash } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -51,7 +51,8 @@ export function getColumns(
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onRequestDelete({ id, name })} variant="destructive">
+                <DropdownMenuItem variant="destructive" onClick={() => onRequestDelete({ id, name })}>
+                  <Trash />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>

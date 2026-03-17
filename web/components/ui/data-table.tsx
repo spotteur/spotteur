@@ -19,6 +19,7 @@ interface DataTableProps<TData, TValue> {
   pagination: PaginationState
   rowCount: number
   onPaginationChange: OnChangeFn<PaginationState>
+  pageSizeOptions?: number[]
 }
 
 export function DataTable<TData, TValue>({
@@ -27,6 +28,7 @@ export function DataTable<TData, TValue>({
   pagination,
   rowCount,
   onPaginationChange,
+  pageSizeOptions,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -77,7 +79,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
     </div>
   )
 }

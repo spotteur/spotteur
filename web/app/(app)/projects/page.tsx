@@ -24,7 +24,7 @@ import { type NavigationType } from '@/types/app'
 
 export default function ProjectsPage() {
   const queryClient = useQueryClient()
-  const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({})
+  const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({ defaultPageSize: 10 })
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null)
 
   const columns = useMemo(
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
         </div>
         <Button size="sm" asChild>
           <Link href="/projects/create">
-            <Plus className="mr-2 size-4" />
+            <Plus />
             Create Project
           </Link>
         </Button>
@@ -120,6 +120,7 @@ export default function ProjectsPage() {
           columns={columns}
           data={data?.data ?? []}
           rowCount={data?.total ?? 0}
+          pageSizeOptions={[10, 25, 50]}
         />
       )}
 
