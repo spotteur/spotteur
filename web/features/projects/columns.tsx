@@ -1,7 +1,7 @@
 'use client'
 
 import { type ColumnDef } from '@tanstack/react-table'
-import { Cog, Edit, Eye, List, MoreHorizontal, Trash, Workflow } from 'lucide-react'
+import { Cog, Edit, MoreHorizontal, Trash, Workflow } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'

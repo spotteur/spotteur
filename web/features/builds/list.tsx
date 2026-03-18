@@ -13,7 +13,6 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PAGE_SIZE_OPTIONS } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 import { type builds } from '@/db/schema'
 import { listBuildsByProject } from '@/features/builds/actions'
@@ -26,7 +25,7 @@ import { TriggerBuildDialog } from './trigger-build-dialog'
 
 export function BuildListCard({ projectId, baseUrl }: { projectId?: string; baseUrl?: string }) {
   const { page, pageSize, pagination, resetPagination, onPaginationChange } = usePagination({
-    defaultPageSize: 6,
+    defaultPageSize: 15,
   })
   const [pendingSearch, setPendingSearch] = useQueryState('search', parseAsString.withDefault(''))
   const search = useDebounce(pendingSearch, 300)
@@ -111,7 +110,7 @@ export function BuildListCard({ projectId, baseUrl }: { projectId?: string; base
                 )
               })}
             </div>
-            <DataTablePagination table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} />
+            <DataTablePagination table={table} pageSizeOptions={[15, 30, 60]} />
           </>
         )}
       </CardContent>
