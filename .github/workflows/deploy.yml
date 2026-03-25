@@ -1,0 +1,57 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_app:
+        description: Application to deploy
+        required: true
+        type: choice
+        options:
+          - staging
+          - anmm
+          - agriwebb
+          - slnsw
+        default: staging
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.app_name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target_app: staging
+            app_name: Staging
+            app_path: /opt/spotteur-staging
+            target_branch: develop
+          - target_app: anmm
+            app_name: Production - ANMM
+            app_path: /opt/spotteur-anmm
+            # TODO: Switch to main when ready
+            target_branch: develop
+          - target_app: agriwebb
+            app_name: Production - Agriwebb
+            app_path: /opt/spotteur-agriwebb
+            # TODO: Switch to main when ready
+            target_branch: develop
+          - target_app: slnsw
+            app_name: Production - SLNSW
+            app_path: /opt/spotteur-slnsw
+            # TODO: Switch to main when ready
+            target_branch: develop
+    steps:
+      - name: Deploy
+        if: |
+          (github.event_name == 'workflow_dispatch' && inputs.target_app == matrix.target_app) ||
+          (github.event_name == 'push' && github.ref == format('refs/heads/{0}', matrix.target_branch))
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: cd ${{ matrix.app_path }} && git stash && git checkout ${{ matrix.target_branch }} && git pull origin ${{ matrix.target_branch }} && task up
