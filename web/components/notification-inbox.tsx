@@ -13,8 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { THEME_DARK } from '@/constants/app'
-import { NOVU_APP_IDENTIFIER, NOVU_BACKEND_URL, NOVU_WS_URL } from '@/constants/env'
 import { authClient } from '@/lib/auth-client'
+import { getPublicEnv } from '@/lib/public-env'
 
 const MotionBellIcon = motion.create(Bell)
 
@@ -53,6 +53,8 @@ export default function NotificationInbox() {
   const [subscriber, setSubscriber] = useState<Subscriber | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const { resolvedTheme } = useTheme()
+
+  const { NOVU_APP_IDENTIFIER, NOVU_BACKEND_URL, NOVU_WS_URL } = getPublicEnv()
 
   useEffect(() => {
     const fetchSubscriber = async () => {

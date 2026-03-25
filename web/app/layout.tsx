@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 
 import '@/app/globals.css'
 import { Providers } from '@/app/providers'
+import { PublicEnv } from '@/lib/public-env'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <PublicEnv />
         <Providers>{children}</Providers>
       </body>
     </html>

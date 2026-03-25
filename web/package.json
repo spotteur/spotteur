@@ -45,6 +45,7 @@
     "lucide-react": "^0.561.0",
     "motion": "^12.30.0",
     "next": "^16.0.10",
+    "next-public-env": "^1.1.0",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.11",
     "novu": "^2.7.0",
