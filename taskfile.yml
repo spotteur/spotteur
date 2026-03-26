@@ -12,6 +12,8 @@ vars:
       fi
   IMAGE_TAG:
     sh: echo "{{.IMAGE_TAG | default "latest"}}"
+  SPOTTEUR_DOCKER_IMAGE_NAMESPACE:
+    sh: echo "{{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE | default "ghcr.io/spotteur"}}"
   DOCKER_BUILD_ARGS:
     sh: echo "NPM_CONFIG_REGISTRY={{.NPM_CONFIG_REGISTRY | default "https://registry.npmjs.org"}}"
 tasks:
