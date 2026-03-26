@@ -18,7 +18,10 @@ This project are using [Dev Containers](https://code.visualstudio.com/docs/devco
   ```bash
   openssl rand -base64 32
   ```
-- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Novu account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
+  <<<<<<< HEAD
+- # Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Novu account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
+- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Nuvo account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
+  > > > > > > > 4f11b40 (Update docker & env setup for improved deployment process)
 - Run `task up` to start all services
 - Open the project folder in VS Code
 - Open VS Code command pallete (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows and Linux), then run **Reopen in Container**
