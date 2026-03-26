@@ -9,7 +9,7 @@ services:
     pull_policy: "build"
     ports:
       - "${WEBAPP_EMAIL_PORT:-18005}:3001"
-      - "${WEBAPP_NUVO_PORT:-18006}:3002"
+      - "${WEBAPP_NOVU_PORT:-18006}:3002"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
       interval: 3s

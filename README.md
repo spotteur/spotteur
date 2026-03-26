@@ -18,7 +18,7 @@ This project are using [Dev Containers](https://code.visualstudio.com/docs/devco
   ```bash
   openssl rand -base64 32
   ```
-- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Nuvo account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
+- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Novu account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
 - Run `task up` to start all services
 - Open the project folder in VS Code
 - Open VS Code command pallete (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows and Linux), then run **Reopen in Container**
@@ -55,7 +55,7 @@ This project are using [Dev Containers](https://code.visualstudio.com/docs/devco
 - http://localhost:18003: RustFS console, available to help manage S3-compatible storage
 - http://localhost:18004: InBucket, available to help view email for testing
 - http://localhost:18005: React Email, available to help design email components
-- http://localhost:18006: Nuvo local studio, available to help test Nuvo workflows locally
+- http://localhost:18006: Novu local studio, available to help test Novu workflows locally
 
 ## Production Setup
 
@@ -65,4 +65,4 @@ This project are using [Dev Containers](https://code.visualstudio.com/docs/devco
   ```bash
   openssl rand -base64 32
   ```
-- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Nuvo account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
+- Configure `NOVU_SECRET_KEY` and `NOVU_APP_IDENTIFIER`. If you don't have one, you may need to create Novu account at https://dashboard.novu.co/auth/sign-up. Check this docs on how to get your secret keys https://docs.novu.co/platform/developer/api-keys.
