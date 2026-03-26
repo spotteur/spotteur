@@ -25,18 +25,18 @@ export const SMTP_PASSWORD = process.env.SMTP_PASSWORD || ''
 export const SMTP_FROM = process.env.SMTP_FROM || ''
 export const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465
 
-export const NOVU_SECRET_KEY = process.env.NOVU_SECRET_KEY || ''
-export const NOVU_APP_IDENTIFIER = process.env.NEXT_PUBLIC_NOVU_APP_IDENTIFIER || ''
-export const NOVU_BACKEND_URL = process.env.NEXT_PUBLIC_NOVU_BACKEND_URL || 'https://api.novu.co'
-export const NOVU_WS_URL = process.env.NEXT_PUBLIC_NOVU_WS_URL || 'wss://ws.novu.co'
+export const NOVU_SECRET_KEY = process.env.NOVU_SECRET_KEY || 'invalid-novu-secret-key'
+export const NOVU_APP_IDENTIFIER = process.env.NOVU_APP_IDENTIFIER || ''
+export const NOVU_BACKEND_URL = process.env.NOVU_BACKEND_URL || 'https://api.novu.co'
+export const NOVU_WS_URL = process.env.NOVU_WS_URL || 'wss://ws.novu.co'
 
-export const TEMPORAL_ADDRESS = process.env.TEMPORAL_ADDRESS || ''
+export const TEMPORAL_ADDRESS = process.env.TEMPORAL_ADDRESS || 'temporal:7233'
 
 export const SELENIUM_REMOTE_URL = process.env.SELENIUM_REMOTE_URL || ''
 
 export const TRUSTED_ORIGINS = (process.env.TRUSTED_ORIGINS || APP_URL || '').split(',').map((origin) => origin.trim())
 
-export const DISABLE_REGISTRATION = process.env.NEXT_PUBLIC_DISABLE_REGISTRATION === 'true'
+export const DISABLE_REGISTRATION = process.env.APP_DISABLE_REGISTRATION === 'true'
 
 export const BROWSER_ENGINE_TYPE = process.env.BROWSER_ENGINE_TYPE || ''
 

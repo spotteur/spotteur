@@ -8,7 +8,8 @@ FROM node:${NODE_VERSION}-slim AS base
 FROM base AS deps
 WORKDIR /app
 
-
+ARG NPM_CONFIG_REGISTRY
+ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
@@ -24,25 +25,8 @@ RUN npm ci
 FROM deps AS development
 WORKDIR /app
 
-# Environment variables must be present at build time
-# https://github.com/vercel/next.js/discussions/14030
-ARG NEXT_PUBLIC_DISABLE_REGISTRATION
-ARG NEXT_PUBLIC_NOVU_APP_IDENTIFIER
-ARG NEXT_PUBLIC_NOVU_BACKEND_URL
-ARG NEXT_PUBLIC_NOVU_WS_URL
-ARG NOVU_SECRET_KEY
-ARG BETTER_AUTH_SECRET
-ARG S3_ENDPOINT
-ARG TEMPORAL_ADDRESS
-
-ENV NEXT_PUBLIC_DISABLE_REGISTRATION=${NEXT_PUBLIC_DISABLE_REGISTRATION}
-ENV NEXT_PUBLIC_NOVU_APP_IDENTIFIER=${NEXT_PUBLIC_NOVU_APP_IDENTIFIER}
-ENV NEXT_PUBLIC_NOVU_BACKEND_URL=${NEXT_PUBLIC_NOVU_BACKEND_URL}
-ENV NEXT_PUBLIC_NOVU_WS_URL=${NEXT_PUBLIC_NOVU_WS_URL}
-ENV NOVU_SECRET_KEY=${NOVU_SECRET_KEY}
-ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-ENV S3_ENDPOINT=${S3_ENDPOINT}
-ENV TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS}
+ARG NPM_CONFIG_REGISTRY
+ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -70,25 +54,8 @@ CMD ["npm", "run", "dev"]
 FROM base AS builder
 WORKDIR /app
 
-# Environment variables must be present at build time
-# https://github.com/vercel/next.js/discussions/14030
-ARG NEXT_PUBLIC_DISABLE_REGISTRATION
-ARG NEXT_PUBLIC_NOVU_APP_IDENTIFIER
-ARG NEXT_PUBLIC_NOVU_BACKEND_URL
-ARG NEXT_PUBLIC_NOVU_WS_URL
-ARG NOVU_SECRET_KEY
-ARG BETTER_AUTH_SECRET
-ARG S3_ENDPOINT
-ARG TEMPORAL_ADDRESS
-
-ENV NEXT_PUBLIC_DISABLE_REGISTRATION=${NEXT_PUBLIC_DISABLE_REGISTRATION}
-ENV NEXT_PUBLIC_NOVU_APP_IDENTIFIER=${NEXT_PUBLIC_NOVU_APP_IDENTIFIER}
-ENV NEXT_PUBLIC_NOVU_BACKEND_URL=${NEXT_PUBLIC_NOVU_BACKEND_URL}
-ENV NEXT_PUBLIC_NOVU_WS_URL=${NEXT_PUBLIC_NOVU_WS_URL}
-ENV NOVU_SECRET_KEY=${NOVU_SECRET_KEY}
-ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-ENV S3_ENDPOINT=${S3_ENDPOINT}
-ENV TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS}
+ARG NPM_CONFIG_REGISTRY
+ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -98,8 +65,35 @@ COPY . .
 
 RUN npm run build
 
+FROM base AS production-script-runner
+LABEL org.opencontainers.image.source=https://github.com/spotteur/spotteur
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=deps /usr/local/bin/task /usr/local/bin
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Remove unused dependencies to reduce image size (could save up to ~35%)
+RUN rm -rf /opt/yarn-* \
+    node_modules/@img \
+    node_modules/@next \
+    node_modules/@novu \
+    node_modules/@react-email \
+    node_modules/@swc \
+    node_modules/date-fns \
+    node_modules/lucide-react \
+    node_modules/monaco-editor \
+    node_modules/next \
+    node_modules/prettier \
+    node_modules/prettier-plugin-tailwindcss
+RUN npm cache clean --force
+
+CMD ["/bin/sh", "-c", "echo 'This image is meant to be used as a base for running scripts. Please set the command to run your script.' && exit 1"]
 
 FROM node:${NODE_VERSION}-alpine AS production
+LABEL org.opencontainers.image.source=https://github.com/spotteur/spotteur
 WORKDIR /app
 
 ENV NODE_ENV=production
