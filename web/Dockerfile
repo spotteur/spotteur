@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-# check=skip=SecretsUsedInArgOrEnv
 
 ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-slim AS base
@@ -77,12 +76,8 @@ COPY . .
 
 # Remove unused dependencies to reduce image size (could save up to ~35%)
 RUN rm -rf /opt/yarn-* \
-    node_modules/@img \
     node_modules/@next \
-    node_modules/@novu \
     node_modules/@react-email \
-    node_modules/@swc \
-    node_modules/date-fns \
     node_modules/lucide-react \
     node_modules/monaco-editor \
     node_modules/next \
