@@ -12,9 +12,12 @@ const { getExistingSnapshot, takeScreenshot, processScreenshot } = proxyActiviti
   },
 })
 
-export async function screenshotWorkflow({ payload }: ScreenshotWorkflowParams): Promise<ScreenshotWorkflowResult> {
+export async function screenshotWorkflow({
+  payload,
+  isRetrying,
+}: ScreenshotWorkflowParams): Promise<ScreenshotWorkflowResult> {
   const existingSnapshot = await getExistingSnapshot({ snapshotId: payload.id })
-  if (existingSnapshot) {
+  if (existingSnapshot && !isRetrying) {
     return { snapshot: existingSnapshot }
   }
 

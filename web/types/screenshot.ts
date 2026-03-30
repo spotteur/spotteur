@@ -22,6 +22,7 @@ export type SnapshotPayload = Pick<
 
 export interface ScreenshotWorkflowParams {
   payload: SnapshotPayload
+  isRetrying?: boolean
 }
 
 export interface ScreenshotWorkflowResult {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
+import { CheckCircle2, XCircle, RotateCcw, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactNode } from 'react'
 import { toast } from 'sonner'
@@ -15,7 +15,7 @@ import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/ap
 import { SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
 import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
-import { type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { retrySingleSnapshot, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
 
 export function SnapshotActionButtons({
@@ -68,6 +68,38 @@ export function SnapshotActionButtons({
     },
   })
 
+  const {
+    mutate: retrySnapshot,
+    isPending: isRetrying,
+    variables: retryingStatus,
+  } = useMutation({
+    mutationFn: () =>
+      retrySingleSnapshot({
+        projectId,
+        buildId,
+        snapshotId,
+      }),
+    onSuccess: (res) => {
+      if (res && res.ok) {
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
+        })
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'],
+        })
+
+        toast.success('Snapshot retry triggered')
+        return
+      }
+
+      toast.error('Failed to retry snapshot')
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
+    },
+  })
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {snapshot.approvalStatus === SnapshotApprovalStatus.PENDING ? (
@@ -98,6 +130,11 @@ export function SnapshotActionButtons({
               <XCircle className="size-4" />
             )}
             Reject
+          </Button>
+
+          <Button size="sm" variant="outline" onClick={() => retrySnapshot()} disabled={isPending}>
+            <RefreshCw className="size-4" />
+            Retry
           </Button>
         </>
       ) : (
