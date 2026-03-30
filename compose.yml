@@ -165,13 +165,13 @@ services:
       "
     restart: "on-failure"
   selenium:
-    image: "selenium/standalone-docker:4.40.0"
+    build:
+      context: selenium
     environment:
       SE_NODE_SESSION_TIMEOUT: "600"
       SE_SESSION_REQUEST_TIMEOUT: "900"
       SE_START_VNC: "false"
     volumes:
-      - "./selenium/config.toml:/opt/selenium/docker.toml:ro"
       - "selenium_assets:/opt/selenium/assets"
       - "/var/run/docker.sock:/var/run/docker.sock"
     healthcheck:
