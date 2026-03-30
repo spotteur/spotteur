@@ -39,6 +39,18 @@
         "bradlc.vscode-tailwindcss"
       ]
     }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "NextJS App",
+      "onAutoForward": "notify",
+      "requireLocalPort": true,
+      "localPort": 18000
+    }
   }
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": []
