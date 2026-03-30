@@ -1,52 +1,23 @@
 services:
-  webapp:
+  webapp-dev:
     build:
-      context: "web"
-      target: "development"
-      args:
-        NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org}
-    image: "spotteur:dev"
-    pull_policy: "build"
-    ports:
-      - "${WEBAPP_EMAIL_PORT:-18005}:3001"
-      - "${WEBAPP_NOVU_PORT:-18006}:3002"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
-      interval: 3s
-      timeout: 5s
-      retries: 30
+      context: .devcontainer
+      dockerfile: Dockerfile
     volumes:
-      - "./web:/app"
-      - "webapp_deps:/app/node_modules/"
-      - "webapp_next:/app/.next/"
-      - "./:/workspace" # Workspace for devcontainer
-      - "webapp_deps:/workspace/web/node_modules/"
-      - "webapp_next:/workspace/web/.next/"
-  webapp-worker:
-    image: "spotteur:dev"
-    pull_policy: "never"
-    volumes:
-      - "./web:/app"
-      - "webapp_deps:/app/node_modules/"
-  webapp-script-runner:
-    image: "spotteur:dev"
-    pull_policy: "never"
-    volumes:
-      - "./web:/app"
-      - "webapp_deps:/app/node_modules/"
-  inbucket:
-    image: "inbucket/inbucket:sha-6eff554"
-    environment:
-      INBUCKET_MAILBOXNAMING: "full"
-      INBUCKET_SMTP_ADDR: "0.0.0.0:25"
-      INBUCKET_POP3_ADDR: "0.0.0.0:110"
-      INBUCKET_LOGLEVEL: "warn"
-    ports:
-      - "${INBUCKET_PORT:-18004}:9000"
-    healthcheck:
-      test:
-        ["CMD-SHELL", "wget --spider http://localhost:9000/status || exit 1"]
-    restart: "unless-stopped"
-volumes:
-  webapp_deps:
-  webapp_next:
+      # Forwards the local Docker socket to the container.
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      # Update this to wherever you want VS Code to mount the folder of your project
+      - ./:/workspaces/spotteur:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    entrypoint: /usr/local/share/docker-init.sh
+    command: sleep infinity
+
+    # Uncomment the next four lines if you will use a ptrace-based debuggers like C++, Go, and Rust.
+    # cap_add:
+    #  - SYS_PTRACE
+    # security_opt:
+    #   - seccomp:unconfined
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)

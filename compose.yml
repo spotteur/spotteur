@@ -126,17 +126,11 @@ services:
       RUSTFS_TLS_PATH: "/opt/tls"
       RUSTFS_OBJECT_CACHE_ENABLE: true
       RUSTFS_OBJECT_CACHE_TTL_SECS: 300
-    profiles:
-      - "rustfs"
     volumes:
       - "rustfs_data:/data/rustfs"
       - "rustfs_logs:/app/logs"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health",
-        ]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health"]
       interval: 3s
       timeout: 5s
       retries: 30
@@ -154,8 +148,6 @@ services:
         exit 0
       "
     restart: "on-failure"
-    profiles:
-      - "rustfs"
   rustfs-init-bucket-helper:
     image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
     extra_hosts:
@@ -172,8 +164,6 @@ services:
         exit 0
       "
     restart: "on-failure"
-    profiles:
-      - "rustfs"
   selenium:
     image: "selenium/standalone-docker:4.40.0"
     environment:
@@ -187,8 +177,6 @@ services:
     healthcheck:
       test: ["CMD", "/opt/bin/check-grid.sh"]
       interval: 5s
-    profiles:
-      - "selenium"
     restart: "unless-stopped"
 volumes:
   selenium_assets:
