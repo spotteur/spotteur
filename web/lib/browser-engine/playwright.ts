@@ -15,6 +15,10 @@ export class PlaywrightBrowserEngine implements IBrowserEngine {
     this.page = page
   }
 
+  public async addCookie(cookie: { name: string; value: string; domain: string }): Promise<void> {
+    this.page.context().addCookies([cookie])
+  }
+
   public async enableReducedMotion(): Promise<void> {
     await this.page.emulateMedia({ reducedMotion: 'reduce' })
   }

@@ -333,6 +333,85 @@ export function ProjectForm({
           )
         }}
       />
+      <form.Field
+        name="cookieSetting"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="project-cookieSetting">Cookie Setting</FieldLabel>
+              <Card>
+                <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <form.Field
+                    name="cookieSetting.name"
+                    children={(nameField) => {
+                      const isNameInvalid = nameField.state.meta.isTouched && !nameField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isNameInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-name">Name</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-name"
+                            name={nameField.name}
+                            value={nameField.state.value || ''}
+                            onBlur={nameField.handleBlur}
+                            onChange={(e) => nameField.handleChange(e.target.value)}
+                            aria-invalid={isNameInvalid}
+                          />
+                          {isNameInvalid && <FieldError errors={nameField.state.meta.errors} />}
+                        </Field>
+                      )
+                    }}
+                  />
+                  <form.Field
+                    name="cookieSetting.value"
+                    children={(valueField) => {
+                      const isValueInvalid = valueField.state.meta.isTouched && !valueField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isValueInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-value">Value</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-value"
+                            name={valueField.name}
+                            value={valueField.state.value || ''}
+                            onBlur={valueField.handleBlur}
+                            onChange={(e) => valueField.handleChange(e.target.value)}
+                            aria-invalid={isValueInvalid}
+                          />
+                          {isValueInvalid && <FieldError errors={valueField.state.meta.errors} />}
+                        </Field>
+                      )
+                    }}
+                  />
+                  <form.Field
+                    name="cookieSetting.domain"
+                    children={(domainField) => {
+                      const isDomainInvalid = domainField.state.meta.isTouched && !domainField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isDomainInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-domain">Domain</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-domain"
+                            name={domainField.name}
+                            value={domainField.state.value || ''}
+                            onBlur={domainField.handleBlur}
+                            onChange={(e) => domainField.handleChange(e.target.value)}
+                            aria-invalid={isDomainInvalid}
+                          />
+                          <FieldDescription>
+                            The domain URL without protocol (e.g., example.com or www.example.com)
+                          </FieldDescription>
+                          {isDomainInvalid && <FieldError errors={domainField.state.meta.errors} />}
+                        </Field>
+                      )
+                    }}
+                  />
+                </CardContent>
+              </Card>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
       {isCreate && (
         <form.Field
           name="pagePaths"

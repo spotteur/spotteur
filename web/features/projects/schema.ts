@@ -17,6 +17,14 @@ export const BaseUrlSchema = z.url('Base URL must be a valid URL').refine((url) 
   error: 'Base URL must end with a trailing slash (/)',
 })
 
+export const CookieSettingSchema = z
+  .object({
+    name: z.string().optional(),
+    value: z.string().optional(),
+    domain: z.string().optional(),
+  })
+  .optional()
+
 export const ProjectBaseSchema = z.object({
   name: ProjectNameSchema,
   baseUrl: BaseUrlSchema,
@@ -25,6 +33,7 @@ export const ProjectBaseSchema = z.object({
   snapshotSelector: SelectorSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
+  cookieSetting: CookieSettingSchema,
 })
 
 export const ProjectCreateSchema = z.object({

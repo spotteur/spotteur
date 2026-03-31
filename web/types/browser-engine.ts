@@ -22,4 +22,5 @@ export interface IBrowserEngine {
   waitForNetworkIdle(timeout: number): Promise<void>
   waitForPageLoad(timeout: number): Promise<void>
   waitForSelector(selector: string, timeout: number, dontThrow?: boolean): Promise<void>
+  addCookie(cookie: { name: string; value: string; domain: string }): Promise<void>
 }

@@ -30,7 +30,22 @@ export class ScreenshotCapturer {
         BROWSER_ENGINE_TYPE || BrowserEngineType.SELENIUM,
         this.payload,
       )
-
+      logger.info(`${this.logPrefix} Configuring cookie settings`)
+      if (
+        this.payload.cookieSetting &&
+        this.payload.cookieSetting.name &&
+        this.payload.cookieSetting.domain &&
+        this.payload.cookieSetting.value
+      ) {
+        logger.info(
+          `${this.logPrefix} Setting cookie: ${this.payload.cookieSetting.name}=${this.payload.cookieSetting.value}`,
+        )
+        await this.browser().addCookie({
+          name: `${this.payload.cookieSetting.name}`,
+          value: `${this.payload.cookieSetting.value}`,
+          domain: `${this.payload.cookieSetting.domain}`,
+        })
+      }
       logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`)
       await this.browser().visit(this.payload.pageUrl)
 

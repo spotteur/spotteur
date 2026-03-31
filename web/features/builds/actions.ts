@@ -294,6 +294,7 @@ export async function populateSnapshotsPayload({
             'after-page-load': project?.hookAfterPageLoad ?? undefined,
             'before-screenshot': project?.hookBeforeScreenshot ?? undefined,
           },
+          cookieSetting: project?.cookieSetting ?? undefined,
         } satisfies SnapshotPayload)
       }
     }
