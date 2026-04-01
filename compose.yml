@@ -1,17 +1,6 @@
 services:
   webapp:
-    build:
-      context: "web"
-      target: "production"
-      args:
-        NEXT_PUBLIC_DISABLE_REGISTRATION: ${NEXT_PUBLIC_DISABLE_REGISTRATION:-}
-        NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
-        NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
-        NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
-        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
-        NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
-        S3_ENDPOINT: ${S3_ENDPOINT:-}
-        TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
     ports:
       - "${WEBAPP_PORT:-18000}:3000"
     extra_hosts:
@@ -29,19 +18,7 @@ services:
     volumes:
       - "./web/logs:/app/logs"
   webapp-script-runner:
-    build:
-      context: "web"
-      dockerfile: "Dockerfile"
-      target: "development"
-      args:
-        NEXT_PUBLIC_DISABLE_REGISTRATION: ${NEXT_PUBLIC_DISABLE_REGISTRATION:-}
-        NEXT_PUBLIC_NOVU_APP_IDENTIFIER: ${NEXT_PUBLIC_NOVU_APP_IDENTIFIER:-}
-        NEXT_PUBLIC_NOVU_BACKEND_URL: ${NEXT_PUBLIC_NOVU_BACKEND_URL:-}
-        NEXT_PUBLIC_NOVU_WS_URL: ${NEXT_PUBLIC_NOVU_WS_URL:-}
-        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
-        NOVU_SECRET_KEY: ${NOVU_SECRET_KEY:-}
-        S3_ENDPOINT: ${S3_ENDPOINT:-}
-        TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:-}
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file: [".env"]
@@ -51,9 +28,8 @@ services:
       postgres-webapp:
         condition: "service_healthy"
   webapp-worker:
-    build:
-      context: "web"
-      dockerfile: "Dockerfile.worker"
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
+    command: ["npm", "run", "worker:dev"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file: [".env"]

@@ -12,12 +12,13 @@ import { useState } from 'react'
 import { type ReactNode } from 'react'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { DISABLE_REGISTRATION } from '@/constants/env'
 import { authClient } from '@/lib/auth-client'
+import { getPublicEnv } from '@/lib/public-env'
 
 export function Providers({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [queryClient] = useState(() => new QueryClient())
+  const { DISABLE_REGISTRATION } = getPublicEnv()
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
