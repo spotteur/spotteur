@@ -10,7 +10,7 @@ import { BrowserCombobox } from '@/components/browser-combobox'
 import { ImportFromSitemapDialog } from '@/components/import-from-sitemap-dialog'
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
@@ -357,7 +357,6 @@ export function ProjectForm({
                             onChange={(e) => nameField.handleChange(e.target.value)}
                             aria-invalid={isNameInvalid}
                           />
-                          {isNameInvalid && <FieldError errors={nameField.state.meta.errors} />}
                         </Field>
                       )
                     }}
@@ -377,7 +376,6 @@ export function ProjectForm({
                             onChange={(e) => valueField.handleChange(e.target.value)}
                             aria-invalid={isValueInvalid}
                           />
-                          {isValueInvalid && <FieldError errors={valueField.state.meta.errors} />}
                         </Field>
                       )
                     }}
@@ -400,14 +398,32 @@ export function ProjectForm({
                           <FieldDescription>
                             The domain URL without protocol (e.g., example.com or www.example.com)
                           </FieldDescription>
-                          {isDomainInvalid && <FieldError errors={domainField.state.meta.errors} />}
                         </Field>
                       )
                     }}
                   />
                 </CardContent>
+                <CardFooter className="flex items-center space-x-4">
+                  <form.Field
+                    name="cookieSetting.secure"
+                    children={(secureField) => {
+                      return (
+                        <Field>
+                          <label className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              name={secureField.name}
+                              checked={secureField.state.value || false}
+                              onChange={(e) => secureField.handleChange(e.target.checked)}
+                            />
+                            Secure
+                          </label>
+                        </Field>
+                      )
+                    }}
+                  />
+                </CardFooter>
               </Card>
-              {isInvalid && <FieldError errors={field.state.meta.errors} />}
             </Field>
           )
         }}

@@ -22,6 +22,7 @@ export const CookieSettingSchema = z
     name: z.string().optional(),
     value: z.string().optional(),
     domain: z.string().optional(),
+    secure: z.boolean().optional(),
   })
   .optional()
 

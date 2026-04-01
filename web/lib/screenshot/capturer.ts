@@ -38,12 +38,13 @@ export class ScreenshotCapturer {
         this.payload.cookieSetting.value
       ) {
         logger.info(
-          `${this.logPrefix} Setting cookie: ${this.payload.cookieSetting.name}=${this.payload.cookieSetting.value}`,
+          `${this.logPrefix} Setting cookie: ${this.payload.cookieSetting.name}=${this.payload.cookieSetting.value} domain=${this.payload.cookieSetting.domain} secure=${this.payload.cookieSetting.secure}`,
         )
         await this.browser().addCookie({
           name: `${this.payload.cookieSetting.name}`,
           value: `${this.payload.cookieSetting.value}`,
           domain: `${this.payload.cookieSetting.domain}`,
+          secure: this.payload.cookieSetting.secure || false,
         })
       }
       logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`)

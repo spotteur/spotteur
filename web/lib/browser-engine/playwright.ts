@@ -15,7 +15,7 @@ export class PlaywrightBrowserEngine implements IBrowserEngine {
     this.page = page
   }
 
-  public async addCookie(cookie: { name: string; value: string; domain: string }): Promise<void> {
+  public async addCookie(cookie: { name: string; value: string; domain: string; secure: boolean }): Promise<void> {
     this.page.context().addCookies([cookie])
   }
 
