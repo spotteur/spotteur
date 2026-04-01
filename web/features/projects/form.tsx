@@ -11,7 +11,16 @@ import { ImportFromSitemapDialog } from '@/components/import-from-sitemap-dialog
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
@@ -403,22 +412,21 @@ export function ProjectForm({
                     }}
                   />
                 </CardContent>
-                <CardFooter className="flex items-center space-x-4">
+                <CardFooter className="px-0">
                   <form.Field
                     name="cookieSetting.secure"
                     children={(secureField) => {
                       return (
-                        <Field>
-                          <label className="inline-flex items-center gap-2">
-                            <input
-                              type="checkbox"
+                        <FieldLabel className="border-none">
+                          <Field orientation="horizontal" className="flex items-center gap-2 px-6!">
+                            <Checkbox
                               name={secureField.name}
-                              checked={secureField.state.value || false}
-                              onChange={(e) => secureField.handleChange(e.target.checked)}
+                              checked={secureField.state.value}
+                              onCheckedChange={(checked) => secureField.handleChange(!!checked)}
                             />
-                            Secure
-                          </label>
-                        </Field>
+                            <FieldTitle>Secure</FieldTitle>
+                          </Field>
+                        </FieldLabel>
                       )
                     }}
                   />
