@@ -68,11 +68,7 @@ export function SnapshotActionButtons({
     },
   })
 
-  const {
-    mutate: retrySnapshot,
-    isPending: isRetrying,
-    variables: retryingStatus,
-  } = useMutation({
+  const retrySnapshotMutation = useMutation({
     mutationFn: () =>
       retrySingleSnapshot({
         projectId,
@@ -100,6 +96,8 @@ export function SnapshotActionButtons({
     },
   })
 
+  const isLoading = isPending || retrySnapshotMutation.isPending
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {snapshot.approvalStatus === SnapshotApprovalStatus.PENDING ? (
@@ -108,9 +106,9 @@ export function SnapshotActionButtons({
             size="sm"
             variant="default"
             onClick={() => updateStatus(SnapshotApprovalStatus.APPROVED)}
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.APPROVED ? (
+            {isLoading && pendingStatus === SnapshotApprovalStatus.APPROVED ? (
               <Spinner />
             ) : (
               <CheckCircle2 className="size-4" />
@@ -122,9 +120,9 @@ export function SnapshotActionButtons({
             size="sm"
             variant="destructive"
             onClick={() => updateStatus(SnapshotApprovalStatus.REJECTED)}
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending && pendingStatus === SnapshotApprovalStatus.REJECTED ? (
+            {isLoading && pendingStatus === SnapshotApprovalStatus.REJECTED ? (
               <Spinner />
             ) : (
               <XCircle className="size-4" />
@@ -132,7 +130,7 @@ export function SnapshotActionButtons({
             Reject
           </Button>
 
-          <Button size="sm" variant="outline" onClick={() => retrySnapshot()} disabled={isPending}>
+          <Button size="sm" variant="outline" onClick={() => retrySnapshotMutation.mutate()} disabled={isLoading}>
             <RefreshCw className="size-4" />
             Retry
           </Button>
@@ -142,9 +140,9 @@ export function SnapshotActionButtons({
           size="sm"
           variant="outline"
           onClick={() => updateStatus(SnapshotApprovalStatus.PENDING)}
-          disabled={isPending}
+          disabled={isLoading}
         >
-          {isPending && pendingStatus === SnapshotApprovalStatus.PENDING ? (
+          {isLoading && pendingStatus === SnapshotApprovalStatus.PENDING ? (
             <Spinner />
           ) : (
             <RotateCcw className="size-4" />
