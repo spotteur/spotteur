@@ -134,6 +134,13 @@
       "when": 1773200000000,
       "tag": "0018_lucky_patch",
       "breakpoints": false
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1774926785749,
+      "tag": "0019_bright_bushwacker",
+      "breakpoints": false
     }
   ]
 }

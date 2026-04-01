@@ -15,6 +15,16 @@ export class SeleniumBrowserEngine implements IBrowserEngine {
   constructor(driver: chrome.Driver | firefox.Driver | edge.Driver) {
     this.driver = driver
   }
+  public async addCookie(cookie: { name: string; value: string; domain: string; secure: boolean }): Promise<void> {
+    const protocol = cookie.secure ? 'https://' : 'http://'
+    await this.driver.get(`${protocol}${cookie.domain}`) // Navigate to the cookie's domain before setting the cookie
+    await this.driver.manage().addCookie({
+      name: cookie.name,
+      value: cookie.value,
+      domain: cookie.domain,
+      secure: cookie.secure,
+    })
+  }
 
   public async executeScript<T>(script: string): Promise<T> {
     return await this.driver.executeScript<T>(script)

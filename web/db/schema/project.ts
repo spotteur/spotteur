@@ -31,6 +31,7 @@ export const projects = pgTable('projects', {
   baselineBuildId: uuid('baseline_build_id'),
   hookAfterPageLoad: text('hook_after_page_load'),
   hookBeforeScreenshot: text('hook_before_screenshot'),
+  cookieSetting: jsonb('cookie_setting').default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

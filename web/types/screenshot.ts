@@ -2,6 +2,7 @@ import type z from 'zod'
 
 import { type snapshots } from '@/db/schema'
 import { type SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
+import { type CookieSettingSchema } from '@/features/projects/schema'
 
 export type SnapshotPayload = Pick<
   typeof snapshots.$inferSelect,
@@ -18,6 +19,7 @@ export type SnapshotPayload = Pick<
   rules?: NonNullable<z.infer<typeof SpotteurGlobalVariablesSchema>['options']>['rules']
   hooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']
   globalHooks?: z.infer<typeof SpotteurGlobalVariablesSchema>['hooks']
+  cookieSetting?: z.infer<typeof CookieSettingSchema>
 }
 
 export interface ScreenshotWorkflowParams {
