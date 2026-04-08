@@ -3,9 +3,13 @@ services:
     build:
       context: "web"
       target: "development"
+      args:
+        NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org}
+    image: "spotteur:dev"
+    pull_policy: "build"
     ports:
       - "${WEBAPP_EMAIL_PORT:-18005}:3001"
-      - "${WEBAPP_NUVO_PORT:-18006}:3002"
+      - "${WEBAPP_NOVU_PORT:-18006}:3002"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://0.0.0.0:3000"]
       interval: 3s
@@ -19,13 +23,14 @@ services:
       - "webapp_deps:/workspace/web/node_modules/"
       - "webapp_next:/workspace/web/.next/"
   webapp-worker:
-    build:
-      context: "web"
-      dockerfile: "Dockerfile.worker"
+    image: "spotteur:dev"
+    pull_policy: "never"
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"
   webapp-script-runner:
+    image: "spotteur:dev"
+    pull_policy: "never"
     volumes:
       - "./web:/app"
       - "webapp_deps:/app/node_modules/"

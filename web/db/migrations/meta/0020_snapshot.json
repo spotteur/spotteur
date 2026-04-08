@@ -1,6 +1,6 @@
 {
-  "id": "fca0242f-bd16-440e-b319-189ff379766b",
-  "prevId": "d8a9cd55-9771-45f0-ac8a-e1714a52b3c7",
+  "id": "d877f5e0-0966-4dd1-9d17-b0424f13a00c",
+  "prevId": "fca0242f-bd16-440e-b319-189ff379766b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,8 +111,12 @@
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -206,8 +210,12 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -217,7 +225,9 @@
         "sessions_token_unique": {
           "name": "sessions_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -315,7 +325,9 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},
@@ -384,6 +396,78 @@
         }
       },
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.build_logs": {
+      "name": "build_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "build_id": {
+          "name": "build_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "snapshot_id": {
+          "name": "snapshot_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "level": {
+          "name": "level",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meta": {
+          "name": "meta",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "build_logs_build_id_builds_id_fk": {
+          "name": "build_logs_build_id_builds_id_fk",
+          "tableFrom": "build_logs",
+          "tableTo": "builds",
+          "columnsFrom": [
+            "build_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -465,8 +549,12 @@
           "name": "builds_project_id_projects_id_fk",
           "tableFrom": "builds",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -574,8 +662,12 @@
           "name": "page_rules_project_id_projects_id_fk",
           "tableFrom": "page_rules",
           "tableTo": "projects",
-          "columnsFrom": ["project_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "project_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -585,7 +677,10 @@
         "page_rules_unique": {
           "name": "page_rules_unique",
           "nullsNotDistinct": false,
-          "columns": ["project_id", "page_path"]
+          "columns": [
+            "project_id",
+            "page_path"
+          ]
         }
       },
       "policies": {},
@@ -695,7 +790,9 @@
         "projects_token_unique": {
           "name": "projects_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -799,8 +896,12 @@
           "name": "snapshots_build_id_builds_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "builds",
-          "columnsFrom": ["build_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "build_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -808,8 +909,12 @@
           "name": "snapshots_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -817,8 +922,12 @@
           "name": "snapshots_baseline_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["baseline_screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "baseline_screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -826,8 +935,12 @@
           "name": "snapshots_diff_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": ["diff_screenshot_media_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "diff_screenshot_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -906,7 +1019,9 @@
         "media_path_unique": {
           "name": "media_path_unique",
           "nullsNotDistinct": false,
-          "columns": ["path"]
+          "columns": [
+            "path"
+          ]
         }
       },
       "policies": {},

@@ -10,8 +10,17 @@ import { BrowserCombobox } from '@/components/browser-combobox'
 import { ImportFromSitemapDialog } from '@/components/import-from-sitemap-dialog'
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
@@ -330,6 +339,100 @@ export function ProjectForm({
                 {isViewportsInvalid && <FieldError errors={viewportsField.state.meta.errors} />}
               </div>
             </>
+          )
+        }}
+      />
+      <form.Field
+        name="cookieSetting"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="project-cookieSetting">Cookie Setting</FieldLabel>
+              <Card>
+                <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <form.Field
+                    name="cookieSetting.name"
+                    children={(nameField) => {
+                      const isNameInvalid = nameField.state.meta.isTouched && !nameField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isNameInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-name">Name</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-name"
+                            name={nameField.name}
+                            value={nameField.state.value || ''}
+                            onBlur={nameField.handleBlur}
+                            onChange={(e) => nameField.handleChange(e.target.value)}
+                            aria-invalid={isNameInvalid}
+                          />
+                        </Field>
+                      )
+                    }}
+                  />
+                  <form.Field
+                    name="cookieSetting.value"
+                    children={(valueField) => {
+                      const isValueInvalid = valueField.state.meta.isTouched && !valueField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isValueInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-value">Value</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-value"
+                            name={valueField.name}
+                            value={valueField.state.value || ''}
+                            onBlur={valueField.handleBlur}
+                            onChange={(e) => valueField.handleChange(e.target.value)}
+                            aria-invalid={isValueInvalid}
+                          />
+                        </Field>
+                      )
+                    }}
+                  />
+                  <form.Field
+                    name="cookieSetting.domain"
+                    children={(domainField) => {
+                      const isDomainInvalid = domainField.state.meta.isTouched && !domainField.state.meta.isValid
+                      return (
+                        <Field data-invalid={isDomainInvalid}>
+                          <FieldLabel htmlFor="project-cookieSetting-domain">Domain</FieldLabel>
+                          <Input
+                            id="project-cookieSetting-domain"
+                            name={domainField.name}
+                            value={domainField.state.value || ''}
+                            onBlur={domainField.handleBlur}
+                            onChange={(e) => domainField.handleChange(e.target.value)}
+                            aria-invalid={isDomainInvalid}
+                          />
+                          <FieldDescription>
+                            The domain URL without protocol (e.g., example.com or www.example.com)
+                          </FieldDescription>
+                        </Field>
+                      )
+                    }}
+                  />
+                </CardContent>
+                <CardFooter className="px-0">
+                  <form.Field
+                    name="cookieSetting.secure"
+                    children={(secureField) => {
+                      return (
+                        <FieldLabel className="border-none">
+                          <Field orientation="horizontal" className="flex items-center gap-2 px-6!">
+                            <Checkbox
+                              name={secureField.name}
+                              checked={secureField.state.value}
+                              onCheckedChange={(checked) => secureField.handleChange(!!checked)}
+                            />
+                            <FieldTitle>Secure</FieldTitle>
+                          </Field>
+                        </FieldLabel>
+                      )
+                    }}
+                  />
+                </CardFooter>
+              </Card>
+            </Field>
           )
         }}
       />

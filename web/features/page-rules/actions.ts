@@ -181,7 +181,7 @@ export async function upsertPageRules(schema: string, projectId: string) {
   }
 }
 
-export async function pageRuleByPath(projectId: string, path: string) {
+export async function pageRuleByPath({ projectId, path }: { projectId: string; path: string }) {
   const [row] = await db
     .select()
     .from(pageRules)

@@ -6,13 +6,17 @@ import { z } from 'zod'
 
 import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
+import { TEMPORAL_QUEUE_NAME, TEMPORAL_RETRY_SINGLE_SNAPSHOT_WORKFLOW } from '@/constants/temporal'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
-import { builds, media, snapshots } from '@/db/schema'
+import { builds, media, projects, snapshots } from '@/db/schema'
 import { syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
+import { pageRuleByPath } from '@/features/page-rules/actions'
 import { UpdateSnapshotNotesSchema } from '@/features/snapshots/schema'
 import { logger } from '@/lib/logger'
 import { getPresignUrl } from '@/lib/s3'
+import { temporalClient } from '@/lib/temporal-client'
 import { sha256Hex } from '@/lib/utils'
+import { type retrySingleSnapshotWorkflow } from '@/temporal/workflows/snapshot'
 import { type SnapshotPayload } from '@/types/screenshot'
 
 type SortKey = 'id' | 'diffPercentage' | 'createdAt' | 'updatedAt' | ''
@@ -397,6 +401,95 @@ export async function getNextSnapshot({ buildId, snapshotId }: { buildId: string
 
   if (!next) return ''
   return next.id
+}
+
+export async function retrySingleSnapshot({
+  projectId,
+  buildId,
+  snapshotId,
+}: {
+  projectId: string
+  buildId: string
+  snapshotId: string
+}) {
+  const date = new Date()
+  await temporalClient.workflow.start<typeof retrySingleSnapshotWorkflow>(TEMPORAL_RETRY_SINGLE_SNAPSHOT_WORKFLOW, {
+    workflowId: `build-${buildId}-snapshot-${snapshotId}-retry-${date.getTime()}`,
+    taskQueue: TEMPORAL_QUEUE_NAME,
+    args: [{ projectId, buildId, snapshotId }],
+    retry: {
+      maximumAttempts: 3,
+    },
+  })
+
+  return { ok: true } as const
+}
+
+export async function populateSingleSnapshotPayload({
+  snapshotId,
+  projectId,
+}: {
+  snapshotId: string
+  projectId: string
+}) {
+  const snapshot = await db
+    .select()
+    .from(snapshots)
+    .where(eq(snapshots.id, snapshotId))
+    .limit(1)
+    .then((res) => res[0])
+  const pageRule = await pageRuleByPath({ projectId, path: snapshot.pagePath })
+  const project = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1)
+    .then((res) => res[0])
+
+  if (!project) {
+    throw new Error(`Project not found for ID: ${projectId}`)
+  }
+
+  if (!URL.canParse(snapshot.pagePath, project.baseUrl)) {
+    throw new Error(`Invalid URL given for path: ${snapshot.pagePath} with base URL ${project.baseUrl}`)
+  }
+
+  const buildId = snapshot.buildId
+  const pageUrl = new URL(snapshot.pagePath, project.baseUrl).toString()
+
+  const { viewportWidth, viewportHeight } = snapshot
+
+  const browser = snapshot.browser
+  const s3Prefix = await generateSnapshotPath({ projectId, buildId, snapshotId: snapshotId.toString() })
+  const fileName = await generateSnapshotFileName({ pageUrl, type: 'screenshot' })
+
+  const snapshotPayload: SnapshotPayload = {
+    id: snapshotId,
+    projectId,
+    buildId,
+    pagePath: snapshot.pagePath,
+    pageUrl,
+    browser,
+    viewportWidth,
+    viewportHeight,
+    selector: project.snapshotSelector,
+    s3Prefix,
+    fileName,
+    reducedMotion: pageRule?.reducedMotion || false,
+    mediaReset: pageRule?.mediaReset || false,
+    proxy: pageRule?.proxy ?? undefined,
+    rules: pageRule?.rules,
+    hooks: {
+      'after-page-load': pageRule?.hookAfterPageLoad ?? undefined,
+      'before-screenshot': pageRule?.hookBeforeScreenshot ?? undefined,
+    },
+    globalHooks: {
+      'after-page-load': project?.hookAfterPageLoad ?? undefined,
+      'before-screenshot': project?.hookBeforeScreenshot ?? undefined,
+    },
+  }
+
+  return snapshotPayload
 }
 
 export type SnapshotsListRes = Awaited<ReturnType<typeof listSnapshotsByBuild>>

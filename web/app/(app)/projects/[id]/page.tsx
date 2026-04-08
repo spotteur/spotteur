@@ -92,6 +92,7 @@ export default function EditProjectPage() {
                 token: data.token ?? '',
                 hookAfterPageLoad: data.hookAfterPageLoad ?? undefined,
                 hookBeforeScreenshot: data.hookBeforeScreenshot ?? undefined,
+                cookieSetting: data.cookieSetting ?? undefined,
               }}
               onSubmit={(values) => mutation.mutate(values)}
               submitLabel="Update"

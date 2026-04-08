@@ -5,6 +5,7 @@ import { TEMPORAL_QUEUE_NAME } from '@/constants/temporal'
 import { logger } from '@/lib/logger'
 import * as buildActivities from '@/temporal/activities/build'
 import * as projectActivities from '@/temporal/activities/project'
+import * as snapshotActivities from '@/temporal/activities/snapshot'
 
 async function run() {
   const worker = await Worker.create({
@@ -15,6 +16,7 @@ async function run() {
     activities: {
       ...buildActivities,
       ...projectActivities,
+      ...snapshotActivities,
     },
     taskQueue: TEMPORAL_QUEUE_NAME,
   })
