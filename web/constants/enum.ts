@@ -65,3 +65,10 @@ export const SNAPSHOT_VIEWER_TYPE_LABEL_MAP: Record<SnapshotViewerType, string> 
   [SnapshotViewerType.COMPARISON]: 'Comparison',
   [SnapshotViewerType.SIDE_BY_SIDE]: 'Side by Side',
 } as const
+
+export const LOGS_LEVEL = {
+  INFO: 'info',
+  WARNING: 'warning',
+  ERROR: 'error',
+  DEBUG: 'debug',
+}

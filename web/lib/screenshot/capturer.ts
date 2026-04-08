@@ -25,16 +25,16 @@ export class ScreenshotCapturer {
 
   public async capture(): Promise<{ tempPath: string }> {
     try {
-      logger.info(`${this.logPrefix} Launching browser engine`)
+      logger.info(`${this.logPrefix} Launching browser engine`, { payload: this.payload })
       this.browserEngine = await BrowserEngineFactory.create(
         BROWSER_ENGINE_TYPE || BrowserEngineType.SELENIUM,
         this.payload,
       )
 
-      logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`)
+      logger.info(`${this.logPrefix} Navigating to page URL ${this.payload.pageUrl}`, { payload: this.payload })
       await this.browser().visit(this.payload.pageUrl)
 
-      logger.info(`${this.logPrefix} Waiting for page to completely load`)
+      logger.info(`${this.logPrefix} Waiting for page to completely load`, { payload: this.payload })
       await this.browser().waitForPageLoad(30000)
 
       const rawVariables = await this.browser().executeScript<unknown>('return window.spotteur || {}')
@@ -60,7 +60,7 @@ export class ScreenshotCapturer {
       await this.browser().scrollPageToTop()
       await this.fitWindowToContentHeight()
 
-      logger.info(`${this.logPrefix} Capturing screenshot`)
+      logger.info(`${this.logPrefix} Capturing screenshot`, { payload: this.payload })
       const buffer = await this.takeConsistentScreenshot({
         maxAttempts: 5,
         delayMs: 3000,
@@ -70,10 +70,10 @@ export class ScreenshotCapturer {
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
       fs.writeFileSync(tempPath, buffer)
 
-      logger.info(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`)
+      logger.info(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`, { payload: this.payload })
       return { tempPath }
     } finally {
-      logger.info(`${this.logPrefix} Closing browser engine`)
+      logger.info(`${this.logPrefix} Closing browser engine`, { payload: this.payload })
       await this.browserEngine?.quit()
     }
   }
@@ -89,9 +89,10 @@ export class ScreenshotCapturer {
   }): Promise<Buffer> {
     const screenshots: Buffer[] = []
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      logger.info(`${this.logPrefix} Taking screenshot attempt ${attempt}/${maxAttempts}`)
+      logger.info(`${this.logPrefix} Taking screenshot attempt ${attempt}/${maxAttempts}`, { payload: this.payload })
       const buffer = await this.browser().takeScreenshot()
       if (!buffer) {
+        logger.error(`${this.logPrefix} Failed to capture screenshot on attempt ${attempt}`, { payload: this.payload })
         throw new Error('Failed to capture screenshot')
       }
 
@@ -105,6 +106,10 @@ export class ScreenshotCapturer {
         .toFormat('png')
       const { info } = await image.toBuffer({ resolveWithObject: true })
       if (info.width !== this.payload.viewportWidth) {
+        logger.error(
+          `${this.logPrefix} Screenshot width (${info.width}px) doesn't match expected viewport width (${this.payload.viewportWidth}px)`,
+          { payload: this.payload },
+        )
         throw new Error(
           `Screenshot width (${info.width}px) doesn't match expected viewport width (${this.payload.viewportWidth}px)`,
         )
@@ -120,12 +125,16 @@ export class ScreenshotCapturer {
 
       // Check if last N screenshots are consistent
       if (this.areScreenshotsConsistent(screenshots, consistentCount)) {
-        logger.info(`${this.logPrefix} Screenshot are consistent in the last ${consistentCount} attempts`)
+        logger.info(`${this.logPrefix} Screenshot are consistent in the last ${consistentCount} attempts`, {
+          payload: this.payload,
+        })
         return screenshots[screenshots.length - 1]
       }
 
       // Not consistent yet, wait before next attempt
-      logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`)
+      logger.info(`${this.logPrefix} Screenshot give different result, waiting ${delayMs}ms before retry`, {
+        payload: this.payload,
+      })
       if (attempt < maxAttempts) {
         await this.browser().sleep(delayMs)
       }
@@ -134,6 +143,7 @@ export class ScreenshotCapturer {
     // Return last screenshot if we couldn't achieve consistency
     logger.info(
       `${this.logPrefix} Unable to capture consistent screenshot after ${maxAttempts} attempts, last captured screenshot used`,
+      { payload: this.payload },
     )
 
     return screenshots[screenshots.length - 1]
@@ -152,12 +162,12 @@ export class ScreenshotCapturer {
 
   private async runAfterPageLoadHook(): Promise<void> {
     if (this.payload.globalHooks?.['after-page-load']) {
-      logger.info(`${this.logPrefix} Executing global after-page-load hook`)
+      logger.info(`${this.logPrefix} Executing global after-page-load hook`, { payload: this.payload })
       await this.browser().executeScript<void>(this.payload.globalHooks['after-page-load'])
     }
 
     if (this.payload.hooks?.['after-page-load']) {
-      logger.info(`${this.logPrefix} Executing after-page-load hook`)
+      logger.info(`${this.logPrefix} Executing after-page-load hook`, { payload: this.payload })
       await this.browser().executeScript<void>(this.payload.hooks['after-page-load'])
     }
   }
@@ -184,7 +194,7 @@ export class ScreenshotCapturer {
 
   private async fitWindowToContentHeight(): Promise<void> {
     const { width, height } = await this.browser().getViewportSize()
-    logger.info(`${this.logPrefix} Viewport size before fitting: ${width}x${height}`)
+    logger.info(`${this.logPrefix} Viewport size before fitting: ${width}x${height}`, { payload: this.payload })
 
     // First set viewport height to the default to get accurate content height
     await this.browser().setViewportSize({ width, height: DEFAULT_SNAPSHOTS_HEIGHT })
@@ -207,7 +217,7 @@ export class ScreenshotCapturer {
         htmlScrollHeight: document.documentElement.scrollHeight,
         htmlOffsetHeight: document.documentElement.offsetHeight,
     }`)
-    logger.info(`${this.logPrefix} Browser metrics: ${JSON.stringify(metrics)}`)
+    logger.info(`${this.logPrefix} Browser metrics: ${JSON.stringify(metrics)}`, { payload: this.payload })
 
     let fullPageHeight = Math.max(
       metrics.bodyScrollHeight,
@@ -218,34 +228,37 @@ export class ScreenshotCapturer {
     )
 
     if (metrics.outerHeight < metrics.innerHeight) {
+      logger.error(`${this.logPrefix} Unexpected browser metrics, unable to determine full page height`, {
+        payload: this.payload,
+      })
       throw new Error('Unexpected browser metrics, unable to determine full page height')
     }
 
     const decorationsHeight = metrics.outerHeight - metrics.innerHeight
     fullPageHeight += decorationsHeight
 
-    logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`)
+    logger.info(`${this.logPrefix} Viewport size after fitting: ${width}x${fullPageHeight}`, { payload: this.payload })
     await this.browser().setViewportSize({ width, height: fullPageHeight })
   }
 
   private async runBeforeScreenshotHook(): Promise<void> {
     if (this.payload.globalHooks?.['before-screenshot']) {
-      logger.info(`${this.logPrefix} Executing global before-screenshot hook`)
+      logger.info(`${this.logPrefix} Executing global before-screenshot hook`, { payload: this.payload })
       await this.browser().executeScript<void>(this.payload.globalHooks['before-screenshot'])
     }
 
     if (this.payload.hooks?.['before-screenshot']) {
-      logger.info(`${this.logPrefix} Executing before-screenshot hook`)
+      logger.info(`${this.logPrefix} Executing before-screenshot hook`, { payload: this.payload })
       await this.browser().executeScript<void>(this.payload.hooks['before-screenshot'])
     }
 
     if (this.payload.reducedMotion) {
-      logger.info(`${this.logPrefix} Enabling reduced motion`)
+      logger.info(`${this.logPrefix} Enabling reduced motion`, { payload: this.payload })
       await this.browser().enableReducedMotion()
     }
 
     if (this.payload.mediaReset) {
-      logger.info(`${this.logPrefix} Resetting time-based media`)
+      logger.info(`${this.logPrefix} Resetting time-based media`, { payload: this.payload })
       await this.browser().resetTimeBasedMedia()
     }
 
@@ -257,29 +270,34 @@ export class ScreenshotCapturer {
       for (const selector of rule.selectors) {
         for (const ruleAttr of rule.attrs) {
           if (ruleAttr.name === RuleAttrType.REMOVE) {
-            logger.info(`${this.logPrefix} Removing element matching selector: ${selector}`)
+            logger.info(`${this.logPrefix} Removing element matching selector: ${selector}`, { payload: this.payload })
             await this.browser().removeElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.HIDE) {
-            logger.info(`${this.logPrefix} Hiding element matching selector: ${selector}`)
+            logger.info(`${this.logPrefix} Hiding element matching selector: ${selector}`, { payload: this.payload })
             await this.browser().hideElements(selector)
           }
 
           if (ruleAttr.name === RuleAttrType.CUSTOM) {
             logger.info(
               `${this.logPrefix} Replace innerText element with user-defined text matching selector: ${selector}`,
+              { payload: this.payload },
             )
             await this.browser().replaceElementInnerText(selector, ruleAttr.value || '')
           }
 
           if (ruleAttr.name === RuleAttrType.REPLACE_WORDS) {
-            logger.info(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`)
+            logger.info(`${this.logPrefix} Replace innerText element with static text matching selector: ${selector}`, {
+              payload: this.payload,
+            })
             await this.browser().replaceElementInnerText(selector, getLoremIpsumWords(Number(ruleAttr.value)))
           }
 
           if (ruleAttr.name === RuleAttrType.IMAGE_COLOR_BLACK) {
-            logger.info(`${this.logPrefix} Change image color to black for elements matching selector: ${selector}`)
+            logger.info(`${this.logPrefix} Change image color to black for elements matching selector: ${selector}`, {
+              payload: this.payload,
+            })
             await this.browserEngine?.executeScript<void>(`
               const elements = document.querySelectorAll(\`${selector}\`);
               elements.forEach(el => {
@@ -291,7 +309,9 @@ export class ScreenshotCapturer {
           }
 
           if (ruleAttr.name === RuleAttrType.IMAGE_COLOR_WHITE) {
-            logger.info(`${this.logPrefix} Change image color to white for elements matching selector: ${selector}`)
+            logger.info(`${this.logPrefix} Change image color to white for elements matching selector: ${selector}`, {
+              payload: this.payload,
+            })
             await this.browserEngine?.executeScript<void>(`
               const elements = document.querySelectorAll(\`${selector}\`);
               elements.forEach(el => {
@@ -308,6 +328,7 @@ export class ScreenshotCapturer {
 
   private browser(): IBrowserEngine {
     if (!this.browserEngine) {
+      logger.error(`${this.logPrefix} Browser engine is not initialized yet`, { payload: this.payload })
       throw new Error('Browser engine not initialized yet')
     }
 

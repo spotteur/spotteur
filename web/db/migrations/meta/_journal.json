@@ -134,6 +134,13 @@
       "when": 1773200000000,
       "tag": "0018_lucky_patch",
       "breakpoints": false
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1775619692161,
+      "tag": "0019_dapper_luminals",
+      "breakpoints": false
     }
   ]
 }

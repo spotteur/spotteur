@@ -123,6 +123,18 @@ export const pageRules = pgTable(
   (table) => [unique('page_rules_unique').on(table.projectId, table.pagePath)],
 )
 
+export const buildLogs = pgTable('build_logs', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
+  buildId: uuid('build_id').references(() => builds.id),
+  snapshotId: varchar('snapshot_id'),
+  level: varchar('level'),
+  message: text('message'),
+  meta: jsonb('meta').default(sql`'{}'::jsonb`),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const projectsRelations = relations(projects, ({ many }) => ({
   builds: many(builds),
   pageRules: many(pageRules),

@@ -1,7 +1,7 @@
 'use server'
 
 import { type Subscriber } from '@novu/js'
-import { and, asc, count, desc, eq, like, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ilike, like, type SQL } from 'drizzle-orm'
 import { type Route } from 'next'
 import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
@@ -13,8 +13,9 @@ import { NOVU_WORKFLOW_BUILD_CREATED, NOVU_WORKFLOW_BUILD_FAILED, NOVU_WORKFLOW_
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { TEMPORAL_BUILD_SNAPSHOTS_WORKFLOW, TEMPORAL_QUEUE_NAME } from '@/constants/temporal'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
-import { snapshots, users } from '@/db/schema'
+import { buildLogs, snapshots, users } from '@/db/schema'
 import { builds, pageRules, projects } from '@/db/schema'
+import { buildLogsSchema } from '@/features/logs/schema'
 import { SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
 import { InvalidProjectTokenError, ProjectNotFoundError } from '@/features/projects/errors'
 import { generateSnapshotFileName, generateSnapshotPath } from '@/features/snapshots/actions'
@@ -459,4 +460,76 @@ export async function triggerBuildApi({ payload }: { payload: unknown }) {
       notes,
     },
   })
+}
+
+export async function buildLogsInsert({ payload }: { payload: unknown }) {
+  try {
+    const { success, data } = buildLogsSchema.safeParse(payload)
+
+    if (!success) {
+      throw new Error('Invalid build logs payload')
+    }
+
+    const level = data.level || undefined
+    data.message = String(data.message)
+    data.level = level
+
+    if (data.buildId) {
+      const logs = await db.insert(buildLogs).values(data).returning({ logs: buildLogs.id })
+
+      return { ok: true, data: logs } as const
+    }
+
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: 'Failed to process screenshot' } as const
+  }
+}
+
+export async function getBuildLogs({
+  buildId,
+  page = 1,
+  pageSize = 10,
+  search = '',
+}: {
+  buildId: string
+  page?: number
+  pageSize?: number
+  search?: string
+}) {
+  const offset = (page - 1) * pageSize
+
+  const join = eq(buildLogs.buildId, builds.id)
+  const filters = [eq(buildLogs.buildId, buildId)] as SQL[]
+  const trimmedSearch = search?.trim()
+  if (trimmedSearch) {
+    filters.push(ilike(buildLogs.snapshotId, `%${trimmedSearch}%`))
+  }
+
+  const where = filters.length > 0 ? and(...filters) : undefined
+
+  const baseRowsQuery = db
+    .select({
+      id: buildLogs.id,
+      buildId: buildLogs.buildId,
+      snapshotId: buildLogs.snapshotId,
+      createdAt: buildLogs.createdAt,
+      message: buildLogs.message,
+      level: buildLogs.level,
+      meta: buildLogs.meta,
+    })
+    .from(buildLogs)
+    .leftJoin(builds, join)
+    .orderBy(desc(buildLogs.createdAt))
+    .limit(pageSize)
+    .offset(offset)
+  const baseCountQuery = db.select({ total: count() }).from(buildLogs)
+
+  const rowsQuery = baseRowsQuery.where(where)
+  const countQuery = baseCountQuery.where(where)
+
+  const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
+
+  return { data: rows, total }
 }

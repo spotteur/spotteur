@@ -1,5 +1,7 @@
 import winston from 'winston'
 
+import { BuildLogsTransport } from './transport/build-logs'
+
 const { combine, timestamp, errors, json } = winston.format
 
 const excludeError = winston.format((info) => (info.level === 'error' ? false : info))()
@@ -19,5 +21,7 @@ export const logger = winston.createLogger({
       filename: 'logs/debug.log',
       format: excludeError,
     }),
+
+    new BuildLogsTransport(),
   ],
 })

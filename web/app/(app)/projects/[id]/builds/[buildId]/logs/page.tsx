@@ -8,11 +8,12 @@ import { useMemo } from 'react'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
+import BuildListLog from '@/features/logs/list'
 import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
@@ -87,7 +88,7 @@ export default function BuildDetailLogsPage() {
 
       <Card>
         <CardContent>
-          <CardDescription>Coming soon...</CardDescription>
+          <BuildListLog buildId={params.buildId} />
         </CardContent>
       </Card>
     </div>

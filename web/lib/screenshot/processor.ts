@@ -25,7 +25,7 @@ export class ScreenshotProcessor {
 
   public async process(): Promise<ProcessScreenshotResult> {
     const { snapshot } = await db.transaction(async (tx) => {
-      logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`)
+      logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`, { payload: this.payload })
       const image = sharp(fs.readFileSync(this.tempPath)).ensureAlpha().raw().toFormat('png')
       const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
 
@@ -58,7 +58,7 @@ export class ScreenshotProcessor {
       let diffScreenshotMediaId: string | null = null
       let diffPercentage: number = 100
 
-      logger.info(`${this.logPrefix} Checking baseline screenshot`)
+      logger.info(`${this.logPrefix} Checking baseline screenshot`, { payload: this.payload })
       const [build] = await tx.select().from(builds).where(eq(builds.id, this.payload.buildId)).limit(1)
       if (build.baselineBuildId) {
         const baselineSnapshot = await getBaselineSnapshot({
@@ -68,15 +68,15 @@ export class ScreenshotProcessor {
         })
         if (baselineSnapshot && baselineSnapshot.screenshotMedia) {
           try {
-            logger.info(`${this.logPrefix} Found baseline screenshot`)
+            logger.info(`${this.logPrefix} Found baseline screenshot`, { payload: this.payload })
 
             baselineScreenshotMediaId = baselineSnapshot.screenshotMedia.id
             const mediaUrl = await getPresignUrl({ key: baselineSnapshot.screenshotMedia.path })
 
-            logger.info(`${this.logPrefix} Downloading baseline screenshot`)
+            logger.info(`${this.logPrefix} Downloading baseline screenshot`, { payload: this.payload })
             const baselineBuffer = await bufferFromUrl(mediaUrl)
 
-            logger.info(`${this.logPrefix} Calculating image diff`)
+            logger.info(`${this.logPrefix} Calculating image diff`, { payload: this.payload })
             const { diffImage: diffScreenshotBuffer, diffPercentage: diff } = await getImageDiff({
               imgBuffer1: buffer,
               imgBuffer2: baselineBuffer,
@@ -127,11 +127,13 @@ export class ScreenshotProcessor {
       }
 
       if (!baselineScreenshotMediaId) {
-        logger.info(`${this.logPrefix} No baseline screenshot found, auto-approving snapshot`)
+        logger.info(`${this.logPrefix} No baseline screenshot found, auto-approving snapshot`, {
+          payload: this.payload,
+        })
         approvalStatus = SnapshotApprovalStatus.APPROVED
       }
 
-      logger.info(`${this.logPrefix} Storing record of snapshot`)
+      logger.info(`${this.logPrefix} Storing record of snapshot`, { payload: this.payload })
       const [snapshot] = await tx
         .insert(snapshots)
         .values({
