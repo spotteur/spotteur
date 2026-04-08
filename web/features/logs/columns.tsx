@@ -24,7 +24,9 @@ export function getColumns(): ColumnDef<typeof buildLogs.$inferSelect>[] {
       id: 'createdAt',
       accessorKey: 'createdAt',
       header: 'Created At',
-      cell: (info) => formatDateTime(String(info.getValue())),
+      cell: (row) => {
+        return <span className="text-muted-foreground">{formatDateTime(String(row.getValue()))}</span>
+      },
     },
     {
       id: 'level',
