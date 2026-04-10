@@ -1,14 +1,12 @@
 import type { NextConfig } from 'next'
 import type { RemotePattern } from 'next/dist/shared/lib/image-config'
 
-import { S3_ENDPOINT } from '@/constants/env'
-
 function getImageRemotePatterns(): (URL | RemotePattern)[] {
-  if (!S3_ENDPOINT) {
+  if (!process.env.S3_ENDPOINT) {
     return []
   }
 
-  const url = new URL(S3_ENDPOINT)
+  const url = new URL(process.env.S3_ENDPOINT)
   const { hostname, port } = url
   const protocol = url.protocol.replace(':', '')
   if (protocol !== 'http' && protocol !== 'https') {
