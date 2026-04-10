@@ -484,7 +484,7 @@ export async function buildLogsInsert({ payload }: { payload: unknown }) {
     return { ok: true } as const
   } catch (error) {
     logger.error(error)
-    return { ok: false, error: 'Failed to process screenshot' } as const
+    return { ok: false, error: 'Database insert failed for log' } as const
   }
 }
 
