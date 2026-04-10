@@ -86,7 +86,6 @@ export default function EditProjectPage() {
                 name: data.name,
                 baseUrl: data.baseUrl,
                 snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
-                snapshotSelector: data.snapshotSelector,
                 viewports: data.viewports,
                 pagePaths: (data.pagePaths ?? []).join('\n'),
                 token: data.token ?? '',

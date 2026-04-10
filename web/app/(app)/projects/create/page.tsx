@@ -79,7 +79,6 @@ export default function NewProjectPage() {
           name: '',
           baseUrl: '',
           snapshotBrowsers: [DEFAULT_SNAPSHOTS_BROWSER],
-          snapshotSelector: DEFAULT_SNAPSHOT_SELECTOR,
           viewports: [[DEFAULT_SNAPSHOTS_WIDTH, DEFAULT_SNAPSHOTS_HEIGHT]],
           pagePaths: '',
           token: '',

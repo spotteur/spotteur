@@ -23,7 +23,6 @@ export const projects = pgTable('projects', {
     .$type<[number, number][]>()
     .notNull()
     .default(sql`'[]'::jsonb`),
-  snapshotSelector: varchar('snapshot_selector').notNull(),
   pagePaths: text('page_paths')
     .array()
     .notNull()

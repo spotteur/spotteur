@@ -232,27 +232,6 @@ export function ProjectForm({
         }}
       />
       <form.Field
-        name="snapshotSelector"
-        children={(field) => {
-          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-          return (
-            <Field data-invalid={isInvalid}>
-              <FieldLabel htmlFor="project-snapshotSelector">Selector</FieldLabel>
-              <Input
-                id="project-snapshotSelector"
-                name={field.name}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                aria-invalid={isInvalid}
-              />
-              <FieldDescription>Selector for the snapshots (e.g., .container, #container, or footer)</FieldDescription>
-              {isInvalid && <FieldError errors={field.state.meta.errors} />}
-            </Field>
-          )
-        }}
-      />
-      <form.Field
         name="viewports"
         mode="array"
         children={(viewportsField) => {
