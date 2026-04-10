@@ -4,11 +4,11 @@
   "name": "Docker from Docker Compose",
   "dockerComposeFile": [
     "../compose.yml",
-    "../compose.dev.yml"
+    "../compose.devcontainer.yml"
   ],
-  "service": "webapp-dev",
+  "service": "devcontainer",
   "runServices": [
-    "webapp-dev"
+    "devcontainer"
   ],
   "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
@@ -39,17 +39,9 @@
         "bradlc.vscode-tailwindcss"
       ]
     }
-  },
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [
-    "17999:3000"
-  ],
-  "portsAttributes": {
-    "17999:3000": {
-      "label": "NextJS Application",
-      "onAutoForward": "notify"
-    }
   }
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": []
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "docker --version",
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.

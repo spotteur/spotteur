@@ -1,47 +1,21 @@
 services:
-  webapp:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
-    ports:
-      - "${WEBAPP_PORT:-18000}:3000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000"]
-      interval: 3s
-      timeout: 5s
-      retries: 30
-    env_file: [".env"]
-    restart: "unless-stopped"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
-    volumes:
-      - "./web/logs:/app/logs"
-  webapp-script-runner:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: [".env"]
-    profiles:
-      - "script-runner"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
   webapp-worker:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
+    build:
+      context: web
+      dockerfile: Dockerfile
+      target: production-script-runner
     command: ["npm", "run", "worker:dev"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file: [".env"]
     restart: "unless-stopped"
+    volumes:
+      - "webapp-worker_storage:/storage"
     depends_on:
       postgres-webapp:
         condition: "service_healthy"
       temporal:
         condition: "service_healthy"
-    volumes:
-      - "webapp-worker_storage:/storage"
-      - "./web/logs:/app/logs"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -177,6 +151,18 @@ services:
     healthcheck:
       test: ["CMD", "/opt/bin/check-grid.sh"]
       interval: 5s
+    restart: "unless-stopped"
+  inbucket:
+    image: "inbucket/inbucket:sha-6eff554"
+    environment:
+      INBUCKET_MAILBOXNAMING: "full"
+      INBUCKET_SMTP_ADDR: "0.0.0.0:25"
+      INBUCKET_POP3_ADDR: "0.0.0.0:110"
+      INBUCKET_LOGLEVEL: "warn"
+    ports:
+      - "${INBUCKET_PORT:-18004}:9000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://localhost:9000/status || exit 1"]
     restart: "unless-stopped"
 volumes:
   selenium_assets:
