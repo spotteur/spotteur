@@ -23,8 +23,6 @@ import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { type NavigationType } from '@/types/app'
 
-const DEFAULT_SNAPSHOT_SELECTOR = 'body'
-
 export default function NewProjectPage() {
   const router = useRouter()
   const queryClient = useQueryClient()

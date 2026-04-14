@@ -6,15 +6,13 @@ import { type SnapshotPayload } from '@/types/screenshot'
 
 export async function getSingleSnapshotPayload({
   snapshotId,
-  buildId,
   projectId,
 }: {
   snapshotId: string
-  buildId: string
   projectId: string
 }): Promise<SnapshotPayload> {
   try {
-    const snapshotRes = await getSnapshotDetail({ projectId, buildId, snapshotId })
+    const snapshotRes = await getSnapshotDetail({ snapshotId })
     if (snapshotRes) {
       const snapshot = snapshotRes.snapshot
 
