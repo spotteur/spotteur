@@ -176,29 +176,14 @@ export async function listSnapshotsByBuild({
   return { data: await Promise.all(modifiedRows), total }
 }
 
-export async function getSnapshotDetail({
-  projectId,
-  buildId,
-  snapshotId,
-}: {
-  projectId: string
-  buildId: string
-  snapshotId: string
-}) {
+export async function getSnapshotDetail({ snapshotId }: { snapshotId: string }) {
   const baselineMedia = alias(media, 'baseline_media')
   const diffMedia = alias(media, 'diff_media')
-
-  const [build] = await db
-    .select()
-    .from(builds)
-    .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
-    .limit(1)
-
-  if (!build) return null
 
   const [snapshot] = await db
     .select({
       id: snapshots.id,
+      buildId: snapshots.buildId,
       pagePath: snapshots.pagePath,
       browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,
@@ -227,12 +212,18 @@ export async function getSnapshotDetail({
       },
     })
     .from(snapshots)
-    .where(and(eq(snapshots.id, snapshotId), eq(snapshots.buildId, buildId)))
+    .where(eq(snapshots.id, snapshotId))
     .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
     .leftJoin(baselineMedia, eq(snapshots.baselineScreenshotMediaId, baselineMedia.id))
     .leftJoin(diffMedia, eq(snapshots.diffScreenshotMediaId, diffMedia.id))
 
   if (!snapshot) return null
+
+  const [build] = await db.select().from(builds).where(eq(builds.id, snapshot.buildId)).limit(1)
+
+  if (!build) return null
+
+  const [project] = await db.select().from(projects).where(eq(projects.id, build.projectId)).limit(1)
 
   const [screenshotUrl, baselineUrl, diffUrl, prev, next] = await Promise.all([
     snapshot.screenshotMedia ? getPresignUrl({ key: snapshot.screenshotMedia.path }) : Promise.resolve(''),
@@ -240,8 +231,8 @@ export async function getSnapshotDetail({
       ? getPresignUrl({ key: snapshot.baselineScreenshotMedia.path })
       : Promise.resolve(''),
     snapshot.diffScreenshotMedia ? getPresignUrl({ key: snapshot.diffScreenshotMedia.path }) : Promise.resolve(''),
-    getPrevSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
-    getNextSnapshot({ buildId: buildId, snapshotId: snapshot.id }),
+    getPrevSnapshot({ buildId: build.id, snapshotId: snapshot.id }),
+    getNextSnapshot({ buildId: build.id, snapshotId: snapshot.id }),
   ])
 
   if (snapshot.screenshotMedia) {
@@ -258,7 +249,7 @@ export async function getSnapshotDetail({
 
   const action = { prev, next }
 
-  return { build, snapshot, action }
+  return { build, snapshot, action, project }
 }
 
 export async function updateSnapshotApprovalStatus({

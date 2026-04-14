@@ -11,10 +11,9 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { snapshotsMenu } from '@/constants/app'
-import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
+import { QUERY_KEY_BUILDS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus } from '@/constants/status-map'
 import { getBuildDetail } from '@/features/builds/actions'
-import { getProject } from '@/features/projects/actions'
 import { listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
 import { SnapshotReviewFilters } from '@/features/snapshots/review-filters'
@@ -22,23 +21,19 @@ import { SnapshotReviewTree } from '@/features/snapshots/review-tree'
 import { type NavigationType } from '@/types/app'
 
 export default function SnapshotReviewPage() {
-  const params = useParams<{ id: string; buildId: string }>()
+  const params = useParams<{ buildId: string }>()
   const [selectedPath, setSelectedPath] = useQueryState('path', parseAsString.withDefault(''))
   const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault(''))
   const [browsers, setBrowsers] = useQueryState('browsers', parseAsArrayOf(parseAsString).withDefault([]))
   const [hideExactlyMatch, setHideExactlyMatch] = useQueryState('hideExactlyMatch', parseAsBoolean.withDefault(false))
   const [hideNewPage, setHideNewPage] = useQueryState('hideNewPage', parseAsBoolean.withDefault(false))
 
-  const { data: projectData, isLoading: isLoadingProject } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
-    queryFn: () => getProject(params.id),
-  })
-
-  const { data: buildData, isLoading: isLoadingBuild } = useQuery({
-    queryKey: [QUERY_KEY_BUILDS, params.id, params.buildId],
-    queryFn: () => getBuildDetail({ projectId: params.id, buildId: params.buildId }),
+  const { data, isLoading: isLoadingBuild } = useQuery({
+    queryKey: [QUERY_KEY_BUILDS, params.buildId],
+    queryFn: () => getBuildDetail({ buildId: params.buildId }),
     refetchInterval: ({ state }) => {
-      const buildStatus = state.data?.status
+      const build = state.data?.build
+      const buildStatus = build?.status
       if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
       }
@@ -52,11 +47,12 @@ export default function SnapshotReviewPage() {
   })
 
   const { data: snapshotsData, isLoading: isLoadingSnapshots } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, params.id, params.buildId, 'review-tree'],
+    queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
     queryFn: () => listSnapshotsByBuildV2({ buildId: params.buildId }),
     placeholderData: (prev) => prev,
     enabled: !!params.buildId,
     refetchInterval: () => {
+      const buildData = data?.build
       const buildStatus = buildData?.status
       if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
@@ -120,7 +116,9 @@ export default function SnapshotReviewPage() {
     }
   }
 
-  const isLoading = isLoadingProject || isLoadingBuild || isLoadingSnapshots
+  const isLoading = isLoadingBuild || isLoadingSnapshots
+  const buildData = data?.build
+  const projectData = data?.project
 
   const breadcrumbs = useMemo(
     () =>
@@ -134,19 +132,19 @@ export default function SnapshotReviewPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}`}>{projectData.name}</Link>
+              <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds`}>Builds</Link>
+              <Link href={`/projects/${projectData.id}/builds`}>Builds</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots`}>{buildData.identifier}</Link>
+              <Link href={`/builds/${params.buildId}/snapshots`}>{buildData.identifier}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -155,13 +153,13 @@ export default function SnapshotReviewPage() {
           </BreadcrumbItem>
         </>
       ) : null,
-    [projectData, buildData, params.id, params.buildId],
+    [projectData, buildData, params.buildId],
   )
-  useHeaderBreadcrumbs(breadcrumbs, isLoadingProject || isLoadingBuild)
+  useHeaderBreadcrumbs(breadcrumbs, isLoadingBuild)
 
   const navigations = useMemo<NavigationType[]>(
-    () => snapshotsMenu(params.id, params.buildId),
-    [params.id, params.buildId],
+    () => snapshotsMenu(projectData?.id ?? '', params.buildId),
+    [projectData?.id, params.buildId],
   )
   useHeaderNavigations(navigations)
 
@@ -206,7 +204,7 @@ export default function SnapshotReviewPage() {
             selectedSnapshotId={selectedSnapshotId}
             openedSnapshotIds={openedSnapshotIds}
             onChangeOpenedSnapshot={onChangeOpenedSnapshot}
-            projectId={params.id}
+            projectId={projectData?.id ?? ''}
             buildId={params.buildId}
           />
         </ResizablePanel>

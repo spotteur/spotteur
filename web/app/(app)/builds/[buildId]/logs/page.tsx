@@ -10,27 +10,22 @@ import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { snapshotsMenu } from '@/constants/app'
-import { QUERY_KEY_BUILDS, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import BuildListLog from '@/features/logs/list'
-import { getProject } from '@/features/projects/actions'
 import { type NavigationType } from '@/types/app'
 
 export default function BuildDetailLogsPage() {
-  const params = useParams<{ id: string; buildId: string }>()
+  const params = useParams<{ buildId: string }>()
 
-  const { data: projectData, isLoading: isLoadingProject } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
-    queryFn: () => getProject(params.id),
+  const { data, isLoading } = useQuery({
+    queryKey: [QUERY_KEY_BUILDS, params.buildId],
+    queryFn: () => getBuildDetail({ buildId: params.buildId }),
   })
 
-  const { data: buildData, isLoading: isLoadingBuild } = useQuery({
-    queryKey: [QUERY_KEY_BUILDS, params.id, params.buildId],
-    queryFn: () => getBuildDetail({ projectId: params.id, buildId: params.buildId }),
-  })
-
-  const isLoading = isLoadingProject || isLoadingBuild
+  const buildData = data?.build
+  const projectData = data?.project
 
   const breadcrumbs = useMemo(
     () =>
@@ -44,21 +39,19 @@ export default function BuildDetailLogsPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}`}>{projectData.name}</Link>
+              <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds` as Route}>Builds</Link>
+              <Link href={`/projects/${projectData.id}/builds` as Route}>Builds</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots` as Route}>
-                {buildData.identifier}
-              </Link>
+              <Link href={`/builds/${params.buildId}/snapshots` as Route}>{buildData.identifier}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -73,8 +66,8 @@ export default function BuildDetailLogsPage() {
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
   const navigations = useMemo<NavigationType[]>(
-    () => snapshotsMenu(params.id, params.buildId),
-    [params.id, params.buildId],
+    () => snapshotsMenu(projectData?.id ?? '', params.buildId),
+    [projectData?.id, params.buildId],
   )
   useHeaderNavigations(navigations)
 

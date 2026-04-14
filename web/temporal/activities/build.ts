@@ -67,10 +67,12 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
     return await new ScreenshotCapturer(params).capture()
   } catch (error) {
     if (error instanceof UnsupportedBrowserEngineError) {
+      logger.error(`Unsupported browser engine: ${error.message}`, { payload: params.payload })
       throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 
     if (error instanceof UnsupportedBrowserTypeError) {
+      logger.error(`Unsupported browser type: ${error.message}`, { payload: params.payload })
       throw ApplicationFailure.nonRetryable(error.message, error.name)
     }
 
@@ -84,7 +86,9 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
       })
     }
 
-    logger.error(error)
+    logger.error(`Failed to capture screenshot: ${error instanceof Error ? error.message : ''}`, {
+      payload: params.payload,
+    })
     throw ApplicationFailure.retryable(
       `Failed to capture screenshot: ${error instanceof Error ? error.message : error}`,
       error instanceof Error ? error.name : 'UnknownError',
@@ -97,6 +101,7 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
   try {
     fs.accessSync(params.tempPath, fs.constants.R_OK)
   } catch {
+    logger.error(`Screenshot file not found at path: ${params.tempPath}`, { payload: params.payload })
     throw ApplicationFailure.nonRetryable(`Screenshot file not found: ${params.tempPath}`, 'FileNotFound')
   }
 
@@ -107,7 +112,9 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
 
     return { snapshot }
   } catch (error) {
-    logger.error(error)
+    logger.error(`Failed to process screenshot: ${error instanceof Error ? error.message : ''}`, {
+      payload: params.payload,
+    })
     throw ApplicationFailure.retryable(
       `Failed to process screenshot: ${error instanceof Error ? error.message : error}`,
       error instanceof Error ? error.name : 'UnknownError',
@@ -170,7 +177,7 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
 
     const totalSnapshotCount = snapshotRows.length
     const hasDiffSnapshotCount = snapshotRows.filter((row) => row.diffPercentage > 0).length
-    const pagePath = `/projects/${projectId}/builds/${buildId}/snapshots` as Route
+    const pagePath = `/builds/${buildId}/snapshots` as Route
 
     for (const subscribers of await getNovuSubscribers()) {
       await novu.trigger({

@@ -12,27 +12,22 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Skeleton } from '@/components/ui/skeleton'
 import { snapshotsMenu } from '@/constants/app'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
-import { QUERY_KEY_PROJECTS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
-import { getProject } from '@/features/projects/actions'
+import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { getSnapshotDetail } from '@/features/snapshots/actions'
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from '@/features/snapshots/badge'
 import { SnapshotViewer, SnapshotActionButtons } from '@/features/snapshots/detail'
 import { type NavigationType } from '@/types/app'
 
 export default function SnapshotDetailPage() {
-  const params = useParams<{ id: string; buildId: string; snapshotId: string }>()
+  const params = useParams<{ snapshotId: string }>()
 
-  const { data: projectData, isLoading: isLoadingProject } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
-    queryFn: () => getProject(params.id),
+  const { data: snapshotData, isLoading } = useQuery({
+    queryKey: [QUERY_KEY_SNAPSHOTS, params.snapshotId],
+    queryFn: () => getSnapshotDetail({ snapshotId: params.snapshotId }),
   })
 
-  const { data: snapshotData, isLoading: isLoadingSnapshot } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, params.id, params.buildId, params.snapshotId],
-    queryFn: () => getSnapshotDetail({ projectId: params.id, buildId: params.buildId, snapshotId: params.snapshotId }),
-  })
-
-  const isLoading = isLoadingProject || isLoadingSnapshot
+  const projectData = snapshotData?.project
+  const buildData = snapshotData?.build
 
   const breadcrumbs = useMemo(
     () =>
@@ -46,21 +41,19 @@ export default function SnapshotDetailPage() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}`}>{projectData.name}</Link>
+              <Link href={`/projects/${projectData.id}`}>{projectData.name}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds`}>Builds</Link>
+              <Link href={`/projects/${projectData.id}/builds`}>Builds</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/projects/${params.id}/builds/${params.buildId}/snapshots`}>
-                {snapshotData.build.identifier}
-              </Link>
+              <Link href={`/builds/${buildData?.id}/snapshots`}>{snapshotData.build.identifier}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -69,14 +62,14 @@ export default function SnapshotDetailPage() {
           </BreadcrumbItem>
         </>
       ) : null,
-    [projectData, snapshotData, params.id, params.buildId],
+    [projectData, snapshotData, buildData],
   )
 
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
   const navigations = useMemo<NavigationType[]>(
-    () => snapshotsMenu(params.id, params.buildId),
-    [params.id, params.buildId],
+    () => snapshotsMenu(projectData?.id ?? '', buildData?.id ?? ''),
+    [projectData?.id, buildData?.id],
   )
   useHeaderNavigations(navigations)
 
@@ -99,8 +92,8 @@ export default function SnapshotDetailPage() {
             {snapshotData ? (
               <SnapshotActionButtons
                 snapshot={snapshotData.snapshot}
-                projectId={params.id}
-                buildId={params.buildId}
+                projectId={projectData?.id ?? ''}
+                buildId={buildData?.id ?? ''}
                 snapshotId={params.snapshotId}
               />
             ) : (
@@ -134,20 +127,12 @@ export default function SnapshotDetailPage() {
                 <div className="flex gap-5">
                   {snapshotData.action.prev ? (
                     <Button asChild variant="outline">
-                      <Link
-                        href={`/projects/${params.id}/builds/${params.buildId}/snapshots/${snapshotData.action.prev}`}
-                      >
-                        Previous
-                      </Link>
+                      <Link href={`/snapshots/${snapshotData.action.prev}`}>Previous</Link>
                     </Button>
                   ) : null}
                   {snapshotData.action.next ? (
                     <Button asChild variant="outline">
-                      <Link
-                        href={`/projects/${params.id}/builds/${params.buildId}/snapshots/${snapshotData.action.next}`}
-                      >
-                        Next
-                      </Link>
+                      <Link href={`/snapshots/${snapshotData.action.next}`}>Next</Link>
                     </Button>
                   ) : null}
                 </div>

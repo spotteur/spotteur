@@ -104,7 +104,7 @@ export function BuildListCard({ projectId, baseUrl }: { projectId?: string; base
             <div className="grid gap-4 pb-6 md:grid-cols-2 xl:grid-cols-3">
               {data?.data?.map((build) => {
                 return (
-                  <Link key={build.id} href={`/projects/${projectId}/builds/${build.id}/snapshots` as Route}>
+                  <Link key={build.id} href={`/builds/${build.id}/snapshots` as Route}>
                     <BuildItemCard build={build} />
                   </Link>
                 )
