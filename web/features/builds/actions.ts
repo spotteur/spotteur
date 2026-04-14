@@ -157,7 +157,7 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
 
   await startBuildWorkflow({ projectId, buildId: build.id })
 
-  const pagePath = `/projects/${projectId}/builds/${build.id}/snapshots` as Route
+  const pagePath = `/builds/${build.id}/snapshots` as Route
 
   for (const subscribers of await getNovuSubscribers()) {
     await novu.trigger({
@@ -174,16 +174,20 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
   return { build }
 }
 
-export async function getBuildDetail({ projectId, buildId }: { projectId: string; buildId: string }) {
-  const [build] = await db
-    .select()
-    .from(builds)
-    .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
-    .limit(1)
+export async function getBuildDetail({ buildId }: { buildId: string }) {
+  const [build] = await db.select().from(builds).where(eq(builds.id, buildId)).limit(1)
 
   if (!build) return null
 
-  return build
+  const [project] = await db.select().from(projects).where(eq(projects.id, build.projectId)).limit(1)
+
+  if (!project) return null
+
+  const result = {
+    build,
+    project,
+  }
+  return result
 }
 
 export async function resumeBuild({ projectId, buildId }: { projectId: string; buildId: string }) {
@@ -268,7 +272,7 @@ export async function populateSnapshotsPayload({
           return false
         })
         const snapshotId = existingSnapshot ? existingSnapshot.id : uuidv7()
-        const s3Prefix = await generateSnapshotPath({ projectId, buildId, snapshotId })
+        const s3Prefix = await generateSnapshotPath({ projectId, snapshotId, buildId })
         const fileName = await generateSnapshotFileName({ pageUrl, type: 'screenshot' })
 
         snapshotsArray.push({
@@ -358,7 +362,7 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
       .where(eq(projects.id, build.projectId))
   }
 
-  const pagePath = `/projects/${build.projectId}/builds/${build.id}/snapshots` as Route
+  const pagePath = `/builds/${build.id}/snapshots` as Route
   const actionLink = `${APP_URL}${pagePath}`
 
   if (

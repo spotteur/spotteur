@@ -162,7 +162,7 @@ export function SnapshotListCard({ build }: { build?: typeof builds.$inferSelect
             table.getRowModel().rows.map((row) => (
               <Link
                 key={row.original.id}
-                href={`/projects/${build.projectId}/builds/${build.id}/snapshots/${row.original.id}` as Route}
+                href={`/snapshots/${row.original.id}` as Route}
                 aria-label={`View ${row.original.pagePath}`}
               >
                 <SnapshotItemCard snapshot={row.original} build={build} />
