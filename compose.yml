@@ -1,21 +1,4 @@
 services:
-  webapp-worker:
-    build:
-      context: web
-      dockerfile: Dockerfile
-      target: production-script-runner
-    command: ["npm", "run", "worker:dev"]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: [".env"]
-    restart: "unless-stopped"
-    volumes:
-      - "webapp-worker_storage:/storage"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
-      temporal:
-        condition: "service_healthy"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:

@@ -3,6 +3,7 @@ services:
     build:
       context: .devcontainer
       dockerfile: Dockerfile
+    hostname: devcontainer
     ports:
       - "${WEBAPP_PORT:-18000}:3000"
       - "${WEBAPP_EMAIL_PORT:-18005}:3001"

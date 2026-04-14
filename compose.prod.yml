@@ -12,9 +12,6 @@ services:
       retries: 30
     env_file: [".env"]
     restart: "unless-stopped"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
     volumes:
       - "./web/logs:/app/logs"
   webapp-script-runner:
@@ -24,9 +21,6 @@ services:
     env_file: [".env"]
     profiles:
       - "script-runner"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
   webapp-worker:
     image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
     command: ["npm", "run", "worker:dev"]
@@ -34,11 +28,6 @@ services:
       - "host.docker.internal:host-gateway"
     env_file: [".env"]
     restart: "unless-stopped"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
-      temporal:
-        condition: "service_healthy"
     volumes:
       - "webapp-worker_storage:/storage"
       - "./web/logs:/app/logs"

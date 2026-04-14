@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-outside-of-docker-compose
 {
-  "name": "Docker from Docker Compose",
+  "name": "Spotteur",
   "dockerComposeFile": [
     "../compose.yml",
     "../compose.devcontainer.yml"
@@ -54,11 +54,11 @@
         "bradlc.vscode-tailwindcss"
       ]
     }
-  }
+  },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": []
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "docker --version",
+  "postCreateCommand": "cd web/ && npm install"
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"
 }

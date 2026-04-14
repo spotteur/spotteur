@@ -6,9 +6,9 @@ vars:
   DOCKER_COMPOSE_SCRIPT:
     sh: |
       if [ "{{.APP_ENV}}" = "development" ]; then
-        echo "docker compose -f compose.yml
+        echo "docker compose -f compose.yml"
       else
-        echo "docker compose -f compose.yml -f compose.prod.yml
+        echo "docker compose -f compose.yml -f compose.prod.yml"
       fi
   IMAGE_TAG:
     sh: echo "{{.IMAGE_TAG | default "latest"}}"
@@ -29,7 +29,6 @@ tasks:
     cmds:
       # Only trigger build in development mode
       - '{{.DOCKER_COMPOSE_SCRIPT}} up --detach{{if eq .APP_ENV "development" }} --build{{ end }} --remove-orphans'
-      - task: "migrate"
   down:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
@@ -51,12 +50,3 @@ tasks:
   db:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
-  migrate:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task migrate"
-  ssh:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner bash"
-  create-user:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task create-user"

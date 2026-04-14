@@ -10,7 +10,7 @@
     "lint": "prettier . --check --write && eslint --fix",
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
-    "auth:generate-schema": "@better-auth/cli generate --output=./db/schema/auth.ts"
+    "auth:generate-schema": "npx -y @better-auth/cli generate --output=./db/schema/auth.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.953.0",
