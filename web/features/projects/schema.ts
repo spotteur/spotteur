@@ -5,7 +5,6 @@ import {
   HookAfterPageLoadSchema,
   HookBeforeScreenshotSchema,
   PagePathsSchema,
-  SelectorSchema,
   ViewportsSchema,
 } from '@/features/page-rules/schema'
 
@@ -31,7 +30,6 @@ export const ProjectBaseSchema = z.object({
   baseUrl: BaseUrlSchema,
   snapshotBrowsers: BrowsersSchema,
   viewports: ViewportsSchema,
-  snapshotSelector: SelectorSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
   cookieSetting: CookieSettingSchema,

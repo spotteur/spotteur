@@ -4,7 +4,7 @@ import { and, count, asc, desc, eq, ilike, type SQL, lt, gt } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
-import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { DEFAULT_ERROR_MESSAGE, DEFAULT_SNAPSHOTS_SELECTOR } from '@/constants/app'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { TEMPORAL_QUEUE_NAME, TEMPORAL_RETRY_SINGLE_SNAPSHOT_WORKFLOW } from '@/constants/temporal'
 import db, { type DB, type DBTransaction } from '@/db/drizzle'
@@ -472,7 +472,7 @@ export async function populateSingleSnapshotPayload({
     browser,
     viewportWidth,
     viewportHeight,
-    selector: project.snapshotSelector,
+    selector: DEFAULT_SNAPSHOTS_SELECTOR,
     s3Prefix,
     fileName,
     reducedMotion: pageRule?.reducedMotion || false,
