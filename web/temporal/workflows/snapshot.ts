@@ -81,7 +81,7 @@ export async function retrySingleSnapshotWorkflow({
   snapshotId: string
 }) {
   try {
-    const payload = await getSingleSnapshotPayload({ projectId, buildId, snapshotId })
+    const payload = await getSingleSnapshotPayload({ projectId, snapshotId })
     return executeChild(screenshotWorkflow, {
       args: [{ payload, isRetrying: true }],
       workflowId: `build-${buildId}-snapshot-${payload.id}-${payload.browser.toString()}`,
