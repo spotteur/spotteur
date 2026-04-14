@@ -74,7 +74,6 @@ async function main() {
         baseUrl: 'https://kororo.co/',
         token: crypto.randomUUID(),
         snapshotBrowsers: [DEFAULT_SNAPSHOTS_BROWSER],
-        snapshotSelector: DEFAULT_SNAPSHOTS_SELECTOR,
         viewports: [[DEFAULT_SNAPSHOTS_WIDTH, DEFAULT_SNAPSHOTS_HEIGHT]],
         pagePaths: ['/', '/works', '/company'],
       })
