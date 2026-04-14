@@ -7,9 +7,6 @@
     "../compose.devcontainer.yml"
   ],
   "service": "devcontainer",
-  "runServices": [
-    "devcontainer"
-  ],
   "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   // Use this environment variable if you need to bind mount your local source code into a new container.
@@ -17,11 +14,6 @@
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
   },
   "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "version": "latest",
-      "enableNonRootDocker": "true",
-      "moby": "true"
-    },
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
       "configureZshAsDefaultShell": true,
