@@ -7,7 +7,7 @@ import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import { $ZodError } from 'zod/v4/core'
 
-import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { DEFAULT_ERROR_MESSAGE, DEFAULT_SNAPSHOTS_SELECTOR } from '@/constants/app'
 import { APP_URL } from '@/constants/env'
 import { NOVU_WORKFLOW_BUILD_CREATED, NOVU_WORKFLOW_BUILD_FAILED, NOVU_WORKFLOW_BUILD_PASSED } from '@/constants/novu'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
@@ -279,7 +279,7 @@ export async function populateSnapshotsPayload({
           browser,
           viewportWidth,
           viewportHeight,
-          selector: project.snapshotSelector,
+          selector: DEFAULT_SNAPSHOTS_SELECTOR,
           s3Prefix,
           fileName,
           reducedMotion: pageRule?.reducedMotion || false,
