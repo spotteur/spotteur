@@ -46,13 +46,15 @@ export default function SnapshotReviewPage() {
     },
   })
 
+  const buildData = data?.build
+  const projectData = data?.project
+
   const { data: snapshotsData, isLoading: isLoadingSnapshots } = useQuery({
     queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
     queryFn: () => listSnapshotsByBuildV2({ buildId: params.buildId }),
     placeholderData: (prev) => prev,
     enabled: !!params.buildId,
     refetchInterval: () => {
-      const buildData = data?.build
       const buildStatus = buildData?.status
       if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
@@ -117,8 +119,6 @@ export default function SnapshotReviewPage() {
   }
 
   const isLoading = isLoadingBuild || isLoadingSnapshots
-  const buildData = data?.build
-  const projectData = data?.project
 
   const breadcrumbs = useMemo(
     () =>
