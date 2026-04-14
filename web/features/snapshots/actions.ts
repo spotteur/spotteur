@@ -358,6 +358,16 @@ export async function generateSnapshotFileName({
   return `${sha256Hex(pageUrl)}_${type}.png`
 }
 
+export async function generateSnapshotFileNameJpeg({
+  pageUrl,
+  type,
+}: {
+  pageUrl: string
+  type: 'screenshot' | 'baseline-screenshot' | 'diff'
+}) {
+  return `${sha256Hex(pageUrl)}_${type}.jpg`
+}
+
 export async function generateSnapshotPath({
   projectId,
   buildId,
