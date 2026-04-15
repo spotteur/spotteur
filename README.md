@@ -24,8 +24,8 @@ Initial setup:
 - (Optional) Run `docker compose up --build` to start the dependencies first.
 - If you have the `devcontainer` CLI tool installed, simply run `devcontainer build && devcontainer up` and wait for the services to come online.
 - Open the project directory in your IDE (preferably VSCode or Jetbrains).
-- When using VSCode, open the command pallete (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows and Linux), and then select "Reopen in Container" or "Rebuild and Reopen in Container" if `devcontainer` CLI is not being used. Initial setup might take longer (up to 30 minutes when setting up from scratch).
-- When using Jetbrains
+- When using VSCode, open the command pallete (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows and Linux), and then select "Reopen in Container" or "Rebuild and Reopen in Container" if `devcontainer` CLI is not being used.
+- When using Jetbrains, you can follow their instructions: https://www.jetbrains.com/help/webstorm/start-dev-container-inside-ide.html
 
 After the initial setup is done, follow these steps to run the project within the Dev Container:
 
