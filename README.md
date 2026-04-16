@@ -27,12 +27,12 @@ Initial setup:
 - When using VSCode, open the command pallete (`Cmd+Shift+P` on macOS or `Ctrl+Shift+P` on Windows and Linux), and then select "Reopen in Container" or "Rebuild and Reopen in Container" if `devcontainer` CLI is not being used.
 - When using Jetbrains https://www.jetbrains.com/help/webstorm/start-dev-container-inside-ide.html
 
-The initial setup might take longer (up to 30 minutes when setting up from scratch). After it is done, follow these steps to run the project within the Dev Container:
+The initial setup might take longer (up to 30 minutes when setting up from scratch). After the setup is done, follow these steps to run the project within the Dev Container:
 
 - Connect to the Dev Container's terminal. You can use the IDE's integrated terminal if supported.
-- Within the terminal, run `cd web` and then `npm run dev` to run the NextJS web app.
+- Within the terminal, run `cd web` and run `npm run db:migrate` to perform database migration.
+- Run `npm run dev` to run the NextJS web app.
 - Open another Dev Container terminal and run `cd web` and then `npm run worker:dev` to run the Temporal worker.
-- In yet another Dev Container terminal, run `cd web` and run `npm run db:migrate` to perform database migration.
 
 Upon opening this project in Dev Container again after the initial setup is done, it should automatically start all the necessary stack via Docker Compose. Repeat the local run steps above to continue development and testing locally.
 
