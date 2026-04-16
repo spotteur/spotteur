@@ -6,9 +6,9 @@ vars:
   DOCKER_COMPOSE_SCRIPT:
     sh: |
       if [ "{{.APP_ENV}}" = "development" ]; then
-        echo "docker compose -f compose.yml -f compose.dev.yml{{ if eq .FILESYSTEM_DISK "rustfs" }} --profile rustfs{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} --profile selenium{{ end }}"
+        echo "docker compose -f compose.yml"
       else
-        echo "docker compose -f compose.yml{{ if eq .FILESYSTEM_DISK "rustfs" }} --profile rustfs{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} --profile selenium{{ end }}"
+        echo "docker compose -f compose.yml -f compose.prod.yml"
       fi
   IMAGE_TAG:
     sh: echo "{{.IMAGE_TAG | default "latest"}}"
@@ -29,31 +29,24 @@ tasks:
     cmds:
       # Only trigger build in development mode
       - '{{.DOCKER_COMPOSE_SCRIPT}} up --detach{{if eq .APP_ENV "development" }} --build{{ end }} --remove-orphans'
-      - task: "migrate"
   down:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} down"
+  stop:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
+  cleanup:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} down --rmi all -v"
   status:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} ps --format 'table {{\"{{.Name}}\"}}\t{{\"{{.Image}}\"}}\t{{\"{{.Status}}\"}}' --all"
   logs:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100 {{.CLI_ARGS}}"
-  lint:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp npm run lint"
   db:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
-  stop:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
   migrate:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task migrate"
-  ssh:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner bash"
-  create-user:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task create-user"

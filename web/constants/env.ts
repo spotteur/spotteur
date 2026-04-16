@@ -31,6 +31,7 @@ export const NOVU_BACKEND_URL = process.env.NOVU_BACKEND_URL || 'https://api.nov
 export const NOVU_WS_URL = process.env.NOVU_WS_URL || 'wss://ws.novu.co'
 
 export const TEMPORAL_ADDRESS = process.env.TEMPORAL_ADDRESS || 'temporal:7233'
+export const TEMPORAL_DEFAULT_STORAGE_DIR = process.env.TEMPORAL_DEFAULT_STORAGE_DIR || '/storage'
 
 export const SELENIUM_REMOTE_URL = process.env.SELENIUM_REMOTE_URL || ''
 

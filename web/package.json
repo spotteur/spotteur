@@ -7,7 +7,10 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "worker:dev": "tsx watch ./temporal/worker.ts",
-    "lint": "prettier . --check --write && eslint --fix"
+    "lint": "prettier . --check --write && eslint --fix",
+    "db:migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate",
+    "auth:generate-schema": "npx -y @better-auth/cli generate --output=./db/schema/auth.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.953.0",

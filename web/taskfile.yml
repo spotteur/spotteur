@@ -5,13 +5,13 @@ silent: true
 tasks:
   migrate:
     cmds:
-      - 'npx -y drizzle-kit migrate'
+      - 'npm run db:migrate'
   migration:generate:
     cmds:
-      - 'npx -y drizzle-kit generate'
+      - 'npm run db:generate'
   auth:schema:generate:
     cmds:
-      - 'npx -y @better-auth/cli generate --output=./db/schema/auth.ts'
+      - 'npm run auth:generate-schema'
   create-user:
     cmds:
       - 'npx -y tsx commands/create-user.ts'

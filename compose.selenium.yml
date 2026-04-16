@@ -1,0 +1,18 @@
+services:
+  selenium:
+    build:
+      context: selenium
+    environment:
+      SE_NODE_SESSION_TIMEOUT: "600"
+      SE_SESSION_REQUEST_TIMEOUT: "900"
+      SE_START_VNC: "false"
+    volumes:
+      - "selenium_assets:/opt/selenium/assets"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "/opt/bin/check-grid.sh"]
+      interval: 5s
+    restart: "unless-stopped"
+
+volumes:
+  selenium_assets:
