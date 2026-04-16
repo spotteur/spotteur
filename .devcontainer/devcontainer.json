@@ -4,6 +4,8 @@
   "name": "Spotteur",
   "dockerComposeFile": [
     "../compose.yml",
+    "../compose.selenium.yml",
+    "../compose.rustfs.yml",
     "../compose.devcontainer.yml"
   ],
   "service": "devcontainer",
