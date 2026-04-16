@@ -1,6 +1,7 @@
 import { type Route } from 'next'
 
 import { Browser } from '@/constants/enum'
+import { TEMPORAL_DEFAULT_STORAGE_DIR } from '@/constants/env'
 import { type NavigationType } from '@/types/app'
 
 export const THEME_LIGHT = 'light'
@@ -8,7 +9,7 @@ export const THEME_DARK = 'dark'
 
 export const S3_PRESIGN_TIMEOUT = 900
 
-export const STORAGE_FOLDER = '/storage'
+export const STORAGE_FOLDER = TEMPORAL_DEFAULT_STORAGE_DIR || '/storage'
 
 export const DEFAULT_ERROR_MESSAGE = 'Internal Server Error'
 export const DEFAULT_ERROR_DESCRIPTION = 'Something went wrong. Please try again later.'

@@ -1,0 +1,64 @@
+services:
+  rustfs:
+    image: "rustfs/rustfs:latest"
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "${RUSTFS_PORT:-18002}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-18003}:9001"
+    env_file: [".env"]
+    environment:
+      RUSTFS_VOLUMES: "/data/rustfs"
+      RUSTFS_ADDRESS: "0.0.0.0:9000"
+      RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
+      RUSTFS_CONSOLE_ENABLE: true
+      RUSTFS_EXTERNAL_ADDRESS: ":${RUSTFS_PORT:-18002}"
+      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
+      RUSTFS_ACCESS_KEY: "${RUSTFS_INITIAL_ACCESS_KEY:-}"
+      RUSTFS_SECRET_KEY: "${RUSTFS_INITIAL_SECRET_KEY:-}"
+      RUSTFS_OBS_LOGGER_LEVEL: "info"
+      RUSTFS_TLS_PATH: "/opt/tls"
+      RUSTFS_OBJECT_CACHE_ENABLE: true
+      RUSTFS_OBJECT_CACHE_TTL_SECS: 300
+    volumes:
+      - "rustfs_data:/data/rustfs"
+      - "rustfs_logs:/app/logs"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+    restart: "unless-stopped"
+  # RustFS volume permissions fixer service
+  rustfs-volume-permission-helper:
+    image: "alpine"
+    volumes:
+      - "rustfs_data:/data"
+      - "rustfs_logs:/logs"
+    command: >
+      sh -c "
+        chown -R 10001:10001 /data /logs &&
+        echo 'Volume permissions fixed' &&
+        exit 0
+      "
+    restart: "on-failure"
+  rustfs-init-bucket-helper:
+    image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file: [".env"]
+    depends_on:
+      rustfs:
+        condition: "service_healthy"
+    entrypoint: >
+      sh -c "
+        mc alias set rustfs $S3_ENDPOINT $S3_ACCESS_KEY $S3_SECRET_KEY
+        mc mb rustfs/$S3_BUCKET --ignore-existing
+        mc anonymous set none rustfs/$S3_BUCKET
+        exit 0
+      "
+    restart: "on-failure"
+volumes:
+  rustfs_data:
+  rustfs_logs:

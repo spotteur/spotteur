@@ -1,0 +1,36 @@
+services:
+  webapp:
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
+    ports:
+      - "${WEBAPP_PORT:-18000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:3000"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+    env_file: [".env"]
+    restart: "unless-stopped"
+    depends_on:
+      postgres-webapp:
+        condition: "service_healthy"
+    volumes:
+      - "./web/logs:/app/logs"
+  webapp-worker:
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
+    command: ["npm", "run", "worker:start"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file: [".env"]
+    restart: "unless-stopped"
+    depends_on:
+      postgres-webapp:
+        condition: "service_healthy"
+      temporal:
+        condition: "service_healthy"
+      volume-permission-helper:
+        condition: "service_completed_successfully"
+    volumes:
+      - "webapp-worker_storage:/storage"
+      - "./web/logs:/app/logs"

@@ -1,39 +1,4 @@
 services:
-  webapp:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
-    ports:
-      - "${WEBAPP_PORT:-18000}:3000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://0.0.0.0:3000"]
-      interval: 3s
-      timeout: 5s
-      retries: 30
-    env_file: [".env"]
-    restart: "unless-stopped"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
-    volumes:
-      - "./web/logs:/app/logs"
-  webapp-worker:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
-    command: ["npm", "run", "worker:start"]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: [".env"]
-    restart: "unless-stopped"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
-      temporal:
-        condition: "service_healthy"
-      volume-permission-helper:
-        condition: "service_completed_successfully"
-    volumes:
-      - "webapp-worker_storage:/storage"
-      - "./web/logs:/app/logs"
   postgres-webapp:
     image: "postgres:18.1-alpine"
     environment:
@@ -82,7 +47,7 @@ services:
       postgres-temporal:
         condition: "service_healthy"
   temporal-ui:
-    image: "temporalio/ui:2.43.0"
+    image: "temporalio/ui:2.48.2"
     environment:
       TEMPORAL_ADDRESS: "temporal:7233"
       TEMPORAL_CORS_ORIGINS: "http://localhost:8233"
@@ -96,101 +61,19 @@ services:
     depends_on:
       temporal:
         condition: "service_healthy"
-  rustfs:
-    image: "rustfs/rustfs:latest"
-    security_opt:
-      - "no-new-privileges:true"
-    ports:
-      - "${RUSTFS_PORT:-18002}:9000"
-      - "${RUSTFS_CONSOLE_PORT:-18003}:9001"
-    env_file: [".env"]
-    environment:
-      RUSTFS_VOLUMES: "/data/rustfs"
-      RUSTFS_ADDRESS: "0.0.0.0:9000"
-      RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
-      RUSTFS_CONSOLE_ENABLE: true
-      RUSTFS_EXTERNAL_ADDRESS: ":${RUSTFS_PORT:-18002}"
-      RUSTFS_CORS_ALLOWED_ORIGINS: "*"
-      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: "*"
-      RUSTFS_ACCESS_KEY: "${RUSTFS_INITIAL_ACCESS_KEY:-}"
-      RUSTFS_SECRET_KEY: "${RUSTFS_INITIAL_SECRET_KEY:-}"
-      RUSTFS_OBS_LOGGER_LEVEL: "info"
-      RUSTFS_TLS_PATH: "/opt/tls"
-      RUSTFS_OBJECT_CACHE_ENABLE: true
-      RUSTFS_OBJECT_CACHE_TTL_SECS: 300
-    profiles:
-      - "rustfs"
-    depends_on:
-      volume-permission-helper:
-        condition: "service_completed_successfully"
-    volumes:
-      - "rustfs_data:/data/rustfs"
-      - "rustfs_logs:/app/logs"
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health",
-        ]
-      interval: 3s
-      timeout: 5s
-      retries: 30
-    restart: "unless-stopped"
-  # Volume mount permissions fixer service
   volume-permission-helper:
     image: "alpine"
     volumes:
-      - "rustfs_data:/data"
-      - "rustfs_logs:/logs"
       - "webapp-worker_storage:/storage"
     command: >
       sh -c "
-        chown -R 10001:10001 /data /logs &&
         chown -R 1001:1001 /storage &&
         echo 'Volume permissions fixed' &&
         exit 0
       "
     restart: "on-failure"
-    profiles:
-      - "rustfs"
-  rustfs-init-bucket-helper:
-    image: "minio/mc:RELEASE.2025-08-13T08-35-41Z"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: [".env"]
-    depends_on:
-      rustfs:
-        condition: "service_healthy"
-    entrypoint: >
-      sh -c "
-        mc alias set rustfs $S3_ENDPOINT $S3_ACCESS_KEY $S3_SECRET_KEY
-        mc mb rustfs/$S3_BUCKET --ignore-existing
-        mc anonymous set none rustfs/$S3_BUCKET
-        exit 0
-      "
-    restart: "on-failure"
-    profiles:
-      - "rustfs"
-  selenium:
-    image: "selenium/standalone-docker:4.40.0"
-    environment:
-      SE_NODE_SESSION_TIMEOUT: "600"
-      SE_SESSION_REQUEST_TIMEOUT: "900"
-      SE_START_VNC: "false"
-    volumes:
-      - "./selenium/config.toml:/opt/selenium/docker.toml:ro"
-      - "selenium_assets:/opt/selenium/assets"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    healthcheck:
-      test: ["CMD", "/opt/bin/check-grid.sh"]
-      interval: 5s
-    profiles:
-      - "selenium"
-    restart: "unless-stopped"
+
 volumes:
-  selenium_assets:
   postgres-temporal_data:
   postgres-webapp_data:
-  rustfs_data:
-  rustfs_logs:
   webapp-worker_storage:
