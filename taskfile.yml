@@ -20,11 +20,9 @@ tasks:
   image:build:
     cmds:
       - "docker build --build-arg={{.DOCKER_BUILD_ARGS}} --target=production --tag={{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur:{{.IMAGE_TAG}} web"
-      - "docker build --build-arg={{.DOCKER_BUILD_ARGS}} --target=production-script-runner --tag={{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur-script-runner:{{.IMAGE_TAG}} web"
   image:push:
     cmds:
       - "docker push {{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur:{{.IMAGE_TAG}}"
-      - "docker push {{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur-script-runner:{{.IMAGE_TAG}}"
   up:
     cmds:
       # Only trigger build in development mode
@@ -50,10 +48,10 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
   migrate:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task migrate"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
   ssh:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner bash"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp bash"
   create-user:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task create-user"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task create-user"
