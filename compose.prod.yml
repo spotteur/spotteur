@@ -31,3 +31,6 @@ services:
     volumes:
       - "webapp-worker_storage:/storage"
       - "./web/logs:/app/logs"
+
+volumes:
+  webapp-worker_storage:
