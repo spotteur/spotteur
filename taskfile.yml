@@ -44,9 +44,6 @@ tasks:
   logs:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} logs --follow --tail=100 {{.CLI_ARGS}}"
-  lint:
-    cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp npm run lint"
   db:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
