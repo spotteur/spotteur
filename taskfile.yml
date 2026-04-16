@@ -47,3 +47,6 @@ tasks:
   db:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
+  migrate:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task migrate"
