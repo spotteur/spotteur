@@ -6,7 +6,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider http://0.0.0.0:3000"]
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:3000"]
       interval: 3s
       timeout: 5s
       retries: 30
@@ -17,19 +17,9 @@ services:
         condition: "service_healthy"
     volumes:
       - "./web/logs:/app/logs"
-  webapp-script-runner:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file: [".env"]
-    profiles:
-      - "script-runner"
-    depends_on:
-      postgres-webapp:
-        condition: "service_healthy"
   webapp-worker:
-    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur-script-runner:${SPOTTEUR_VERSION:-latest}"
-    command: ["npm", "run", "worker:dev"]
+    image: "${SPOTTEUR_DOCKER_IMAGE_NAMESPACE:-ghcr.io/spotteur}/spotteur:${SPOTTEUR_VERSION:-latest}"
+    command: ["npm", "run", "worker:start"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file: [".env"]
@@ -39,9 +29,8 @@ services:
         condition: "service_healthy"
       temporal:
         condition: "service_healthy"
+      volume-permission-helper:
+        condition: "service_completed_successfully"
     volumes:
       - "webapp-worker_storage:/storage"
       - "./web/logs:/app/logs"
-
-volumes:
-  webapp-worker_storage:

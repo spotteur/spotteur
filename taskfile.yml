@@ -6,25 +6,21 @@ vars:
   DOCKER_COMPOSE_SCRIPT:
     sh: |
       if [ "{{.APP_ENV}}" = "development" ]; then
-        echo "docker compose -f compose.yml"
+        echo "docker compose -f compose.yml -f compose.devcontainer.yml -f compose.rustfs.yml -f compose.selenium.yml"
       else
-        echo "docker compose -f compose.yml -f compose.prod.yml"
+        echo "docker compose -f compose.yml -f compose.prod.yml {{ if eq .FILESYSTEM_DISK "rustfs" }} -f compose.rustfs.yml{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} -f compose.selenium.yml{{ end }}"
       fi
   IMAGE_TAG:
     sh: echo "{{.IMAGE_TAG | default "latest"}}"
   SPOTTEUR_DOCKER_IMAGE_NAMESPACE:
     sh: echo "{{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE | default "ghcr.io/spotteur"}}"
-  DOCKER_BUILD_ARGS:
-    sh: echo "NPM_CONFIG_REGISTRY={{.NPM_CONFIG_REGISTRY | default "https://registry.npmjs.org"}}"
 tasks:
   image:build:
     cmds:
-      - "docker build --build-arg={{.DOCKER_BUILD_ARGS}} --target=production --tag={{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur:{{.IMAGE_TAG}} web"
-      - "docker build --build-arg={{.DOCKER_BUILD_ARGS}} --target=production-script-runner --tag={{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur-script-runner:{{.IMAGE_TAG}} web"
+      - 'docker build --build-arg=NPM_CONFIG_REGISTRY={{.NPM_CONFIG_REGISTRY | default "https://registry.npmjs.org"}} --target=production --tag={{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur:{{.IMAGE_TAG}} web'
   image:push:
     cmds:
       - "docker push {{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur:{{.IMAGE_TAG}}"
-      - "docker push {{.SPOTTEUR_DOCKER_IMAGE_NAMESPACE}}/spotteur-script-runner:{{.IMAGE_TAG}}"
   up:
     cmds:
       # Only trigger build in development mode
@@ -49,4 +45,10 @@ tasks:
       - "{{.DOCKER_COMPOSE_SCRIPT}} exec postgres-webapp psql -U {{.DB_USER}} -d {{.DB_NAME}}"
   migrate:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} run --quiet --rm webapp-script-runner task migrate"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task migrate"
+  ssh:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp bash"
+  create-user:
+    cmds:
+      - "{{.DOCKER_COMPOSE_SCRIPT}} exec webapp task create-user"
