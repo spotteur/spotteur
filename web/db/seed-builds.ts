@@ -3,12 +3,7 @@ import fs from 'node:fs'
 import { desc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 
-import {
-  DEFAULT_SNAPSHOTS_BROWSER,
-  DEFAULT_SNAPSHOTS_HEIGHT,
-  DEFAULT_SNAPSHOTS_SELECTOR,
-  DEFAULT_SNAPSHOTS_WIDTH,
-} from '@/constants/app'
+import { DEFAULT_SNAPSHOTS_BROWSER, DEFAULT_SNAPSHOTS_HEIGHT, DEFAULT_SNAPSHOTS_WIDTH } from '@/constants/app'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, projects, snapshots } from '@/db/schema'

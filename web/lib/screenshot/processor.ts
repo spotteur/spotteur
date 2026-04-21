@@ -6,7 +6,7 @@ import sharp from 'sharp'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, media, snapshots } from '@/db/schema'
-import { generateSnapshotFileNameJpeg, getBaselineSnapshot } from '@/features/snapshots/actions'
+import { generateSnapshotFileName, getBaselineSnapshot } from '@/features/snapshots/actions'
 import { bufferFromUrl, getImageDiff, ImageDiffDimensionMismatchError } from '@/lib/image-diff'
 import { logger } from '@/lib/logger'
 import { getPresignUrl, uploadFileFromBuffer } from '@/lib/s3'
@@ -26,27 +26,28 @@ export class ScreenshotProcessor {
   public async process(): Promise<ProcessScreenshotResult> {
     const { snapshot } = await db.transaction(async (tx) => {
       logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`, { payload: this.payload })
-      const image = sharp(fs.readFileSync(this.tempPath)).ensureAlpha().raw().toFormat('png')
-      const { data: buffer } = await image.toBuffer({ resolveWithObject: true })
-
-      // convert to jpeg
-      const jpgImage = sharp(buffer).jpeg({ quality: 75 })
-      const { data: jpegBuffer, info: jpegInfo } = await jpgImage.toBuffer({ resolveWithObject: true })
-      const newFileName = await generateSnapshotFileNameJpeg({ pageUrl: this.payload.pageUrl, type: 'screenshot' })
-      const s3Path = `${this.payload.s3Prefix}/${newFileName}`
+      const image = sharp(fs.readFileSync(this.tempPath))
+        .png({
+          compressionLevel: 7,
+          quality: 90,
+        })
+        .removeAlpha()
+        .toFormat('png')
+      const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
+      const s3Path = `${this.payload.s3Prefix}/${this.payload.fileName}`
 
       // upload converted image to s3
-      await uploadFileFromBuffer(jpegBuffer, s3Path, 'image/jpeg')
+      await uploadFileFromBuffer(buffer, s3Path, 'image/png')
 
       const [screenshotMedia] = await tx
         .insert(media)
         .values({
           fileName: this.payload.fileName,
           fileSize: buffer.length,
-          mimeType: 'image/jpeg',
+          mimeType: 'image/png',
           path: s3Path,
-          width: jpegInfo.width,
-          height: jpegInfo.height,
+          width: info.width,
+          height: info.height,
         })
         .onConflictDoUpdate({
           target: media.path,
@@ -82,34 +83,26 @@ export class ScreenshotProcessor {
             logger.info(`${this.logPrefix} Downloading baseline screenshot`, { payload: this.payload })
             const baselineBuffer = await bufferFromUrl(mediaUrl)
 
-            // convert baseline image to png first
-            const baselineImage = sharp(baselineBuffer).ensureAlpha().raw().toFormat('png')
-            const { data: baselineBufferPng } = await baselineImage.toBuffer({ resolveWithObject: true })
-
             logger.info(`${this.logPrefix} Calculating image diff`, { payload: this.payload })
             const { diffImage: diffScreenshotBuffer, diffPercentage: diff } = await getImageDiff({
               imgBuffer1: buffer,
-              imgBuffer2: baselineBufferPng,
+              imgBuffer2: baselineBuffer,
             })
 
-            const diffFileName = await generateSnapshotFileNameJpeg({ pageUrl: this.payload.pageUrl, type: 'diff' })
+            const diffFileName = await generateSnapshotFileName({ pageUrl: this.payload.pageUrl, type: 'diff' })
             const diffS3Path = `${this.payload.s3Prefix}/${diffFileName}`
 
-            // convert diff image to jpeg
-            const diffScreenshotImage = sharp(diffScreenshotBuffer).jpeg({ quality: 75 })
-            const { data: diffScreenshotBufferJpeg } = await diffScreenshotImage.toBuffer({ resolveWithObject: true })
-
-            await uploadFileFromBuffer(diffScreenshotBufferJpeg, diffS3Path, 'image/jpeg')
+            await uploadFileFromBuffer(diffScreenshotBuffer, diffS3Path, 'image/png')
 
             const [diffScreenshotMedia] = await tx
               .insert(media)
               .values({
                 fileName: diffFileName,
                 fileSize: diffScreenshotBuffer.length,
-                mimeType: 'image/jpeg',
+                mimeType: 'image/png',
                 path: diffS3Path,
-                width: jpegInfo.width,
-                height: jpegInfo.height,
+                width: info.width,
+                height: info.height,
               })
               .onConflictDoUpdate({
                 target: media.path,
