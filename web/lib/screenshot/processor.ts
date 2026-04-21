@@ -35,8 +35,6 @@ export class ScreenshotProcessor {
         .toFormat('png')
       const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
       const s3Path = `${this.payload.s3Prefix}/${this.payload.fileName}`
-
-      // upload converted image to s3
       await uploadFileFromBuffer(buffer, s3Path, 'image/png')
 
       const [screenshotMedia] = await tx
