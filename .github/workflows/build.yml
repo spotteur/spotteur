@@ -51,6 +51,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=spotteur
+          cache-to: type=gha,scope=spotteur,mode=max
 
       - name: Generate artifact attestation
         uses: actions/attest@v4
