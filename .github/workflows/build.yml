@@ -20,6 +20,7 @@ jobs:
       packages: write
       attestations: write
       id-token: write
+      artifact-metadata: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
