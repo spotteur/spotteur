@@ -26,9 +26,14 @@ export class ScreenshotProcessor {
   public async process(): Promise<ProcessScreenshotResult> {
     const { snapshot } = await db.transaction(async (tx) => {
       logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`, { payload: this.payload })
-      const image = sharp(fs.readFileSync(this.tempPath)).ensureAlpha().raw().toFormat('png')
+      const image = sharp(fs.readFileSync(this.tempPath))
+        .png({
+          compressionLevel: 7,
+          quality: 90,
+        })
+        .removeAlpha()
+        .toFormat('png')
       const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
-
       const s3Path = `${this.payload.s3Prefix}/${this.payload.fileName}`
       await uploadFileFromBuffer(buffer, s3Path, 'image/png')
 

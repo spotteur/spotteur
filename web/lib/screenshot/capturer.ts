@@ -117,11 +117,11 @@ export class ScreenshotCapturer {
       }
 
       const image = sharp(buffer)
-        .ensureAlpha()
+        .removeAlpha()
         .raw()
         .png({
-          compressionLevel: 5,
-          quality: 60,
+          compressionLevel: 9,
+          quality: 90,
         })
         .toFormat('png')
       const { info } = await image.toBuffer({ resolveWithObject: true })
