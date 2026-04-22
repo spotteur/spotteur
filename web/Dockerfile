@@ -3,6 +3,8 @@
 ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-slim AS base
 
+ENV HUSKY=0
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
