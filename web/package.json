@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "cd .. && husky",
     "dev": "next dev",
     "email:dev": "email dev --port=3001 --dir=./emails",
     "novu:dev": "novu dev --port 3000 --studio-host 0.0.0.0 --studio-port 3002 --headless",
@@ -19,7 +20,7 @@
     "@aws-sdk/client-s3": "^3.953.0",
     "@aws-sdk/s3-request-presigner": "^3.953.0",
     "@base-ui/react": "^1.2.0",
-    "@better-auth/drizzle-adapter": "^1.5.3",
+    "@better-auth/drizzle-adapter": "^1.6.6",
     "@bprogress/next": "^3.2.12",
     "@daveyplate/better-auth-ui": "^3.3.15",
     "@faker-js/faker": "^10.1.0",
@@ -46,7 +47,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
-    "drizzle-orm": "^0.41.0",
+    "drizzle-orm": "^0.45.2",
     "drizzle-seed": "^0.3.1",
     "lucide-react": "^0.561.0",
     "motion": "^12.30.0",
@@ -77,6 +78,8 @@
     "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^9.39.2",
     "@inquirer/prompts": "^8.2.0",
     "@react-email/preview-server": "^5.2.9",
