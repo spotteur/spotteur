@@ -26,7 +26,6 @@ function getImageRemotePatterns(): (URL | RemotePattern)[] {
 }
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   typedRoutes: true,
   crossOrigin: 'anonymous',
   images: {

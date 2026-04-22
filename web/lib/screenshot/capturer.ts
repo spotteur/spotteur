@@ -84,6 +84,9 @@ export class ScreenshotCapturer {
         consistentCount: 3,
       })
 
+      if (!fs.existsSync(STORAGE_FOLDER)) {
+        fs.mkdirSync(STORAGE_FOLDER, { recursive: true })
+      }
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
       fs.writeFileSync(tempPath, buffer)
 
