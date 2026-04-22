@@ -54,7 +54,7 @@
     "next": "^16.0.10",
     "next-public-env": "^1.1.0",
     "next-themes": "^0.4.6",
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^8.0.5",
     "novu": "^2.7.0",
     "nuqs": "^2.8.6",
     "pg": "^8.16.3",
