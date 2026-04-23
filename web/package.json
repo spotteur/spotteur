@@ -11,7 +11,8 @@
     "start": "next start",
     "worker:dev": "tsx watch ./temporal/worker.ts",
     "worker:start": "tsx ./temporal/worker.ts",
-    "lint": "prettier . --check --write && eslint --fix",
+    "lint": "prettier . --check && eslint .",
+    "lint:fix": "prettier . --check --write && eslint --fix",
     "db:migrate": "npx -y drizzle-kit migrate",
     "db:generate": "npx -y drizzle-kit generate",
     "auth:generate-schema": "npx -y @better-auth/cli generate --output=./db/schema/auth.ts"

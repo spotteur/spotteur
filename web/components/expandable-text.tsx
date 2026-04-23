@@ -24,7 +24,6 @@ export function ExpandableText({ text, maxLines = 2, className }: ExpandableText
       const lineHeight = parseInt(getComputedStyle(element).lineHeight)
       const height = element.scrollHeight
       if (height > lineHeight * maxLines + 2) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setExpandable(true)
       } else {
         setExpandable(false)

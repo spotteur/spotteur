@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
@@ -17,11 +17,7 @@ export function BulkEditPagesDialog({
   onImport: (code: string) => void
   onCancel: () => void
 }) {
-  const [code, setCode] = useState('')
-
-  useEffect(() => {
-    setCode(codeYaml)
-  }, [codeYaml])
+  const [code, setCode] = useState(codeYaml)
 
   return (
     <Dialog open={open}>
