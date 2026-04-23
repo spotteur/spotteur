@@ -38,20 +38,7 @@ Upon opening this project in Dev Container again after the initial setup is done
 
 ## Build & Publish Docker Image
 
-> [!TIP]
-> You may change `SPOTTEUR_DOCKER_IMAGE_NAMESPACE` env variable to change the Docker image namespace. By default its set to `ghcr.io/spotteur`.
-
-- Run `task image:build` to build the Docker image. You may specify `IMAGE_TAG` env variable to set the image tag, default to `latest`.
-
-  ```bash
-  IMAGE_TAG=latest task image:build
-  ```
-
-- Run `task image:push` to push the Docker image to registry. You may specify `IMAGE_TAG` env variable to set the image tag, default to `latest`.
-
-  ```bash
-  IMAGE_TAG=latest task image:push
-  ```
+This is performed automatically via GitHub Actions.
 
 ### Troubleshooting
 
