@@ -8,8 +8,6 @@ on:
       - main
     paths:
       - "web/**"
-    tags:
-      - "v*.*.*"
 
 env:
   REGISTRY: ghcr.io
