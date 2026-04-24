@@ -2,11 +2,12 @@ branches:
   - main
   - name: develop
     channel: beta
-    prerelease: true
+    prerelease: beta
   - name: "feature/*"
-    prerelease: true
+    channel: alpha
+    prerelease: alpha
 plugins:
   - "@semantic-release/commit-analyzer"
-  - "@semantic-release/release-notes-generator"
+  # - "@semantic-release/release-notes-generator"
   - "@semantic-release/github"
 tagFormat: "v${version}"
