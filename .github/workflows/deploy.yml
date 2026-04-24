@@ -8,46 +8,8 @@ on:
       - main
 
 jobs:
-  # Perform release with semantic-release
-  release:
-    name: Release
-    # TODO: Limit to main when main is used as stable branch
-    permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      # id-token: write # to enable use of OIDC for trusted publishing and npm provenance
-    defaults:
-      run:
-        working-directory: ./web
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "npm"
-          cache-dependency-path: "web/package-lock.json"
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
-        run: npm audit signatures
-
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
-
   deploy:
     runs-on: ubuntu-latest
-    needs: release
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.5

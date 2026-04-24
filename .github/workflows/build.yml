@@ -16,7 +16,57 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Perform release with semantic-release
+  release:
+    name: Semantic Release
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      # id-token: write # to enable use of OIDC for trusted publishing and npm provenance
+    defaults:
+      run:
+        working-directory: ./web
+    runs-on: ubuntu-latest
+    outputs:
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
+
+      - name: Release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OUTPUT=$(npx semantic-release 2>&1 | tee /dev/stderr)
+          VERSION=$(echo "$OUTPUT" | grep -oP 'Published release \K[0-9]+\.[0-9]+\.[0-9]+[^\s]*' || true)
+          if [ -n "$VERSION" ]; then
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+          fi
   build:
+    name: Build and Push Docker Image
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
     permissions:
       contents: read
       packages: write
@@ -48,9 +98,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{version}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
+            type=semver,pattern={{major}}.{{minor}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
+            type=semver,pattern={{major}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}

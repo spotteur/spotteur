@@ -3,11 +3,12 @@ branches:
   - name: develop
     channel: beta
     prerelease: beta
-  - name: "feature/*"
-    channel: alpha
-    prerelease: alpha
+  - name: 'feature/*'
+    prerelease: "${name.replace(/^feature\\//, 'feature-')}"
+    channel: 'feature'
+
 plugins:
-  - "@semantic-release/commit-analyzer"
+  - '@semantic-release/commit-analyzer'
   # - "@semantic-release/release-notes-generator"
-  - "@semantic-release/github"
-tagFormat: "v${version}"
+  - '@semantic-release/github'
+tagFormat: 'v${version}'
