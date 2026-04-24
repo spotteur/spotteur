@@ -50,6 +50,7 @@ jobs:
 
       - name: Release
         id: semantic
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
