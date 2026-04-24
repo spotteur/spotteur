@@ -1,26 +1,12 @@
 branches:
-  - base: main
-    channel: stable
-    prerelease: false
-  - base: develop
-    channel: beta
-    prerelease: beta
-  - base: "feature/*"
-    channel: feature
-    prerelease: feature
-  - base: "hotfix/*"
-    channel: hotfix
-    prerelease: false
-channels:
   - main
-  - develop
-  - hotfix
-  - feature
+  - name: develop
+    channel: beta
+    prerelease: true
+  - name: "feature/*"
+    prerelease: true
 plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
-gitTag:
-  - true  # Creates git tags automatically
-npmPublish: false  # Won't publish to npm
-github:
-  assets: false  # Skip creating assets (we only need git tags)
+  - "@semantic-release/github"
+tagFormat: "v${version}"
