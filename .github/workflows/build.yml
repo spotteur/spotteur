@@ -3,6 +3,11 @@ name: Docker Build
 on:
   workflow_dispatch: {}
   push:
+    branches:
+      - develop
+      - main
+    paths:
+      - "web/**"
     tags:
       - "v*.*.*"
 
@@ -47,7 +52,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
 
       - name: Build and Push (production)
