@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus } from '@/constants/status-map'
-import { getBuildDetail, progressCalculation, resumeBuild } from '@/features/builds/actions'
+import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
@@ -68,20 +68,6 @@ export default function BuildDetailSnapshotPage() {
     },
   })
 
-  const { data: processedSnapshotsData, isLoading: isLoadingProcessedSnapshots } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'processed-count'],
-    queryFn: () => progressCalculation({ project: projectData }),
-    enabled: !!params.buildId,
-    refetchInterval: () => {
-      const buildStatus = buildData?.status
-      if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
-        return 10_000
-      }
-
-      return false
-    },
-  })
-
   const snapshotItems = useMemo(() => {
     return (snapshotsData?.data ?? []).filter((snapshot) => {
       const matchesSearch = snapshot.pagePath.toLowerCase().includes(searchQuery.toLowerCase())
@@ -95,12 +81,11 @@ export default function BuildDetailSnapshotPage() {
 
   const processedItems = useMemo(() => {
     const processedPages = snapshotsData?.data.length ?? 0
-    const totalPages = processedSnapshotsData ?? 0
+    const totalPages = buildData?.expectedSnapshotCount ?? 0
     const progress = totalPages === 0 ? 0 : (processedPages / totalPages) * 100
 
     return progress
-  }, [snapshotsData, processedSnapshotsData])
-
+  }, [snapshotsData, buildData])
   const resume = useMutation({
     mutationFn: () => resumeBuild({ projectId: projectData?.id ?? '', buildId: params.buildId }),
     onSuccess: (res) => {
@@ -163,7 +148,7 @@ export default function BuildDetailSnapshotPage() {
     }
   }
 
-  const isLoading = isLoadingBuild || isLoadingSnapshots || isLoadingProcessedSnapshots
+  const isLoading = isLoadingBuild || isLoadingSnapshots
 
   const breadcrumbs = useMemo(
     () =>

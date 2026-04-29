@@ -1,5 +1,16 @@
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, uuid, timestamp, text, varchar, doublePrecision, jsonb, boolean, unique } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  timestamp,
+  text,
+  varchar,
+  doublePrecision,
+  jsonb,
+  boolean,
+  unique,
+  integer,
+} from 'drizzle-orm/pg-core'
 import { type z } from 'zod'
 
 import { type Browser } from '@/constants/enum'
@@ -54,6 +65,7 @@ export const builds = pgTable('builds', {
     .default(sql`'{}'::text[]`),
   status: varchar('status').notNull().$type<BuildStatus>(),
   notes: text('notes'),
+  expectedSnapshotCount: integer('expected_snapshot_count').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

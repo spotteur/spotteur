@@ -140,6 +140,8 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
     throw new PendingBuildAlreadyExistError()
   }
 
+  const expectedSnapshotCount = await calculateExpectedSnapshotCount({ project })
+
   const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
 
   const [build] = await db
@@ -152,6 +154,7 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
       identifier: buildIdentifier,
       baselineBuildId: project.baselineBuildId,
       notes,
+      expectedSnapshotCount,
     })
     .returning()
 
@@ -539,7 +542,7 @@ export async function getBuildLogs({
   return { data: rows, total }
 }
 
-export async function progressCalculation({ project }: { project?: typeof projects.$inferSelect }) {
+export async function calculateExpectedSnapshotCount({ project }: { project?: typeof projects.$inferSelect }) {
   if (!project?.pagePaths.length) {
     throw new Error(`This project doesn't have any page paths configured`)
   }
