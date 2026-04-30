@@ -54,10 +54,10 @@ export default function BuildDetailSnapshotPage() {
   const projectData = data?.project
 
   const { data: snapshotsData, isLoading: isLoadingSnapshots } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, projectData?.id, 'review-tree'],
+    queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
     queryFn: () => listSnapshotsByBuildV2({ buildId: params.buildId }),
     placeholderData: (prev) => prev,
-    enabled: !!projectData?.id,
+    enabled: !!params.buildId,
     refetchInterval: () => {
       const buildStatus = buildData?.status
       if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
