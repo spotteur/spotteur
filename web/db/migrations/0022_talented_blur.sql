@@ -1,0 +1,1 @@
+ALTER TABLE "builds" ADD COLUMN "expected_snapshot_count" integer DEFAULT 0;

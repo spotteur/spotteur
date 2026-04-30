@@ -36,7 +36,7 @@ const findOrCreateFolder = (
     | undefined
   if (!folder) {
     folder = {
-      id: path,
+      id: `folder:${path}`,
       label,
       type: 'folder',
       path,

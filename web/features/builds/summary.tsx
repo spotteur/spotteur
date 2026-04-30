@@ -3,6 +3,8 @@ import { RotateCcw, Pencil, Plus } from 'lucide-react'
 import { ExpandableText } from '@/components/expandable-text'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BuildStatus } from '@/constants/status-map'
 import { type builds } from '@/db/schema'
@@ -14,10 +16,12 @@ export function BuildSummaryCard({
   build,
   onResume,
   isResumePending,
+  progress,
 }: {
   build?: typeof builds.$inferSelect | null
   onResume?: () => void
   isResumePending?: boolean
+  progress?: number
 }) {
   return (
     <Card>
@@ -51,6 +55,16 @@ export function BuildSummaryCard({
               </div>
               <div className="flex flex-wrap gap-4">
                 <span className="text-foreground font-medium">Created:</span> {formatDateTime(build.createdAt)}
+              </div>
+            </div>
+
+            <div className="bg-muted/30 relative flex flex-col gap-2 rounded-lg border p-3">
+              <div className="flex flex-row items-center gap-5">
+                <span className="text-foreground font-medium">Progress:</span>
+                <Field className="flex w-1/2 flex-1 flex-row items-center">
+                  <Progress value={progress ?? 0} />
+                  <FieldLabel>{progress?.toFixed(2)}%</FieldLabel>
+                </Field>
               </div>
             </div>
 

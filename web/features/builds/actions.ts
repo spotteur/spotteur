@@ -140,6 +140,8 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
     throw new PendingBuildAlreadyExistError()
   }
 
+  const expectedSnapshotCount = await calculateExpectedSnapshotCount({ project })
+
   const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
 
   const [build] = await db
@@ -152,6 +154,7 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
       identifier: buildIdentifier,
       baselineBuildId: project.baselineBuildId,
       notes,
+      expectedSnapshotCount,
     })
     .returning()
 
@@ -537,4 +540,42 @@ export async function getBuildLogs({
   const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
 
   return { data: rows, total }
+}
+
+export async function calculateExpectedSnapshotCount({ project }: { project?: typeof projects.$inferSelect }) {
+  if (!project?.pagePaths.length) {
+    throw new Error(`This project doesn't have any page paths configured`)
+  }
+
+  if (!project?.snapshotBrowsers.length) {
+    throw new Error(`This project doesn't have any snapshot browsers configured`)
+  }
+
+  if (!project?.viewports.length) {
+    throw new Error(`This project doesn't have any viewports configured`)
+  }
+
+  const pageRuleRows = await db.select().from(pageRules).where(eq(pageRules.projectId, project.id))
+  const pageRulesMap = new Map<string, typeof pageRules.$inferSelect>()
+  for (const pr of pageRuleRows) {
+    pageRulesMap.set(pr.pagePath, pr)
+  }
+  let totalProcessedPage = 0
+
+  for (const pagePath of project.pagePaths) {
+    if (!URL.canParse(pagePath, project.baseUrl)) {
+      throw new Error(`Invalid URL given for path: ${pagePath} with base URL ${project.baseUrl}`)
+    }
+
+    const pageRule = pageRulesMap.get(pagePath)
+
+    const viewports = pageRule?.viewports ?? project.viewports
+
+    const browsers = pageRule?.snapshotBrowsers ?? project.snapshotBrowsers
+
+    const totalRules = viewports.length * browsers.length
+
+    totalProcessedPage += totalRules
+  }
+  return totalProcessedPage
 }
