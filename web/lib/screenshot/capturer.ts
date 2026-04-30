@@ -84,11 +84,21 @@ export class ScreenshotCapturer {
         consistentCount: 3,
       })
 
+      const compressed = await sharp(buffer)
+        .raw()
+        .removeAlpha()
+        .png({
+          compressionLevel: 9,
+          quality: 90,
+        })
+        .toFormat('png')
+        .toBuffer()
+
       if (!fs.existsSync(STORAGE_FOLDER)) {
         fs.mkdirSync(STORAGE_FOLDER, { recursive: true })
       }
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
-      fs.writeFileSync(tempPath, buffer)
+      fs.writeFileSync(tempPath, compressed)
 
       logger.info(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`, { payload: this.payload })
       return { tempPath }
@@ -117,14 +127,7 @@ export class ScreenshotCapturer {
       }
 
       const image = sharp(buffer)
-        .removeAlpha()
-        .raw()
-        .png({
-          compressionLevel: 9,
-          quality: 90,
-        })
-        .toFormat('png')
-      const { info } = await image.toBuffer({ resolveWithObject: true })
+      const info = await image.metadata()
       if (info.width !== this.payload.viewportWidth) {
         logger.error(
           `${this.logPrefix} Screenshot width (${info.width}px) doesn't match expected viewport width (${this.payload.viewportWidth}px)`,
