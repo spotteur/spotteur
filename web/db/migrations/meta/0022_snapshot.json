@@ -111,12 +111,8 @@
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -210,12 +206,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -225,9 +217,7 @@
         "sessions_token_unique": {
           "name": "sessions_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -325,9 +315,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -458,12 +446,8 @@
           "name": "build_logs_build_id_builds_id_fk",
           "tableFrom": "build_logs",
           "tableTo": "builds",
-          "columnsFrom": [
-            "build_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["build_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -556,12 +540,8 @@
           "name": "builds_project_id_projects_id_fk",
           "tableFrom": "builds",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -669,12 +649,8 @@
           "name": "page_rules_project_id_projects_id_fk",
           "tableFrom": "page_rules",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -684,10 +660,7 @@
         "page_rules_unique": {
           "name": "page_rules_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "project_id",
-            "page_path"
-          ]
+          "columns": ["project_id", "page_path"]
         }
       },
       "policies": {},
@@ -791,9 +764,7 @@
         "projects_token_unique": {
           "name": "projects_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -897,12 +868,8 @@
           "name": "snapshots_build_id_builds_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "builds",
-          "columnsFrom": [
-            "build_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["build_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -910,12 +877,8 @@
           "name": "snapshots_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": [
-            "screenshot_media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["screenshot_media_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -923,12 +886,8 @@
           "name": "snapshots_baseline_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": [
-            "baseline_screenshot_media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["baseline_screenshot_media_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -936,12 +895,8 @@
           "name": "snapshots_diff_screenshot_media_id_media_id_fk",
           "tableFrom": "snapshots",
           "tableTo": "media",
-          "columnsFrom": [
-            "diff_screenshot_media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diff_screenshot_media_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1020,9 +975,7 @@
         "media_path_unique": {
           "name": "media_path_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "path"
-          ]
+          "columns": ["path"]
         }
       },
       "policies": {},
