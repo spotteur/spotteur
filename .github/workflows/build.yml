@@ -30,6 +30,13 @@ jobs:
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
     steps:
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.BOT_CI_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_SECRET }}
+          
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
@@ -52,7 +59,7 @@ jobs:
         id: semantic
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
           OUTPUT=$(npx semantic-release 2>&1 | tee /dev/stderr)
@@ -97,7 +104,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=tag
+            type=ref,event=branch
             type=semver,pattern={{version}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
             type=semver,pattern={{major}}.{{minor}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
             type=semver,pattern={{major}},value={{needs.release.outputs.new_release_version}},enable={{is_default_branch}}
