@@ -6,7 +6,7 @@ on:
       - main
       - develop
     paths:
-      - web/**
+      - "web/**"
 
 jobs:
   lint:
