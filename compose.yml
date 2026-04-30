@@ -61,17 +61,6 @@ services:
     depends_on:
       temporal:
         condition: "service_healthy"
-  volume-permission-helper:
-    image: "alpine"
-    volumes:
-      - "webapp-worker_storage:/storage"
-    command: >
-      sh -c "
-        chown -R 1001:1001 /storage &&
-        echo 'Volume permissions fixed' &&
-        exit 0
-      "
-    restart: "on-failure"
 
 volumes:
   postgres-temporal_data:

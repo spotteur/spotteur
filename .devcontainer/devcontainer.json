@@ -31,9 +31,10 @@
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
     },
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2": {
       "nodeGypDependencies": true,
       "version": "lts",
+      "npmVersion": "latest",
       "pnpmVersion": "latest",
       "nvmVersion": "latest"
     }
@@ -53,7 +54,8 @@
   // "forwardPorts": []
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": {
-    "install-deps": "cd web/ && npm install"
+    "install-deps": "cd web/ && npm install",
+    "chown:temporal-dir": "sudo chown vscode:vscode -R \"${TEMPORAL_DEFAULT_STORAGE_DIR:-/storage}\""
   }
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"

@@ -34,3 +34,14 @@ services:
     volumes:
       - "webapp-worker_storage:/storage"
       - "./web/logs:/app/logs"
+  volume-permission-helper:
+    image: "alpine"
+    volumes:
+      - "webapp-worker_storage:/storage"
+    command: >
+      sh -c "
+        chown -R 1001:1001 /storage &&
+        echo 'Volume permissions fixed' &&
+        exit 0
+      "
+    restart: "on-failure"
