@@ -46,12 +46,12 @@ This is performed automatically via GitHub Actions.
   - Make sure there are no `node_modules` folder in the host machine.
   - Try to rebuild the container without cache if the issue persist
 - Selenium error `Pull appears to have succeeded, but image not present locally: ...`:
-  - Please try to pull the image manually, most likely this happens because your platform are not supported. You may try to pull it manualy like this `docker pull --platform linux/amd64 selenium/standalone-chrome:4.39.0-20251202`
+  - Please try to pull the image manually, most likely this happens because your platform are not supported. You may try to pull it manually like this `docker pull --platform linux/amd64 selenium/standalone-chrome:4.39.0-20251202`
 
 ### Available Services
 
 - http://localhost:18000: Web App
-- http://localhost:18001: Temporal UI, availbale to help manage and monitor Temporal
+- http://localhost:18001: Temporal UI, available to help manage and monitor Temporal
 - http://localhost:18003: RustFS console, available to help manage S3-compatible storage
 - http://localhost:18004: InBucket, available to help view email for testing
 - http://localhost:18005: React Email, available to help design email components
