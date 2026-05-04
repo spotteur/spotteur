@@ -35,7 +35,7 @@ jobs:
         uses: actions/create-github-app-token@v3
         with:
           client-id: ${{ secrets.BOT_CI_APP_ID }}
-          private-key: ${{ secrets.BOT_APP_SECRET }}
+          private-key: ${{ secrets.BOT_CI_APP_SECRET }}
           
       - name: Checkout Repository
         uses: actions/checkout@v5
