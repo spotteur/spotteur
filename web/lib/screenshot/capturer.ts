@@ -99,8 +99,9 @@ export class ScreenshotCapturer {
       }
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
       fs.writeFileSync(tempPath, compressed)
-
-      logger.info(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`, { payload: this.payload })
+      logger.info(`${this.logPrefix} Screenshot saved to: ${tempPath} (${compressed.length / 1024} kB)`, {
+        payload: this.payload,
+      })
       return { tempPath }
     } finally {
       logger.info(`${this.logPrefix} Closing browser engine`, { payload: this.payload })
@@ -126,6 +127,7 @@ export class ScreenshotCapturer {
         throw new Error('Failed to capture screenshot')
       }
 
+      logger.info(`${this.logPrefix} Screenshot captured, size: ${buffer.length / 1024} kB`)
       const image = sharp(buffer)
       const info = await image.metadata()
       if (info.width !== this.payload.viewportWidth) {
