@@ -84,13 +84,24 @@ export class ScreenshotCapturer {
         consistentCount: 3,
       })
 
+      const compressed = await sharp(buffer)
+        .raw()
+        .removeAlpha()
+        .png({
+          compressionLevel: 9,
+          quality: 90,
+        })
+        .toFormat('png')
+        .toBuffer()
+
       if (!fs.existsSync(STORAGE_FOLDER)) {
         fs.mkdirSync(STORAGE_FOLDER, { recursive: true })
       }
       const tempPath = path.join(STORAGE_FOLDER, `${this.payload.id}-${this.payload.browser.toString()}.png`)
-      fs.writeFileSync(tempPath, buffer)
-
-      logger.info(`${this.logPrefix} Screenshot captured, saved to: ${tempPath}`, { payload: this.payload })
+      fs.writeFileSync(tempPath, compressed)
+      logger.info(`${this.logPrefix} Screenshot saved to: ${tempPath} (${compressed.length / 1024} kB)`, {
+        payload: this.payload,
+      })
       return { tempPath }
     } finally {
       logger.info(`${this.logPrefix} Closing browser engine`, { payload: this.payload })
@@ -116,15 +127,9 @@ export class ScreenshotCapturer {
         throw new Error('Failed to capture screenshot')
       }
 
+      logger.info(`${this.logPrefix} Screenshot captured, size: ${buffer.length / 1024} kB`)
       const image = sharp(buffer)
-        .removeAlpha()
-        .raw()
-        .png({
-          compressionLevel: 9,
-          quality: 90,
-        })
-        .toFormat('png')
-      const { info } = await image.toBuffer({ resolveWithObject: true })
+      const info = await image.metadata()
       if (info.width !== this.payload.viewportWidth) {
         logger.error(
           `${this.logPrefix} Screenshot width (${info.width}px) doesn't match expected viewport width (${this.payload.viewportWidth}px)`,

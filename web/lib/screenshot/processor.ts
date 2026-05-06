@@ -26,22 +26,16 @@ export class ScreenshotProcessor {
   public async process(): Promise<ProcessScreenshotResult> {
     const { snapshot } = await db.transaction(async (tx) => {
       logger.info(`${this.logPrefix} Processing screenshot from ${this.tempPath}`, { payload: this.payload })
-      const image = sharp(fs.readFileSync(this.tempPath))
-        .png({
-          compressionLevel: 7,
-          quality: 90,
-        })
-        .removeAlpha()
-        .toFormat('png')
-      const { data: buffer, info } = await image.toBuffer({ resolveWithObject: true })
+      const tempBuffer = fs.readFileSync(this.tempPath)
+      const info = await sharp(tempBuffer).metadata()
       const s3Path = `${this.payload.s3Prefix}/${this.payload.fileName}`
-      await uploadFileFromBuffer(buffer, s3Path, 'image/png')
+      await uploadFileFromBuffer(tempBuffer, s3Path, 'image/png')
 
       const [screenshotMedia] = await tx
         .insert(media)
         .values({
           fileName: this.payload.fileName,
-          fileSize: buffer.length,
+          fileSize: tempBuffer.length,
           mimeType: 'image/png',
           path: s3Path,
           width: info.width,
@@ -83,7 +77,7 @@ export class ScreenshotProcessor {
 
             logger.info(`${this.logPrefix} Calculating image diff`, { payload: this.payload })
             const { diffImage: diffScreenshotBuffer, diffPercentage: diff } = await getImageDiff({
-              imgBuffer1: buffer,
+              imgBuffer1: tempBuffer,
               imgBuffer2: baselineBuffer,
             })
 
