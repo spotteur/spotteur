@@ -70,7 +70,13 @@ export function getColumns(
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={() => onRequestDelete({ id, name })}>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRequestDelete({ id, name })
+                  }}
+                >
                   <Trash />
                   Delete
                 </DropdownMenuItem>
