@@ -36,10 +36,12 @@ jobs:
         with:
           client-id: ${{ secrets.BOT_CI_APP_ID }}
           private-key: ${{ secrets.BOT_CI_APP_SECRET }}
-          
+
       - name: Checkout Repository
         uses: actions/checkout@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -99,7 +101,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v6
