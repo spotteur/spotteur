@@ -57,7 +57,7 @@ jobs:
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
 
-      - name: Release
+      - name: Release2
         id: semantic
         shell: bash
         env:
