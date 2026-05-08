@@ -1,11 +1,8 @@
 branches:
   - main
   - name: develop
-    channel: beta
-    prerelease: beta
-  - name: "feature/*"
-    prerelease: "${name.replace(/^feature\\//, 'feature-')}"
-    channel: "feature"
+    channel: nightly
+    prerelease: nightly
 
 plugins:
   - "@semantic-release/commit-analyzer"
