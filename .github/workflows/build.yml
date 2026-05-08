@@ -57,13 +57,14 @@ jobs:
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
 
-      - name: Release2
+      - name: Release
         id: semantic
         shell: bash
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
+          echo TEST
           git config user.name "spotteur-ci-bot[bot]"
           git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
           OUTPUT=$(npx semantic-release 2>&1 | tee /dev/stderr)
