@@ -133,6 +133,30 @@ export function ProjectForm({
           )
         }}
       />
+      <form.Field
+        name="diffTolerancePercentage"
+        children={(field) => {
+          const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+          return (
+            <Field data-invalid={isInvalid}>
+              <FieldLabel htmlFor="project-diffTolerancePercentage">Diff Tolerance (%)</FieldLabel>
+              <Input
+                id="project-diffTolerancePercentage"
+                name={field.name}
+                type="number"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(Number(e.target.value))}
+                aria-invalid={isInvalid}
+              />
+              <FieldDescription>
+                Snapshots with diff percentages at or below this threshold will be treated as exactly matching.
+              </FieldDescription>
+              {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            </Field>
+          )
+        }}
+      />
       {!isCreate && (
         <form.Field
           name="token"

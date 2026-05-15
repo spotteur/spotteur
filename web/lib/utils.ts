@@ -58,3 +58,7 @@ export function randomElement<T>(array: T[]): T {
 
 export const sha256Hex = (input: string) =>
   crypto.createHash('sha256').update(Buffer.from(input, 'utf-8')).digest('hex')
+
+export function isSnapshotExactlyMatching(diffPercentage: number, tolerancePercentage?: number | null) {
+  return diffPercentage <= (tolerancePercentage ?? 0)
+}

@@ -25,6 +25,15 @@ export const CookieSettingSchema = z
   })
   .optional()
 
+export const DiffTolerancePercentageSchema = z
+  .number()
+  .min(0, 'Diff tolerance must be greater than or equal to 0')
+  .max(100, 'Diff tolerance must be less than or equal to 100')
+  // Limits input to 13 decimal places, ref: https://stackoverflow.com/a/75291616
+  .refine((x) => x * 10_000_000_000_000 - Math.trunc(x * 10_000_000_000_000) < Number.EPSILON, {
+    error: 'Diff tolerance can have up to 13 decimal places',
+  })
+
 export const ProjectBaseSchema = z.object({
   name: ProjectNameSchema,
   baseUrl: BaseUrlSchema,
@@ -32,6 +41,7 @@ export const ProjectBaseSchema = z.object({
   viewports: ViewportsSchema,
   hookAfterPageLoad: HookAfterPageLoadSchema,
   hookBeforeScreenshot: HookBeforeScreenshotSchema,
+  diffTolerancePercentage: DiffTolerancePercentageSchema,
   cookieSetting: CookieSettingSchema,
 })
 

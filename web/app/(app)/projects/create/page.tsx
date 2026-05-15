@@ -76,6 +76,7 @@ export default function NewProjectPage() {
         defaultValues={{
           name: '',
           baseUrl: '',
+          diffTolerancePercentage: 0.01,
           snapshotBrowsers: [DEFAULT_SNAPSHOTS_BROWSER],
           viewports: [[DEFAULT_SNAPSHOTS_WIDTH, DEFAULT_SNAPSHOTS_HEIGHT]],
           pagePaths: '',

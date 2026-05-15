@@ -20,6 +20,7 @@ import { listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
 import { SnapshotReviewFilters } from '@/features/snapshots/review-filters'
 import { SnapshotReviewTree } from '@/features/snapshots/review-tree'
+import { isSnapshotExactlyMatching } from '@/lib/utils'
 import { type NavigationType } from '@/types/app'
 
 export default function BuildDetailSnapshotPage() {
@@ -51,6 +52,7 @@ export default function BuildDetailSnapshotPage() {
   })
 
   const buildData = data?.build
+  const diffTolerancePercentage = buildData?.diffTolerancePercentage ?? 0
   const projectData = data?.project
 
   const { data: snapshotsData, isLoading: isLoadingSnapshots } = useQuery({
@@ -72,12 +74,14 @@ export default function BuildDetailSnapshotPage() {
     return (snapshotsData?.data ?? []).filter((snapshot) => {
       const matchesSearch = snapshot.pagePath.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesBrowserFilter = browsers.length === 0 || browsers.includes(snapshot.browser)
-      const matchesExactlyMatchFilter = hideExactlyMatch ? snapshot.diffPercentage !== 0 : true
+      const matchesExactlyMatchFilter = hideExactlyMatch
+        ? !isSnapshotExactlyMatching(snapshot.diffPercentage, diffTolerancePercentage)
+        : true
       const matchesNewPageFilter = hideNewPage ? !!snapshot.baselineScreenshotMedia : true
 
       return matchesSearch && matchesBrowserFilter && matchesExactlyMatchFilter && matchesNewPageFilter
     })
-  }, [snapshotsData, searchQuery, browsers, hideExactlyMatch, hideNewPage])
+  }, [snapshotsData, searchQuery, browsers, hideExactlyMatch, hideNewPage, diffTolerancePercentage])
 
   const processedItems = useMemo(() => {
     const processedPages = snapshotsData?.data.length ?? 0
@@ -219,6 +223,7 @@ export default function BuildDetailSnapshotPage() {
           setHideExactlyMatch={setHideExactlyMatch}
           hideNewPage={hideNewPage}
           setHideNewPage={setHideNewPage}
+          diffTolerancePercentage={diffTolerancePercentage}
         />
         <ResizablePanelGroup orientation="horizontal" className="flex-1 rounded-lg border">
           <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%" className="overflow-auto">
@@ -227,6 +232,7 @@ export default function BuildDetailSnapshotPage() {
               selectedPath={selectedPath}
               onSelectNode={(node) => setSelectedPath(node.path)}
               filterApplied={searchQuery.length > 0 || browsers.length > 0 || hideExactlyMatch || hideNewPage}
+              diffTolerancePercentage={diffTolerancePercentage}
             />
           </ResizablePanel>
           <ResizableHandle withHandle />
@@ -235,6 +241,7 @@ export default function BuildDetailSnapshotPage() {
               snapshotItems={snapshotItems}
               selectedSnapshotId={selectedSnapshotId}
               openedSnapshotIds={openedSnapshotIds}
+              diffTolerancePercentage={diffTolerancePercentage}
               onChangeOpenedSnapshot={onChangeOpenedSnapshot}
               projectId={projectData?.id ?? ''}
               buildId={params.buildId}

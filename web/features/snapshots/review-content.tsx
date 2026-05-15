@@ -10,7 +10,7 @@ import { BROWSER_LABEL_MAP } from '@/constants/enum'
 import { type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { SnapshotActionButtons, SnapshotViewer } from '@/features/snapshots/detail'
 
-import { SnapshotApprovalStatusBadge } from './badge'
+import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from './badge'
 import { getSnapshotIcon } from './review-tree'
 import { UpdateSnapshotNotesDialog } from './update-snapshot-notes-dialog'
 
@@ -18,6 +18,7 @@ interface SnapshotReviewContentProps {
   snapshotItems: SnapshotDetailRes[]
   projectId: string
   buildId: string
+  diffTolerancePercentage: number
   onChangeOpenedSnapshot: (snapshotId: string, open: boolean) => void
   openedSnapshotIds?: string[]
   selectedSnapshotId?: string
@@ -27,6 +28,7 @@ export function SnapshotReviewContent({
   snapshotItems,
   projectId,
   buildId,
+  diffTolerancePercentage,
   onChangeOpenedSnapshot,
   openedSnapshotIds = [],
   selectedSnapshotId,
@@ -67,7 +69,7 @@ export function SnapshotReviewContent({
             <Collapsible open={isOpen} onOpenChange={(open) => onChangeOpenedSnapshot(snapshot.id, open)}>
               <div className="flex w-full justify-between gap-6 py-2 text-left">
                 <div className="flex items-center gap-2">
-                  {getSnapshotIcon(snapshot)}
+                  {getSnapshotIcon(snapshot, diffTolerancePercentage)}
                   <span>{`Page path ${snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshot.browser]}`}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -82,6 +84,10 @@ export function SnapshotReviewContent({
                     </Button>
                   </UpdateSnapshotNotesDialog>
                   <SnapshotApprovalStatusBadge status={snapshot.approvalStatus} />
+                  <SnapshotDiffBadge
+                    diffPercentage={snapshot.diffPercentage}
+                    diffTolerancePercentage={diffTolerancePercentage}
+                  />
                   <CollapsibleTrigger asChild>
                     <Button type="button" variant="ghost" size="icon">
                       <ChevronDown className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -97,6 +103,7 @@ export function SnapshotReviewContent({
                       snapshot={snapshot}
                       projectId={projectId}
                       buildId={buildId}
+                      diffTolerancePercentage={diffTolerancePercentage}
                       snapshotId={snapshot.id}
                     />
                   }

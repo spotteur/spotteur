@@ -1,15 +1,16 @@
 import * as fs from 'node:fs'
 
-import { eq, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import sharp from 'sharp'
 
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
-import { builds, media, snapshots } from '@/db/schema'
+import { media, snapshots } from '@/db/schema'
 import { generateSnapshotFileName, getBaselineSnapshot } from '@/features/snapshots/actions'
 import { bufferFromUrl, getImageDiff, ImageDiffDimensionMismatchError } from '@/lib/image-diff'
 import { logger } from '@/lib/logger'
 import { getPresignUrl, uploadFileFromBuffer } from '@/lib/s3'
+import { isSnapshotExactlyMatching } from '@/lib/utils'
 import { type ProcessScreenshotResult, type ProcessScreenshotParams, type SnapshotPayload } from '@/types/screenshot'
 
 export class ScreenshotProcessor {
@@ -58,11 +59,10 @@ export class ScreenshotProcessor {
       let diffPercentage: number = 100
 
       logger.info(`${this.logPrefix} Checking baseline screenshot`, { payload: this.payload })
-      const [build] = await tx.select().from(builds).where(eq(builds.id, this.payload.buildId)).limit(1)
-      if (build.baselineBuildId) {
+      if (this.payload.baselineBuildId) {
         const baselineSnapshot = await getBaselineSnapshot({
           dbOrTx: tx,
-          baselineBuildId: build.baselineBuildId,
+          baselineBuildId: this.payload.baselineBuildId,
           payload: this.payload,
         })
         if (baselineSnapshot && baselineSnapshot.screenshotMedia) {
@@ -118,10 +118,8 @@ export class ScreenshotProcessor {
         }
       }
 
-      // TODO: Maybe we can add this to project setting,
-      // so user can decide wether auto-approved are allowed or not based on threshold.
       let approvalStatus = SnapshotApprovalStatus.PENDING
-      if (diffPercentage === 0) {
+      if (isSnapshotExactlyMatching(diffPercentage, this.payload.diffTolerancePercentage)) {
         approvalStatus = SnapshotApprovalStatus.APPROVED
       }
 

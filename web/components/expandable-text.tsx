@@ -23,11 +23,8 @@ export function ExpandableText({ text, maxLines = 2, className }: ExpandableText
     if (element) {
       const lineHeight = parseInt(getComputedStyle(element).lineHeight)
       const height = element.scrollHeight
-      if (height > lineHeight * maxLines + 2) {
-        setExpandable(true)
-      } else {
-        setExpandable(false)
-      }
+
+      setExpandable(!!(height > lineHeight * maxLines + 2))
     }
   }, [text, maxLines])
 

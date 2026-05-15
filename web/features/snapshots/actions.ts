@@ -423,12 +423,15 @@ export async function populateSingleSnapshotPayload({
   snapshotId: string
   projectId: string
 }) {
-  const snapshot = await db
+  const [data] = await db
     .select()
     .from(snapshots)
+    .innerJoin(builds, eq(snapshots.buildId, builds.id))
     .where(eq(snapshots.id, snapshotId))
     .limit(1)
-    .then((res) => res[0])
+
+  const snapshot = data.snapshots
+  const build = data.builds
   const pageRule = await pageRuleByPath({ projectId, path: snapshot.pagePath })
   const project = await db
     .select()
@@ -458,6 +461,8 @@ export async function populateSingleSnapshotPayload({
     id: snapshotId,
     projectId,
     buildId,
+    baselineBuildId: build.baselineBuildId,
+    diffTolerancePercentage: build.diffTolerancePercentage,
     pagePath: snapshot.pagePath,
     pageUrl,
     browser,

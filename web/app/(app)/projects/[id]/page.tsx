@@ -85,6 +85,7 @@ export default function EditProjectPage() {
               defaultValues={{
                 name: data.name,
                 baseUrl: data.baseUrl,
+                diffTolerancePercentage: data.diffTolerancePercentage,
                 snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
                 viewports: data.viewports,
                 pagePaths: (data.pagePaths ?? []).join('\n'),
