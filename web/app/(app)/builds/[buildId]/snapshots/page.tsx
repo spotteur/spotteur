@@ -123,8 +123,10 @@ export default function BuildDetailSnapshotPage() {
 
   const [openedSnapshotIds, setOpenedSnapshotIds] = useState<string[]>([])
 
+  // On first load:
+  // Set selected path to the first snapshot items
   useEffect(() => {
-    if ((!selectedPath || !status || status) && snapshotItems.length > 0) {
+    if (!selectedPath && snapshotItems.length > 0) {
       setSelectedPath(snapshotItems[0].pagePath)
     }
   }, [selectedPath, snapshotItems, setSelectedPath, status])
@@ -137,6 +139,14 @@ export default function BuildDetailSnapshotPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenedSnapshotIds((prev) => (prev.includes(selectedSnapshotId) ? prev : [...prev, selectedSnapshotId]))
   }, [selectedSnapshotId])
+
+  // On filter changed:
+  // Set selected path to the first snapshot items
+  useEffect(() => {
+    if (snapshotItems.length > 0) {
+      setSelectedPath(snapshotItems[0].pagePath)
+    }
+  }, [snapshotItems, status, browsers, hideExactlyMatch, hideNewPage, setSelectedPath])
 
   const onChangeOpenedSnapshot = (snapshotId: string, open: boolean) => {
     setOpenedSnapshotIds((prev) => {
@@ -235,7 +245,10 @@ export default function BuildDetailSnapshotPage() {
             <SnapshotReviewTree
               snapshotItems={snapshotItems}
               selectedPath={selectedPath}
-              onSelectNode={(node) => setSelectedPath(node.path)}
+              onSelectNode={(node) => {
+                console.log('test ', node)
+                return setSelectedPath(node.path)
+              }}
               filterApplied={searchQuery.length > 0 || browsers.length > 0 || hideExactlyMatch || hideNewPage}
             />
           </ResizablePanel>
