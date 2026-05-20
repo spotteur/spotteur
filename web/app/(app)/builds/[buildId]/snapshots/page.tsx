@@ -129,7 +129,7 @@ export default function BuildDetailSnapshotPage() {
     if (!selectedPath && snapshotItems.length > 0) {
       setSelectedPath(snapshotItems[0].pagePath)
     }
-  }, [selectedPath, snapshotItems, setSelectedPath, status])
+  }, [selectedPath, snapshotItems, setSelectedPath])
 
   useEffect(() => {
     if (!selectedSnapshotId) {
@@ -245,10 +245,7 @@ export default function BuildDetailSnapshotPage() {
             <SnapshotReviewTree
               snapshotItems={snapshotItems}
               selectedPath={selectedPath}
-              onSelectNode={(node) => {
-                console.log('test ', node)
-                return setSelectedPath(node.path)
-              }}
+              onSelectNode={(node) => setSelectedPath(node.path)}
               filterApplied={searchQuery.length > 0 || browsers.length > 0 || hideExactlyMatch || hideNewPage}
             />
           </ResizablePanel>
