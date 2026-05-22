@@ -6,7 +6,14 @@ import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
 
@@ -50,6 +57,9 @@ export function TriggerBuildDialog({
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Trigger build</DialogTitle>
+            <DialogDescription>
+              Trigger a new build for this project. You can optionally provide a custom Base URL to test against.
+            </DialogDescription>
           </DialogHeader>
           <Alert className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/30">
             <InfoIcon className="size-4 text-blue-600 dark:text-blue-400" />

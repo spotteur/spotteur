@@ -190,11 +190,6 @@ export async function pageRuleByPath({ projectId, path }: { projectId: string; p
   return row
 }
 
-export async function isPagePathExists(path: string) {
-  const [row] = await db.select().from(pageRules).where(eq(pageRules.pagePath, path)).limit(1)
-  return !!row
-}
-
 export async function existingPageRules(projectId: string) {
   const rules = await db
     .select()
@@ -225,22 +220,6 @@ export async function existingPageRules(projectId: string) {
   })
 
   return doc.toString()
-}
-
-export async function unUsedPagePath(projectId: string) {
-  const rule = await db
-    .select({ pagePath: pageRules.pagePath })
-    .from(pageRules)
-    .where(eq(pageRules.projectId, projectId))
-  const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1)
-
-  const projectPaths = project.pagePaths
-  const usedPathSet = new Set(rule.map((p) => p.pagePath))
-  const unusedPaths = projectPaths.filter((path) => !usedPathSet.has(path))
-
-  if (unusedPaths.length < 1) return null
-
-  return unusedPaths[0]
 }
 
 export type PageRulesListRes = Awaited<ReturnType<typeof listPageRulesByProject>>

@@ -41,6 +41,8 @@ export const projects = pgTable('projects', {
   baselineBuildId: uuid('baseline_build_id'),
   hookAfterPageLoad: text('hook_after_page_load'),
   hookBeforeScreenshot: text('hook_before_screenshot'),
+  // Default to 0 to ensure backward compatibility of existing projects
+  diffTolerancePercentage: doublePrecision('diff_tolerance_percentage').notNull().default(0),
   cookieSetting: jsonb('cookie_setting').default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
@@ -63,6 +65,7 @@ export const builds = pgTable('builds', {
     .array()
     .notNull()
     .default(sql`'{}'::text[]`),
+  diffTolerancePercentage: doublePrecision('diff_tolerance_percentage').notNull().default(0),
   status: varchar('status').notNull().$type<BuildStatus>(),
   notes: text('notes'),
   expectedSnapshotCount: integer('expected_snapshot_count').default(0),

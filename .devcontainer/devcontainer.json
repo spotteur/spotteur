@@ -56,6 +56,9 @@
   "postCreateCommand": {
     "install-deps": "cd web/ && npm install",
     "chown:temporal-dir": "sudo chown vscode:vscode -R \"${TEMPORAL_DEFAULT_STORAGE_DIR:-/storage}\""
+  },
+  "postStartCommand": {
+    "migrate-db": "cd web/ && npm run db:migrate"
   }
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"

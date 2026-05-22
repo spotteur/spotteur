@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { ScreenshotCapturer } from '@/lib/screenshot/capturer'
 import { ScreenshotProcessor } from '@/lib/screenshot/processor'
+import { isSnapshotExactlyMatching } from '@/lib/utils'
 import {
   type ProcessScreenshotResult,
   type ProcessScreenshotParams,
@@ -176,7 +177,9 @@ export async function notifyBuildReadyForReview({ projectId, buildId }: { projec
       .where(eq(snapshots.buildId, buildId))
 
     const totalSnapshotCount = snapshotRows.length
-    const hasDiffSnapshotCount = snapshotRows.filter((row) => row.diffPercentage > 0).length
+    const hasDiffSnapshotCount = snapshotRows.filter(
+      (row) => !isSnapshotExactlyMatching(row.diffPercentage, build.diffTolerancePercentage),
+    ).length
     const pagePath = `/builds/${buildId}/snapshots` as Route
 
     for (const subscribers of await getNovuSubscribers()) {

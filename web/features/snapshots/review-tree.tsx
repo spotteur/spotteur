@@ -6,20 +6,22 @@ import { useMemo } from 'react'
 import { type TreeNode, TreeRoot } from '@/components/file-tree'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { type SnapshotDetailRes } from '@/features/snapshots/actions'
+import { isSnapshotExactlyMatching } from '@/lib/utils'
 
 interface SnapshotReviewTreeProps {
   snapshotItems: SnapshotDetailRes[]
   selectedPath: string
   onSelectNode: (node: TreeNode) => void
   filterApplied: boolean
+  diffTolerancePercentage: number
 }
 
-export const getSnapshotIcon = (snapshot: SnapshotDetailRes) => {
+export const getSnapshotIcon = (snapshot: SnapshotDetailRes, diffTolerancePercentage: number) => {
   if (!snapshot.baselineScreenshotMedia) {
     return <FilePlus size={16} className="text-success shrink-0" />
   }
 
-  if (snapshot.diffPercentage && snapshot.diffPercentage > 0) {
+  if (!isSnapshotExactlyMatching(snapshot.diffPercentage, diffTolerancePercentage)) {
     return <FileDiff size={16} className="text-destructive shrink-0" />
   }
 
@@ -47,7 +49,7 @@ const findOrCreateFolder = (
   return { nodes: nodes, folder: folder }
 }
 
-const buildSnapshotTree = (snapshots: SnapshotDetailRes[]) => {
+const buildSnapshotTree = (snapshots: SnapshotDetailRes[], diffTolerancePercentage: number) => {
   const rootSet: Set<string> = new Set()
   const root: TreeNode[] = []
 
@@ -69,7 +71,7 @@ const buildSnapshotTree = (snapshots: SnapshotDetailRes[]) => {
         label: '/',
         type: 'file',
         path: '/',
-        icon: getSnapshotIcon(snapshot),
+        icon: getSnapshotIcon(snapshot, diffTolerancePercentage),
       })
       return
     }
@@ -92,7 +94,7 @@ const buildSnapshotTree = (snapshots: SnapshotDetailRes[]) => {
           label: segment,
           type: 'file',
           path: snapshot.pagePath,
-          icon: getSnapshotIcon(snapshot),
+          icon: getSnapshotIcon(snapshot, diffTolerancePercentage),
         })
       } else {
         // The current segment is an intermediate part of the path (a "folder")
@@ -110,8 +112,12 @@ export function SnapshotReviewTree({
   selectedPath,
   onSelectNode,
   filterApplied,
+  diffTolerancePercentage,
 }: SnapshotReviewTreeProps) {
-  const treeNodes = useMemo(() => buildSnapshotTree(snapshotItems), [snapshotItems])
+  const treeNodes = useMemo(
+    () => buildSnapshotTree(snapshotItems, diffTolerancePercentage),
+    [snapshotItems, diffTolerancePercentage],
+  )
 
   return (
     <TreeRoot

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { BROWSER_OPTIONS } from '@/constants/enum'
 import { SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
 
@@ -27,6 +28,7 @@ interface SnapshotReviewFiltersProps {
   setHideExactlyMatch: (value: boolean) => void
   hideNewPage: boolean
   setHideNewPage: (value: boolean) => void
+  diffTolerancePercentage: number
 }
 
 export function SnapshotReviewFilters({
@@ -40,6 +42,7 @@ export function SnapshotReviewFilters({
   setHideExactlyMatch,
   hideNewPage,
   setHideNewPage,
+  diffTolerancePercentage,
 }: SnapshotReviewFiltersProps) {
   return (
     <div className="flex flex-row items-center gap-3 rounded-lg shadow-none">
@@ -121,7 +124,14 @@ export function SnapshotReviewFilters({
           checked={hideExactlyMatch}
           onCheckedChange={(checked) => setHideExactlyMatch(!!checked)}
         />
-        <FieldLabel htmlFor="hideExactlyMatch">Hide exactly matching snapshots</FieldLabel>
+        <FieldLabel htmlFor="hideExactlyMatch">
+          <Tooltip>
+            <TooltipTrigger>
+              <span>Hide exactly matching snapshots</span>
+            </TooltipTrigger>
+            <TooltipContent>{`Diff tolerance percentage set to ${diffTolerancePercentage}%`}</TooltipContent>
+          </Tooltip>
+        </FieldLabel>
       </Field>
       <Field orientation="horizontal" className="w-xs">
         <Checkbox id="hideNewPage" checked={hideNewPage} onCheckedChange={(checked) => setHideNewPage(!!checked)} />

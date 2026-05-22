@@ -9,6 +9,8 @@ export type SnapshotPayload = Pick<
   'id' | 'buildId' | 'pagePath' | 'browser' | 'viewportWidth' | 'viewportHeight'
 > & {
   projectId: string
+  baselineBuildId?: string | null
+  diffTolerancePercentage: number
   pageUrl: string
   selector: string
   s3Prefix: string
