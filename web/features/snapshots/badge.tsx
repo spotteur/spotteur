@@ -27,7 +27,7 @@ export function SnapshotDiffBadge({
             <PopoverTrigger asChild>
               <Info className="size-4" />
             </PopoverTrigger>
-            <PopoverContent className="w-fit px-2 py-1.5 text-xs">
+            <PopoverContent align="end" className="w-fit px-2 py-1.5 text-xs">
               Diff {diffPercentage}% is above tolerance {diffTolerancePercentage}%
             </PopoverContent>
           </Popover>
@@ -44,7 +44,7 @@ export function SnapshotDiffBadge({
           <PopoverTrigger asChild>
             <Info className="size-4" />
           </PopoverTrigger>
-          <PopoverContent className="w-fit px-2 py-1.5 text-xs">
+          <PopoverContent align="end" className="w-fit px-2 py-1.5 text-xs">
             Diff {diffPercentage}% is within tolerance {diffTolerancePercentage}%
           </PopoverContent>
         </Popover>
