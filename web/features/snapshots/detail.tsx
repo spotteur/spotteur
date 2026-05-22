@@ -47,7 +47,7 @@ export function SnapshotActionButtons({
           queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
         })
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'],
+          queryKey: [QUERY_KEY_SNAPSHOTS, buildId, 'review-tree'],
         })
 
         const statusMessages = {

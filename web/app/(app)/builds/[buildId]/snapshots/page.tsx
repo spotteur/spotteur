@@ -28,6 +28,7 @@ export default function BuildDetailSnapshotPage() {
   const [selectedPath, setSelectedPath] = useQueryState('path', parseAsString.withDefault(''))
   const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault(''))
   const [browsers, setBrowsers] = useQueryState('browsers', parseAsArrayOf(parseAsString).withDefault([]))
+  const [status, setStatus] = useQueryState('status', parseAsString.withDefault(''))
   const [hideExactlyMatch, setHideExactlyMatch] = useQueryState('hideExactlyMatch', parseAsBoolean.withDefault(false))
   const [hideNewPage, setHideNewPage] = useQueryState('hideNewPage', parseAsBoolean.withDefault(false))
 
@@ -74,14 +75,21 @@ export default function BuildDetailSnapshotPage() {
     return (snapshotsData?.data ?? []).filter((snapshot) => {
       const matchesSearch = snapshot.pagePath.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesBrowserFilter = browsers.length === 0 || browsers.includes(snapshot.browser)
+      const matchesStatusFilter = !status || snapshot.approvalStatus === status
       const matchesExactlyMatchFilter = hideExactlyMatch
         ? !isSnapshotExactlyMatching(snapshot.diffPercentage, diffTolerancePercentage)
         : true
       const matchesNewPageFilter = hideNewPage ? !!snapshot.baselineScreenshotMedia : true
 
-      return matchesSearch && matchesBrowserFilter && matchesExactlyMatchFilter && matchesNewPageFilter
+      return (
+        matchesSearch &&
+        matchesBrowserFilter &&
+        matchesStatusFilter &&
+        matchesExactlyMatchFilter &&
+        matchesNewPageFilter
+      )
     })
-  }, [snapshotsData, searchQuery, browsers, hideExactlyMatch, hideNewPage, diffTolerancePercentage])
+  }, [snapshotsData, searchQuery, browsers, hideExactlyMatch, hideNewPage, status, diffTolerancePercentage])
 
   const processedItems = useMemo(() => {
     const processedPages = snapshotsData?.data.length ?? 0
@@ -119,6 +127,8 @@ export default function BuildDetailSnapshotPage() {
 
   const [openedSnapshotIds, setOpenedSnapshotIds] = useState<string[]>([])
 
+  // On first load:
+  // Set selected path to the first snapshot items
   useEffect(() => {
     if (!selectedPath && snapshotItems.length > 0) {
       setSelectedPath(snapshotItems[0].pagePath)
@@ -133,6 +143,14 @@ export default function BuildDetailSnapshotPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenedSnapshotIds((prev) => (prev.includes(selectedSnapshotId) ? prev : [...prev, selectedSnapshotId]))
   }, [selectedSnapshotId])
+
+  // On filter changed:
+  // Set selected path to the first snapshot items
+  useEffect(() => {
+    if (snapshotItems.length > 0) {
+      setSelectedPath(snapshotItems[0].pagePath)
+    }
+  }, [snapshotItems, status, browsers, hideExactlyMatch, hideNewPage, setSelectedPath])
 
   const onChangeOpenedSnapshot = (snapshotId: string, open: boolean) => {
     setOpenedSnapshotIds((prev) => {
@@ -219,6 +237,8 @@ export default function BuildDetailSnapshotPage() {
           setSearchQuery={setSearchQuery}
           browsers={browsers}
           setBrowsers={setBrowsers}
+          status={status}
+          setStatus={setStatus}
           hideExactlyMatch={hideExactlyMatch}
           setHideExactlyMatch={setHideExactlyMatch}
           hideNewPage={hideNewPage}

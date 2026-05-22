@@ -15,12 +15,15 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { BROWSER_OPTIONS } from '@/constants/enum'
+import { SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
 
 interface SnapshotReviewFiltersProps {
   searchQuery: string
   setSearchQuery: (value: string) => void
   browsers: string[]
   setBrowsers: (updater: (prev: string[]) => string[]) => void
+  status: string
+  setStatus: (value: string) => void
   hideExactlyMatch: boolean
   setHideExactlyMatch: (value: boolean) => void
   hideNewPage: boolean
@@ -33,6 +36,8 @@ export function SnapshotReviewFilters({
   setSearchQuery,
   browsers,
   setBrowsers,
+  status,
+  setStatus,
   hideExactlyMatch,
   setHideExactlyMatch,
   hideNewPage,
@@ -77,6 +82,33 @@ export function SnapshotReviewFilters({
                     setBrowsers((prev) => [...prev, value])
                   } else {
                     setBrowsers((prev) => prev.filter((b) => b !== value.toString()))
+                  }
+                }}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-58 justify-start">
+            {status ? `Filtered by status: ${status}` : 'Filter by status...'}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            {SNAPSHOT_APPROVAL_STATUS_OPTIONS.map(({ value, label }) => (
+              <DropdownMenuCheckboxItem
+                key={value}
+                checked={status === value}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setStatus(value)
+                  } else {
+                    setStatus('')
                   }
                 }}
               >
