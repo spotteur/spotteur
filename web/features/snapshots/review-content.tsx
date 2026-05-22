@@ -103,7 +103,6 @@ export function SnapshotReviewContent({
                       snapshot={snapshot}
                       projectId={projectId}
                       buildId={buildId}
-                      diffTolerancePercentage={diffTolerancePercentage}
                       snapshotId={snapshot.id}
                     />
                   }
