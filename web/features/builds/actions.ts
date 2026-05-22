@@ -131,35 +131,39 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
     throw new ProjectNotFoundError()
   }
 
-  const [pendingBuild] = await db
-    .select({ id: builds.id })
-    .from(builds)
-    .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.PENDING)))
-    .limit(1)
-  if (pendingBuild) {
-    throw new PendingBuildAlreadyExistError()
-  }
+  const build = await db.transaction(async (tx) => {
+    const [pendingBuild] = await tx
+      .select({ id: builds.id })
+      .from(builds)
+      .where(and(eq(builds.projectId, projectId), eq(builds.status, BuildStatus.PENDING)))
+      .limit(1)
+    if (pendingBuild) {
+      throw new PendingBuildAlreadyExistError()
+    }
 
-  const expectedSnapshotCount = await calculateExpectedSnapshotCount({ project })
+    const expectedSnapshotCount = await calculateExpectedSnapshotCount({ project })
 
-  const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
+    const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
 
-  const [build] = await db
-    .insert(builds)
-    .values({
-      projectId: project.id,
-      baseUrl: baseUrl || project.baseUrl,
-      pagePaths: project.pagePaths,
-      diffTolerancePercentage: project.diffTolerancePercentage,
-      status: BuildStatus.PENDING,
-      identifier: buildIdentifier,
-      baselineBuildId: project.baselineBuildId,
-      notes,
-      expectedSnapshotCount,
-    })
-    .returning()
+    const [build] = await tx
+      .insert(builds)
+      .values({
+        projectId: project.id,
+        baseUrl: baseUrl || project.baseUrl,
+        pagePaths: project.pagePaths,
+        diffTolerancePercentage: project.diffTolerancePercentage,
+        status: BuildStatus.PENDING,
+        identifier: buildIdentifier,
+        baselineBuildId: project.baselineBuildId,
+        notes,
+        expectedSnapshotCount,
+      })
+      .returning()
 
-  await startBuildWorkflow({ projectId, buildId: build.id })
+    await startBuildWorkflow({ projectId, buildId: build.id })
+
+    return build
+  })
 
   const pagePath = `/builds/${build.id}/snapshots` as Route
 
