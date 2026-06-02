@@ -34,7 +34,7 @@ export default function BuildDetailSnapshotPage() {
   const [hideExactlyMatch, setHideExactlyMatch] = useQueryState('hideExactlyMatch', parseAsBoolean.withDefault(false))
   const [hideNewPage, setHideNewPage] = useQueryState('hideNewPage', parseAsBoolean.withDefault(false))
   const [bulkItems, setBulkItems] = useState<string[]>([])
-  const [bulkStatus, setBulkStatus] = useState<string>('approve')
+  const [bulkStatus, setBulkStatus] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
 
   const queryClient = useQueryClient()
 
@@ -122,14 +122,11 @@ export default function BuildDetailSnapshotPage() {
   })
 
   const { mutate: updateBulkStatus, isPending: isBulkUpdatePending } = useMutation({
-    mutationFn: async (ids: string[]) => {
-      const bulkStatusUpdate =
-        bulkStatus === 'approve' ? SnapshotApprovalStatus.APPROVED : SnapshotApprovalStatus.REJECTED
-      return bulkUpdateSnapshotApprovalStatus({
+    mutationFn: async (ids: string[]) =>
+      bulkUpdateSnapshotApprovalStatus({
         snapshotIds: ids,
-        status: bulkStatusUpdate,
-      })
-    },
+        status: bulkStatus,
+      }),
     onSuccess: (res) => {
       if (res.ok) {
         queryClient.invalidateQueries({
@@ -213,7 +210,7 @@ export default function BuildDetailSnapshotPage() {
 
   const isLoading = isLoadingBuild || isLoadingSnapshots
 
-  const onBulkActionChange = (value: string) => {
+  const onBulkActionChange = (value: SnapshotApprovalStatus) => {
     if (!value) {
       return
     }

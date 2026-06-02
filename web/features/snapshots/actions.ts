@@ -292,7 +292,9 @@ export async function bulkUpdateSnapshotApprovalStatus({
   status: SnapshotApprovalStatus
 }) {
   try {
-    const isValidStatus = Object.values(SnapshotApprovalStatus).includes(status)
+    const isValidStatus = Object.values([SnapshotApprovalStatus.APPROVED, SnapshotApprovalStatus.REJECTED]).includes(
+      status,
+    )
     if (!isValidStatus) {
       return { ok: false, error: 'Invalid approval status' } as const
     }
