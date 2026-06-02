@@ -10,7 +10,7 @@ import { Field } from '@/components/ui/field'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
-import { SNAPSHOT_APPROVAL_STATUS_OPTIONS, SnapshotApprovalStatus } from '@/constants/status-map'
+import { type SnapshotApprovalStatus } from '@/constants/status-map'
 import { type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { SnapshotActionButtons, SnapshotViewer } from '@/features/snapshots/detail'
 import { cn, isSnapshotExactlyMatching } from '@/lib/utils'
@@ -29,7 +29,7 @@ interface SnapshotReviewContentProps {
   selectedSnapshotId?: string
   bulkItems?: string[]
   setBulkItems?: (updater: (prev: string[]) => string[]) => void
-  onBulkActionChange?: (value: SnapshotApprovalStatus) => void
+  onBulkActionChange?: (value: string) => void
   isBulkUpdatePending?: boolean
 }
 
@@ -46,7 +46,7 @@ export function SnapshotReviewContent({
   onBulkActionChange = () => {},
   isBulkUpdatePending,
 }: SnapshotReviewContentProps) {
-  const [bulkAction, setBulkAction] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
+  const [bulkAction, setBulkAction] = useState<string>('approve')
 
   useEffect(() => {
     if (!selectedSnapshotId) {
@@ -74,7 +74,7 @@ export function SnapshotReviewContent({
     return () => cancelAnimationFrame(frameId)
   }, [selectedSnapshotId])
 
-  const handleBulkActionChange = (value: SnapshotApprovalStatus) => {
+  const handleBulkActionChange = (value: string) => {
     onBulkActionChange(value)
   }
 
@@ -152,7 +152,7 @@ export function SnapshotReviewContent({
         )}
       >
         <Select
-          defaultValue={SnapshotApprovalStatus.APPROVED}
+          defaultValue="approve"
           onValueChange={(value: SnapshotApprovalStatus) => setBulkAction(value)}
           disabled={bulkItems.length === 0}
         >
@@ -161,13 +161,8 @@ export function SnapshotReviewContent({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {SNAPSHOT_APPROVAL_STATUS_OPTIONS.filter((option) => option.value !== 'pending').map(
-                ({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ),
-              )}
+              <SelectItem value="approve">Approve</SelectItem>
+              <SelectItem value="reject">Reject</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -176,7 +171,7 @@ export function SnapshotReviewContent({
           disabled={bulkItems.length === 0 || isBulkUpdatePending || !bulkAction}
           onClick={() => handleBulkActionChange(bulkAction)}
         >
-          Apply Selected Items
+          Submit Approval
         </Button>
       </div>
     </ScrollArea>

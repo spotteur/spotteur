@@ -1,6 +1,6 @@
 'use server'
 
-import { and, count, asc, desc, eq, ilike, type SQL, lt, gt } from 'drizzle-orm'
+import { and, count, asc, desc, eq, ilike, type SQL, lt, gt, inArray } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
@@ -273,6 +273,37 @@ export async function updateSnapshotApprovalStatus({
         .returning()
 
       const [build] = await tx.select().from(builds).where(eq(builds.id, snapshot.buildId)).limit(1)
+
+      await syncBuildStatusBasedOnSnapshotApprovals({ dbOrTx: tx, build })
+    })
+
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: DEFAULT_ERROR_MESSAGE } as const
+  }
+}
+
+export async function bulkUpdateSnapshotApprovalStatus({
+  snapshotIds,
+  status,
+}: {
+  snapshotIds: string[]
+  status: SnapshotApprovalStatus
+}) {
+  try {
+    const isValidStatus = Object.values(SnapshotApprovalStatus).includes(status)
+    if (!isValidStatus) {
+      return { ok: false, error: 'Invalid approval status' } as const
+    }
+    await db.transaction(async (tx) => {
+      const [snapshot] = await tx
+        .update(snapshots)
+        .set({ approvalStatus: status })
+        .where(inArray(snapshots.id, snapshotIds))
+        .returning()
+
+      const [build] = await tx.select().from(builds).where(eq(builds.id, snapshot.buildId))
 
       await syncBuildStatusBasedOnSnapshotApprovals({ dbOrTx: tx, build })
     })

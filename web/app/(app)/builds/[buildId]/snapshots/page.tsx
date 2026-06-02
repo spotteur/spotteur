@@ -18,7 +18,7 @@ import { QUERY_KEY_BUILDS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
-import { listSnapshotsByBuildV2, updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
+import { bulkUpdateSnapshotApprovalStatus, listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
 import { SnapshotReviewFilters } from '@/features/snapshots/review-filters'
 import { SnapshotReviewTree } from '@/features/snapshots/review-tree'
@@ -34,7 +34,7 @@ export default function BuildDetailSnapshotPage() {
   const [hideExactlyMatch, setHideExactlyMatch] = useQueryState('hideExactlyMatch', parseAsBoolean.withDefault(false))
   const [hideNewPage, setHideNewPage] = useQueryState('hideNewPage', parseAsBoolean.withDefault(false))
   const [bulkItems, setBulkItems] = useState<string[]>([])
-  const [bulkStatus, setBulkStatus] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
+  const [bulkStatus, setBulkStatus] = useState<string>('approve')
 
   const queryClient = useQueryClient()
 
@@ -123,15 +123,15 @@ export default function BuildDetailSnapshotPage() {
 
   const { mutate: updateBulkStatus, isPending: isBulkUpdatePending } = useMutation({
     mutationFn: async (ids: string[]) => {
-      ids.map((i) =>
-        updateSnapshotApprovalStatus({
-          snapshotId: i,
-          status: bulkStatus,
-        }),
-      )
+      const bulkStatusUpdate =
+        bulkStatus === 'approve' ? SnapshotApprovalStatus.APPROVED : SnapshotApprovalStatus.REJECTED
+      return bulkUpdateSnapshotApprovalStatus({
+        snapshotIds: ids,
+        status: bulkStatusUpdate,
+      })
     },
-    onSuccess: (res, status) => {
-      if (status) {
+    onSuccess: (res) => {
+      if (res.ok) {
         queryClient.invalidateQueries({
           queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
         })
@@ -213,7 +213,7 @@ export default function BuildDetailSnapshotPage() {
 
   const isLoading = isLoadingBuild || isLoadingSnapshots
 
-  const onBulkActionChange = (value: SnapshotApprovalStatus) => {
+  const onBulkActionChange = (value: string) => {
     if (!value) {
       return
     }
