@@ -1,14 +1,19 @@
 'use client'
 
 import { ChevronDown, MessageSquare, MessageSquareDot } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Field } from '@/components/ui/field'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BROWSER_LABEL_MAP } from '@/constants/enum'
+import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { SnapshotActionButtons, SnapshotViewer } from '@/features/snapshots/detail'
+import { cn, isSnapshotExactlyMatching } from '@/lib/utils'
 
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from './badge'
 import { getSnapshotIcon } from './review-tree'
@@ -22,6 +27,10 @@ interface SnapshotReviewContentProps {
   onChangeOpenedSnapshot: (snapshotId: string, open: boolean) => void
   openedSnapshotIds?: string[]
   selectedSnapshotId?: string
+  bulkItems?: string[]
+  setBulkItems?: (updater: (prev: string[]) => string[]) => void
+  onBulkActionChange?: (value: SnapshotApprovalStatus) => void
+  isBulkUpdatePending?: boolean
 }
 
 export function SnapshotReviewContent({
@@ -32,7 +41,13 @@ export function SnapshotReviewContent({
   onChangeOpenedSnapshot,
   openedSnapshotIds = [],
   selectedSnapshotId,
+  bulkItems = [],
+  setBulkItems = () => {},
+  onBulkActionChange = () => {},
+  isBulkUpdatePending,
 }: SnapshotReviewContentProps) {
+  const [bulkAction, setBulkAction] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
+
   useEffect(() => {
     if (!selectedSnapshotId) {
       return
@@ -58,6 +73,10 @@ export function SnapshotReviewContent({
 
     return () => cancelAnimationFrame(frameId)
   }, [selectedSnapshotId])
+
+  const handleBulkActionChange = (value: SnapshotApprovalStatus) => {
+    onBulkActionChange(value)
+  }
 
   return (
     <ScrollArea className="h-full">
@@ -93,6 +112,20 @@ export function SnapshotReviewContent({
                       <ChevronDown className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                     </Button>
                   </CollapsibleTrigger>
+                  <Field orientation="horizontal">
+                    <Checkbox
+                      id="bulkUpdate"
+                      checked={bulkItems.includes(snapshot.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setBulkItems((prev) => [...prev, snapshot.id])
+                        } else {
+                          setBulkItems((prev) => prev.filter((id) => id !== snapshot.id))
+                        }
+                      }}
+                      disabled={isSnapshotExactlyMatching(snapshot.diffPercentage, diffTolerancePercentage)}
+                    />
+                  </Field>
                 </div>
               </div>
               <CollapsibleContent className="pt-2">
@@ -112,6 +145,35 @@ export function SnapshotReviewContent({
           </div>
         )
       })}
+      <div
+        className={cn(
+          'text-muted-foreground w-full items-end justify-end bg-black! py-5 text-sm',
+          bulkItems.length > 0 ? 'fixed right-7 bottom-0 flex' : 'hidden',
+        )}
+      >
+        <Select
+          defaultValue={SnapshotApprovalStatus.APPROVED}
+          onValueChange={(value: SnapshotApprovalStatus) => setBulkAction(value)}
+          disabled={bulkItems.length === 0}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select action" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value={SnapshotApprovalStatus.APPROVED}>Approve</SelectItem>
+              <SelectItem value={SnapshotApprovalStatus.REJECTED}>Reject</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button
+          className="ml-4"
+          disabled={bulkItems.length === 0 || isBulkUpdatePending || !bulkAction}
+          onClick={() => handleBulkActionChange(bulkAction)}
+        >
+          Submit Approval
+        </Button>
+      </div>
     </ScrollArea>
   )
 }

@@ -9,14 +9,16 @@ import { toast } from 'sonner'
 
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Field } from '@/components/ui/field'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, snapshotsMenu } from '@/constants/app'
 import { QUERY_KEY_BUILDS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
-import { BuildStatus } from '@/constants/status-map'
+import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
-import { listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
+import { bulkUpdateSnapshotApprovalStatus, listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
 import { SnapshotReviewFilters } from '@/features/snapshots/review-filters'
 import { SnapshotReviewTree } from '@/features/snapshots/review-tree'
@@ -31,6 +33,8 @@ export default function BuildDetailSnapshotPage() {
   const [status, setStatus] = useQueryState('status', parseAsString.withDefault(''))
   const [hideExactlyMatch, setHideExactlyMatch] = useQueryState('hideExactlyMatch', parseAsBoolean.withDefault(false))
   const [hideNewPage, setHideNewPage] = useQueryState('hideNewPage', parseAsBoolean.withDefault(false))
+  const [bulkItems, setBulkItems] = useState<string[]>([])
+  const [bulkStatus, setBulkStatus] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
 
   const queryClient = useQueryClient()
 
@@ -117,6 +121,27 @@ export default function BuildDetailSnapshotPage() {
     },
   })
 
+  const { mutate: updateBulkStatus, isPending: isBulkUpdatePending } = useMutation({
+    mutationFn: async (ids: string[]) =>
+      bulkUpdateSnapshotApprovalStatus({
+        snapshotIds: ids,
+        status: bulkStatus,
+      }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        queryClient.invalidateQueries({
+          queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
+        })
+
+        toast.success('Success updated selected items.')
+      }
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error('Bulk update status failed')
+    },
+  })
+
   const selectedSnapshotId = useMemo(() => {
     if (selectedPath) {
       return snapshotItems.find((snapshot) => snapshot.pagePath === selectedPath)?.id
@@ -170,7 +195,28 @@ export default function BuildDetailSnapshotPage() {
     }
   }
 
+  const filteredSnapshotItems = snapshotItems.filter((s) => {
+    const isExactlyMatch = isSnapshotExactlyMatching(s.diffPercentage, diffTolerancePercentage)
+    return !isExactlyMatch && s
+  })
+
+  const onBulkSelectChange = (isSelected: boolean) => {
+    if (isSelected) {
+      setBulkItems(filteredSnapshotItems.map((s) => s.id))
+    } else {
+      setBulkItems([])
+    }
+  }
+
   const isLoading = isLoadingBuild || isLoadingSnapshots
+
+  const onBulkActionChange = (value: SnapshotApprovalStatus) => {
+    if (!value) {
+      return
+    }
+    setBulkStatus(value)
+    updateBulkStatus(bulkItems)
+  }
 
   const breadcrumbs = useMemo(
     () =>
@@ -232,19 +278,28 @@ export default function BuildDetailSnapshotPage() {
         progress={processedItems}
       />
       <div className="flex h-[calc(100vh-148px)] flex-col space-y-3">
-        <SnapshotReviewFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          browsers={browsers}
-          setBrowsers={setBrowsers}
-          status={status}
-          setStatus={setStatus}
-          hideExactlyMatch={hideExactlyMatch}
-          setHideExactlyMatch={setHideExactlyMatch}
-          hideNewPage={hideNewPage}
-          setHideNewPage={setHideNewPage}
-          diffTolerancePercentage={diffTolerancePercentage}
-        />
+        <div className="flex flex-row items-center justify-between">
+          <SnapshotReviewFilters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            browsers={browsers}
+            setBrowsers={setBrowsers}
+            status={status}
+            setStatus={setStatus}
+            hideExactlyMatch={hideExactlyMatch}
+            setHideExactlyMatch={setHideExactlyMatch}
+            hideNewPage={hideNewPage}
+            setHideNewPage={setHideNewPage}
+            diffTolerancePercentage={diffTolerancePercentage}
+          />
+          <Field orientation="horizontal" className="w-xs justify-end px-4">
+            <Checkbox
+              id="bulkUpdate"
+              checked={bulkItems.length === filteredSnapshotItems.length}
+              onCheckedChange={onBulkSelectChange}
+            />
+          </Field>
+        </div>
         <ResizablePanelGroup orientation="horizontal" className="flex-1 rounded-lg border">
           <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%" className="overflow-auto">
             <SnapshotReviewTree
@@ -265,6 +320,10 @@ export default function BuildDetailSnapshotPage() {
               onChangeOpenedSnapshot={onChangeOpenedSnapshot}
               projectId={projectData?.id ?? ''}
               buildId={params.buildId}
+              bulkItems={bulkItems}
+              setBulkItems={setBulkItems}
+              onBulkActionChange={onBulkActionChange}
+              isBulkUpdatePending={isBulkUpdatePending}
             />
           </ResizablePanel>
         </ResizablePanelGroup>
