@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { MonacoEditorInput } from '@/components/monaco-editor-input'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,11 @@ export function BulkEditPagesDialog({
   onCancel: () => void
 }) {
   const [code, setCode] = useState(codeYaml)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCode(codeYaml)
+  }, [codeYaml])
 
   return (
     <Dialog open={open}>
