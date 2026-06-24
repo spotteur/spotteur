@@ -13,19 +13,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
-import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
+import { detailBuildQueryKey } from '@/constants/query-keys'
 
 import { updateBuildNotes } from './actions'
 import { UpdateBuildNotesForm } from './form'
 import { type UpdateBuildNotesInput } from './schema'
 
 export function UpdateBuildNotesDialog({
-  projectId,
   buildId,
   notes,
   children,
 }: {
-  projectId: string
   buildId: string
   children: ReactNode
   notes?: string | null
@@ -41,7 +39,7 @@ export function UpdateBuildNotesDialog({
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Build notes successfully updated')
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, projectId, buildId] })
+        queryClient.invalidateQueries({ queryKey: detailBuildQueryKey(buildId) })
         setIsDialogOpen(false)
         return
       }

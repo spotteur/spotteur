@@ -14,7 +14,7 @@ import { Field } from '@/components/ui/field'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, snapshotsMenu } from '@/constants/app'
-import { QUERY_KEY_BUILDS, QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
+import { detailBuildQueryKey, listBuildsByProjectQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
@@ -39,7 +39,7 @@ export default function BuildDetailSnapshotPage() {
   const queryClient = useQueryClient()
 
   const { data, isLoading: isLoadingBuild } = useQuery({
-    queryKey: [QUERY_KEY_BUILDS, params.buildId],
+    queryKey: detailBuildQueryKey(params.buildId),
     queryFn: () => getBuildDetail({ buildId: params.buildId }),
     refetchInterval: ({ state }) => {
       const build = state.data?.build
@@ -61,7 +61,7 @@ export default function BuildDetailSnapshotPage() {
   const projectData = data?.project
 
   const { data: snapshotsData, isLoading: isLoadingSnapshots } = useQuery({
-    queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
+    queryKey: listSnapshotsByBuildQueryKey(params.buildId),
     queryFn: () => listSnapshotsByBuildV2({ buildId: params.buildId }),
     placeholderData: (prev) => prev,
     enabled: !!params.buildId,
@@ -107,9 +107,9 @@ export default function BuildDetailSnapshotPage() {
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Build resumed', { description: 'The build has been requested to resume.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, projectData?.id] })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, projectData?.id, params.buildId] })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SNAPSHOTS, projectData?.id, params.buildId] })
+        queryClient.invalidateQueries({ queryKey: listBuildsByProjectQueryKey(projectData?.id ?? '') })
+        queryClient.invalidateQueries({ queryKey: detailBuildQueryKey(params.buildId) })
+        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(params.buildId) })
         return
       }
 
@@ -129,9 +129,7 @@ export default function BuildDetailSnapshotPage() {
       }),
     onSuccess: (res) => {
       if (res.ok) {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, params.buildId, 'review-tree'],
-        })
+        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(params.buildId) })
 
         toast.success('Success updated selected items.')
       }

@@ -10,7 +10,7 @@ import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
 import { snapshotsMenu } from '@/constants/app'
-import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
+import { detailBuildQueryKey } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import BuildListLog from '@/features/logs/list'
@@ -20,7 +20,7 @@ export default function BuildDetailLogsPage() {
   const params = useParams<{ buildId: string }>()
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_BUILDS, params.buildId],
+    queryKey: detailBuildQueryKey(params.buildId),
     queryFn: () => getBuildDetail({ buildId: params.buildId }),
   })
 
