@@ -3,7 +3,7 @@
 import { useForm, useStore } from '@tanstack/react-form'
 import { ChevronDown, Import, Info, MoreHorizontal, Plus, Trash, X } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { type z } from 'zod'
 
 import { BrowserCombobox } from '@/components/browser-combobox'
@@ -99,8 +99,6 @@ export function CreatePageRuleForm({
     },
   })
 
-  type PagePathsFieldApi = ReturnType<typeof form.getFieldInfo<'pagePaths'>>['instance']
-  const pagePathsFieldRef = useRef<PagePathsFieldApi | null>(null)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -127,7 +125,6 @@ export function CreatePageRuleForm({
                   type="button"
                   size="xs"
                   onClick={() => {
-                    pagePathsFieldRef.current = field
                     setImportDialogOpen(true)
                   }}
                 >
@@ -160,15 +157,18 @@ export function CreatePageRuleForm({
         </Button>
       </div>
 
-      <ImportFromSitemapDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={(paths) => {
-          if (pagePathsFieldRef.current) {
-            const currentValue = pagePathsFieldRef.current.state.value
-            const newValue = currentValue ? `${currentValue}\n${paths}` : paths
-            pagePathsFieldRef.current.handleChange(newValue)
-          }
+      <form.Subscribe
+        selector={(state) => state.values.pagePaths}
+        children={(pagePaths) => {
+          return (
+            <ImportFromSitemapDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              onImport={(paths) => {
+                form.setFieldValue('pagePaths', pagePaths ? `${pagePaths}\n${paths}` : paths)
+              }}
+            />
+          )
         }}
       />
     </form>
