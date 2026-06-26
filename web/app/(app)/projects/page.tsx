@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { DEFAULT_ERROR_DESCRIPTION, defaultMenu } from '@/constants/app'
-import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { listProjectsQueryKey } from '@/constants/query-keys'
 import { deleteProject, listProjects } from '@/features/projects/actions'
 import { getColumns } from '@/features/projects/columns'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -41,7 +41,7 @@ export default function ProjectsPage() {
   const search = useDebounce(pendingSearch)
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, { page, pageSize, search }],
+    queryKey: listProjectsQueryKey({ page, pageSize, search }),
     queryFn: () => listProjects({ page, pageSize, search }),
     placeholderData: keepPreviousData,
   })
@@ -49,7 +49,7 @@ export default function ProjectsPage() {
   const mutation = useMutation({
     mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
+      queryClient.invalidateQueries({ queryKey: listProjectsQueryKey() })
       toast.success('Project deleted', { description: 'The project was successfully deleted.' })
     },
     onError: (error) => {

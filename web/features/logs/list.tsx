@@ -8,7 +8,7 @@ import { useCallback } from 'react'
 import { TableSkeleton } from '@/components/table-skeleton'
 import { DataTable } from '@/components/ui/data-table'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-import { QUERY_KEY_BUILD_LOGS } from '@/constants/query-keys'
+import { listBuildLogsQueryKey } from '@/constants/query-keys'
 import { getBuildLogs } from '@/features/builds/actions'
 import { getColumns } from '@/features/logs/columns'
 import { useDebounce } from '@/hooks/use-debounce'
@@ -20,7 +20,7 @@ export default function BuildListLog({ buildId }: { buildId: string }) {
   const [pendingSearch, setPendingSearch] = useQueryState('search', parseAsString.withDefault(''))
   const search = useDebounce(pendingSearch)
   const { data: logs, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_BUILD_LOGS, { buildId, page, pageSize, search }],
+    queryKey: listBuildLogsQueryKey(buildId, { page, pageSize, search }),
     queryFn: () => getBuildLogs({ buildId, page, pageSize, search }),
   })
 

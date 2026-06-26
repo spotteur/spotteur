@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
+import { listBuildsByProjectQueryKey } from '@/constants/query-keys'
 import { listBuildsByProject } from '@/features/builds/actions'
 import { useDebounce } from '@/hooks/use-debounce'
 import { usePagination } from '@/hooks/use-pagination'
@@ -30,7 +30,7 @@ export function BuildListCard({ projectId, projectBaseUrl }: { projectId?: strin
   const search = useDebounce(pendingSearch, 300)
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_BUILDS, projectId, { page, pageSize, search }],
+    queryKey: listBuildsByProjectQueryKey(projectId || '', { page, pageSize, search }),
     queryFn: () => listBuildsByProject({ projectId: projectId || '', page, pageSize, search }),
     enabled: !!projectId,
     placeholderData: keepPreviousData,

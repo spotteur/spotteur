@@ -71,7 +71,7 @@ export function BuildSummaryCard({
             <div className="bg-muted/30 relative flex flex-col gap-2 rounded-lg border p-3">
               <div className="flex items-center justify-between">
                 <span className="text-foreground font-medium">Notes</span>
-                <UpdateBuildNotesDialog projectId={build.projectId} buildId={build.id} notes={build.notes}>
+                <UpdateBuildNotesDialog buildId={build.id} notes={build.notes}>
                   <Button variant="ghost" size="icon-xs">
                     {build.notes ? <Pencil /> : <Plus />}
                   </Button>

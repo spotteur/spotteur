@@ -18,7 +18,7 @@ import {
   defaultMenu,
   VALIDATION_ERROR_DESCRIPTION,
 } from '@/constants/app'
-import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { listProjectsQueryKey } from '@/constants/query-keys'
 import { createProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { type NavigationType } from '@/types/app'
@@ -33,7 +33,7 @@ export default function NewProjectPage() {
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Project created', { description: 'Your project was successfully created.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
+        queryClient.invalidateQueries({ queryKey: listProjectsQueryKey() })
         router.push(`/projects/${res.data.id}`)
         return
       }

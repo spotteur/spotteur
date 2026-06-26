@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
-import { QUERY_KEY_BUILDS } from '@/constants/query-keys'
+import { listBuildsByProjectQueryKey } from '@/constants/query-keys'
 
 import { triggerBuildManual } from './actions'
 import { TriggerBuildForm } from './form'
@@ -37,7 +37,7 @@ export function TriggerBuildDialog({
     onSuccess: (res, variables) => {
       if (res.ok) {
         toast.success('Build triggered', { description: 'A new build was queued.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_BUILDS, variables.projectId] })
+        queryClient.invalidateQueries({ queryKey: listBuildsByProjectQueryKey(variables.projectId) })
         setIsDialogOpen(false)
         return
       }

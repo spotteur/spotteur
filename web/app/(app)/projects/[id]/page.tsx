@@ -12,7 +12,7 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Card, CardContent } from '@/components/ui/card'
 import { projectsMenu } from '@/constants/app'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, VALIDATION_ERROR_DESCRIPTION } from '@/constants/app'
-import { QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { detailProjectQueryKey, listProjectsQueryKey } from '@/constants/query-keys'
 import { getProject, updateProject } from '@/features/projects/actions'
 import { ProjectForm, type ProjectFormInput } from '@/features/projects/form'
 import { ProjectFormSkeleton } from '@/features/projects/form-skeleton'
@@ -24,7 +24,7 @@ export default function EditProjectPage() {
   const [formErrors, setFormErrors] = useState<$ZodFlattenedError<ProjectFormInput> | undefined>(undefined)
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
+    queryKey: detailProjectQueryKey(params.id),
     queryFn: () => getProject(params.id),
   })
 
@@ -33,7 +33,8 @@ export default function EditProjectPage() {
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Project updated', { description: 'Your changes were successfully saved.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PROJECTS] })
+        queryClient.invalidateQueries({ queryKey: listProjectsQueryKey() })
+        queryClient.invalidateQueries({ queryKey: detailProjectQueryKey(params.id) })
       } else {
         setFormErrors(res.error)
         toast.error('Project update failed', { description: VALIDATION_ERROR_DESCRIPTION })
