@@ -54,3 +54,8 @@ export const ProjectUpdateSchema = z.object({
   ...ProjectBaseSchema.shape,
   token: z.string().optional(),
 })
+
+export const ProjectFormSchema = z.object({
+  ...ProjectCreateSchema.shape,
+  ...ProjectUpdateSchema.shape,
+})
