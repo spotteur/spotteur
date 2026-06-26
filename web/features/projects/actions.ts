@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 import { type Browser } from '@/constants/enum'
 import db from '@/db/drizzle'
-import { builds, pageRules, projects, snapshots } from '@/db/schema'
+import { buildLogs, builds, pageRules, projects, snapshots } from '@/db/schema'
 import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
 
 type SortKey = 'name' | 'createdAt' | 'updatedAt' | ''
@@ -121,10 +121,13 @@ export async function updateProject({ projectId, payload }: { projectId: string;
 }
 
 export async function deleteProject(id: string) {
-  const buildIds = (await db.select({ id: builds.id }).from(builds).where(eq(builds.projectId, id))).map((b) => b.id)
-  await db.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
-  await db.delete(builds).where(inArray(builds.id, buildIds))
-  await db.delete(pageRules).where(eq(pageRules.projectId, id))
-  await db.delete(projects).where(eq(projects.id, id))
+  await db.transaction(async (tx) => {
+    const buildIds = (await tx.select({ id: builds.id }).from(builds).where(eq(builds.projectId, id))).map((b) => b.id)
+    await tx.delete(snapshots).where(inArray(snapshots.buildId, buildIds))
+    await tx.delete(buildLogs).where(inArray(buildLogs.buildId, buildIds))
+    await tx.delete(builds).where(inArray(builds.id, buildIds))
+    await tx.delete(pageRules).where(eq(pageRules.projectId, id))
+    await tx.delete(projects).where(eq(projects.id, id))
+  })
   return { ok: true } as const
 }

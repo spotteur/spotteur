@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
-import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
+import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { retrySingleSnapshot, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
@@ -43,12 +43,8 @@ export function SnapshotActionButtons({
       }),
     onSuccess: (res, status) => {
       if (res.ok) {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, buildId, 'review-tree'],
-        })
+        queryClient.invalidateQueries({ queryKey: detailBuildQueryKey(buildId) })
+        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(buildId) })
 
         const statusMessages = {
           [SnapshotApprovalStatus.APPROVED]: 'Snapshot approved',
@@ -78,10 +74,7 @@ export function SnapshotActionButtons({
     onSuccess: (res) => {
       if (res && res.ok) {
         queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId],
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'],
+          queryKey: listSnapshotsByBuildQueryKey(buildId),
         })
 
         toast.success('Snapshot retry triggered')
@@ -216,8 +209,7 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
               </span>
             </TooltipTrigger>
             <TooltipContent hidden={!noBaseline}>
-              {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]} view is unavailable because there&apos;s
-              no baseline screenshot to compare.
+              {`${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]} view is unavailable because there's no baseline screenshot to compare.`}
             </TooltipContent>
           </Tooltip>
           <TabsTrigger value={SnapshotViewerType.SIDE_BY_SIDE}>

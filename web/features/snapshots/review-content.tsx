@@ -92,12 +92,7 @@ export function SnapshotReviewContent({
                   <span>{`Page path ${snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshot.browser]}`}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <UpdateSnapshotNotesDialog
-                    projectId={projectId}
-                    buildId={buildId}
-                    snapshotId={snapshot.id}
-                    notes={snapshot.notes}
-                  >
+                  <UpdateSnapshotNotesDialog buildId={buildId} snapshotId={snapshot.id} notes={snapshot.notes}>
                     <Button type="button" variant="ghost" size="icon">
                       {snapshot.notes ? <MessageSquareDot /> : <MessageSquare />}
                     </Button>

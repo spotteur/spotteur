@@ -23,7 +23,7 @@ import {
   projectsMenu,
   VALIDATION_ERROR_DESCRIPTION,
 } from '@/constants/app'
-import { QUERY_KEY_PAGE_RULES, QUERY_KEY_PROJECTS } from '@/constants/query-keys'
+import { detailProjectQueryKey, listPageRulesByProjectQueryKey } from '@/constants/query-keys'
 import {
   createPageRule,
   deletePageRule,
@@ -56,12 +56,12 @@ export default function ManagePages() {
   const [searchQuery, setSearchQuery] = useQueryState('search', parseAsString.withDefault(''))
 
   const { data: project, isLoading } = useQuery({
-    queryKey: [QUERY_KEY_PROJECTS, params.id],
+    queryKey: detailProjectQueryKey(params.id),
     queryFn: () => getProject(params.id),
   })
 
   const { data: pageRulesData, isLoading: isPageRulesLoading } = useQuery({
-    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'],
+    queryKey: listPageRulesByProjectQueryKey(params.id, 'tree'),
     queryFn: () => listPageRulesByProject({ projectId: params.id }),
   })
 
@@ -98,7 +98,7 @@ export default function ManagePages() {
       if (res.ok) {
         setIsFormDirty(false)
         toast.success('Page updated', { description: 'Your page was successfully updated.' })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        queryClient.invalidateQueries({ queryKey: listPageRulesByProjectQueryKey(params.id) })
       } else {
         setFormErrors(res.error)
         toast.error('Failed to update page', { description: 'Please review the error and try again.' })
@@ -116,7 +116,7 @@ export default function ManagePages() {
     mutationFn: async (payload: unknown) => createPageRule({ projectId: project ? project.id : '', payload }),
     onSuccess: (res) => {
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        queryClient.invalidateQueries({ queryKey: listPageRulesByProjectQueryKey(params.id) })
         toast.success('Pages created', {
           description: 'Page successfully created.',
         })
@@ -140,7 +140,7 @@ export default function ManagePages() {
     mutationFn: (id: string) => deletePageRule({ projectId: params.id, id }),
     onSuccess: (res) => {
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES] })
+        queryClient.invalidateQueries({ queryKey: listPageRulesByProjectQueryKey(params.id) })
         toast.success('Page deleted', { description: 'The page was successfully deleted.' })
         setPendingDeletePage(null)
         setSelectedPath('')
@@ -161,7 +161,7 @@ export default function ManagePages() {
   const [openBulkEditDialog, setOpenBulkEditDialog] = useState<boolean>(false)
   const [openAddPagesDialog, setOpenAddPagesDialog] = useState<boolean>(false)
   const { data: existingPagesData } = useQuery({
-    queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'existing'],
+    queryKey: listPageRulesByProjectQueryKey(params.id, 'yaml'),
     queryFn: () => existingPageRules(params.id),
     enabled: !!params.id,
   })
@@ -169,7 +169,7 @@ export default function ManagePages() {
     mutationFn: (schema: string) => upsertPageRules(schema, params.id),
     onSuccess: (res) => {
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_PAGE_RULES, params.id, 'tree'] })
+        queryClient.invalidateQueries({ queryKey: listPageRulesByProjectQueryKey(params.id) })
         toast.success('Pages updated', { description: 'Pages were successfully updated.' })
         setOpenBulkEditDialog(false)
         return

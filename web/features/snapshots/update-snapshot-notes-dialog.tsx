@@ -14,20 +14,18 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
-import { QUERY_KEY_SNAPSHOTS } from '@/constants/query-keys'
+import { listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 
 import { updateSnapshotNotes } from './actions'
 import { type UpdateSnapshotNotesInput } from './schema'
 import { UpdateSnapshotNotesForm } from './update-snapshot-notes-form'
 
 export function UpdateSnapshotNotesDialog({
-  projectId,
   buildId,
   snapshotId,
   notes,
   children,
 }: {
-  projectId: string
   buildId: string
   snapshotId: string
   children: ReactNode
@@ -46,8 +44,7 @@ export function UpdateSnapshotNotesDialog({
     onSuccess: (res) => {
       if (res.ok) {
         toast.success('Snapshot notes successfully updated')
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, snapshotId] })
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEY_SNAPSHOTS, projectId, buildId, 'review-tree'] })
+        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(buildId) })
         setIsDialogOpen(false)
         return
       }
