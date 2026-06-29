@@ -132,6 +132,7 @@ export default function BuildDetailSnapshotPage() {
         queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(params.buildId) })
 
         toast.success('Success updated selected items.')
+        setBulkItems([])
       }
     },
     onError: (error) => {
@@ -275,7 +276,7 @@ export default function BuildDetailSnapshotPage() {
         isResumePending={resume.isPending}
         progress={processedItems}
       />
-      <div className="flex h-[calc(100vh-148px)] flex-col space-y-3">
+      <div className="flex h-[calc(100vh-0)] flex-col space-y-3">
         <div className="flex flex-row items-center justify-between">
           <SnapshotReviewFilters
             searchQuery={searchQuery}

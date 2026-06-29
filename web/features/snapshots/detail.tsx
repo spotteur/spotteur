@@ -1,22 +1,40 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, RotateCcw, RefreshCw } from 'lucide-react'
+import { CheckCircle2, XCircle, RotateCcw, RefreshCw, MessageSquareDot, MessageSquare, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 import { type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Field } from '@/components/ui/field'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
-import { SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
+import { BROWSER_LABEL_MAP, SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
 import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
 import { retrySingleSnapshot, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
+import { cn, isSnapshotExactlyMatching } from '@/lib/utils'
+
+import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from './badge'
+import { getSnapshotIcon } from './review-tree'
+import { UpdateSnapshotNotesDialog } from './update-snapshot-notes-dialog'
+
+interface SnapshotViewerProps {
+  snapshot: SnapshotDetailRes
+  action?: ReactNode
+  buildId: string
+  isOpen: boolean
+  diffTolerancePercentage: number
+  bulkItems: string[]
+  setBulkItems: (updater: (prev: string[]) => string[]) => void
+}
 
 export function SnapshotActionButtons({
   snapshot,
@@ -162,7 +180,15 @@ const SnapshotLabels = ({ snapshot }: { snapshot: SnapshotDetailRes }) => (
   </div>
 )
 
-export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailRes; action?: ReactNode }) {
+export function SnapshotViewer({
+  snapshot,
+  action,
+  buildId,
+  isOpen,
+  diffTolerancePercentage,
+  bulkItems,
+  setBulkItems,
+}: SnapshotViewerProps) {
   const dimensionMismatch =
     snapshot.baselineScreenshotMedia?.width !== snapshot.screenshotMedia?.width ||
     snapshot.baselineScreenshotMedia?.height !== snapshot.screenshotMedia?.height
@@ -181,109 +207,154 @@ export function SnapshotViewer({ snapshot, action }: { snapshot: SnapshotDetailR
 
   return (
     <Tabs defaultValue={defaultTab} className="space-y-2">
-      <div className="flex justify-between">
-        <TabsList>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-block w-fit">
-                <TabsTrigger
-                  disabled={noBaseline || dimensionMismatch ? true : undefined}
-                  value={SnapshotViewerType.HEATMAP}
-                >
-                  {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]}
-                </TabsTrigger>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent hidden={!(dimensionMismatch || noBaseline)}>
-              {noBaseline
-                ? `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable because there's no baseline screenshot to compare.`
-                : `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable due to dimension mismatch between baseline and current screenshots.`}
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-block w-fit">
-                <TabsTrigger disabled={noBaseline ? true : undefined} value={SnapshotViewerType.COMPARISON}>
-                  {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]}
-                </TabsTrigger>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent hidden={!noBaseline}>
-              {`${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]} view is unavailable because there's no baseline screenshot to compare.`}
-            </TooltipContent>
-          </Tooltip>
-          <TabsTrigger value={SnapshotViewerType.SIDE_BY_SIDE}>
-            {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.SIDE_BY_SIDE]}
-          </TabsTrigger>
-        </TabsList>
-        {action}
+      <div className="sticky top-0 z-2 m-0! flex flex-col gap-2 bg-black py-2 text-left">
+        <div className="flex w-full justify-between gap-6">
+          <div className="flex items-center gap-2">
+            {getSnapshotIcon(snapshot, diffTolerancePercentage)}
+            <span>{`Page path ${snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshot.browser]}`}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <UpdateSnapshotNotesDialog buildId={buildId} snapshotId={snapshot.id} notes={snapshot.notes}>
+              <Button type="button" variant="ghost" size="icon">
+                {snapshot.notes ? <MessageSquareDot /> : <MessageSquare />}
+              </Button>
+            </UpdateSnapshotNotesDialog>
+            <SnapshotApprovalStatusBadge status={snapshot.approvalStatus} />
+            <SnapshotDiffBadge
+              diffPercentage={snapshot.diffPercentage}
+              diffTolerancePercentage={diffTolerancePercentage}
+            />
+            <CollapsibleTrigger asChild>
+              <Button type="button" variant="ghost" size="icon">
+                <ChevronDown className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <Field orientation="horizontal">
+              <Checkbox
+                id="bulkUpdate"
+                checked={bulkItems.includes(snapshot.id)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setBulkItems((prev) => [...prev, snapshot.id])
+                  } else {
+                    setBulkItems((prev) => prev.filter((id) => id !== snapshot.id))
+                  }
+                }}
+                disabled={isSnapshotExactlyMatching(snapshot.diffPercentage, diffTolerancePercentage)}
+              />
+            </Field>
+          </div>
+        </div>
+        <div className={cn('hidden', isOpen && 'flex justify-between')}>
+          <TabsList>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block w-fit">
+                  <TabsTrigger
+                    disabled={noBaseline || dimensionMismatch ? true : undefined}
+                    value={SnapshotViewerType.HEATMAP}
+                  >
+                    {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]}
+                  </TabsTrigger>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent hidden={!(dimensionMismatch || noBaseline)}>
+                {noBaseline
+                  ? `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable because there's no baseline screenshot to compare.`
+                  : `${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.HEATMAP]} view is unavailable due to dimension mismatch between baseline and current screenshots.`}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block w-fit">
+                  <TabsTrigger disabled={noBaseline ? true : undefined} value={SnapshotViewerType.COMPARISON}>
+                    {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]}
+                  </TabsTrigger>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent hidden={!noBaseline}>
+                {`${SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.COMPARISON]} view is unavailable because there's no baseline screenshot to compare.`}
+              </TooltipContent>
+            </Tooltip>
+            <TabsTrigger value={SnapshotViewerType.SIDE_BY_SIDE}>
+              {SNAPSHOT_VIEWER_TYPE_LABEL_MAP[SnapshotViewerType.SIDE_BY_SIDE]}
+            </TabsTrigger>
+          </TabsList>
+          {action}
+        </div>
       </div>
 
-      <TabsContent value="comparison">
+      <TabsContent value="comparison" className={`${!isOpen && 'm-0'}`}>
         {snapshot.baselineScreenshotMedia === null ? (
           <PreviewFallback message="This snapshot doesn't have a baseline image to compare" />
         ) : snapshot.screenshotMedia === null ? (
           <PreviewFallback message="This snapshot doesn't have any image yet" />
         ) : (
-          <div className="flex w-full flex-col gap-2">
-            <SnapshotLabels snapshot={snapshot} />
-            <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
-              <Comparison style={{ aspectRatio }} mode="hover">
-                {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
-                <ComparisonItem position="right">
-                  <Image
-                    unoptimized
-                    src={snapshot.baselineScreenshotMedia.path}
-                    alt="Baseline"
-                    width={snapshot.baselineScreenshotMedia.width || 0}
-                    height={snapshot.baselineScreenshotMedia.height || 0}
-                    className="h-auto w-full"
-                  />
-                </ComparisonItem>
-                <ComparisonItem position="left">
-                  <Image
-                    unoptimized
-                    src={snapshot.screenshotMedia.path}
-                    alt="Current"
-                    width={snapshot.screenshotMedia.width || 0}
-                    height={snapshot.screenshotMedia.height || 0}
-                    className="h-auto w-full"
-                  />
-                </ComparisonItem>
-                <ComparisonHandle />
-              </Comparison>
+          <CollapsibleContent>
+            <div className="flex w-full flex-col gap-2">
+              <SnapshotLabels snapshot={snapshot} />
+              <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
+                <Comparison style={{ aspectRatio }} mode="hover">
+                  {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
+                  <ComparisonItem position="right">
+                    <Image
+                      unoptimized
+                      src={snapshot.baselineScreenshotMedia.path}
+                      alt="Baseline"
+                      width={snapshot.baselineScreenshotMedia.width || 0}
+                      height={snapshot.baselineScreenshotMedia.height || 0}
+                      className="h-auto w-full"
+                    />
+                  </ComparisonItem>
+                  <ComparisonItem position="left">
+                    <Image
+                      unoptimized
+                      src={snapshot.screenshotMedia.path}
+                      alt="Current"
+                      width={snapshot.screenshotMedia.width || 0}
+                      height={snapshot.screenshotMedia.height || 0}
+                      className="h-auto w-full"
+                    />
+                  </ComparisonItem>
+                  <ComparisonHandle />
+                </Comparison>
+              </div>
             </div>
-          </div>
+          </CollapsibleContent>
         )}
       </TabsContent>
-      <TabsContent value="heatmap">
-        <div className="w-full">
-          {snapshot.diffScreenshotMedia?.path ? (
-            <div className="relative w-full">
-              <Image
-                unoptimized
-                src={snapshot.diffScreenshotMedia?.path}
-                width={snapshot.diffScreenshotMedia?.width || 0}
-                height={snapshot.diffScreenshotMedia?.height || 0}
-                alt="Diff heatmap"
-                className="h-auto w-full"
-              />
-            </div>
-          ) : dimensionMismatch ? (
-            <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
-          ) : (
-            <PreviewFallback />
-          )}
-        </div>
-      </TabsContent>
-      <TabsContent value="side-by-side">
-        <div className="flex w-full flex-col gap-2">
-          <SnapshotLabels snapshot={snapshot} />
-          <div className="grid w-full grid-cols-2 gap-4">
-            <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
-            <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
+      <TabsContent value="heatmap" className={`${!isOpen && 'm-0'}`}>
+        <CollapsibleContent>
+          <div className="w-full">
+            {snapshot.diffScreenshotMedia?.path ? (
+              <div className="relative w-full">
+                <Image
+                  unoptimized
+                  src={snapshot.diffScreenshotMedia?.path}
+                  width={snapshot.diffScreenshotMedia?.width || 0}
+                  height={snapshot.diffScreenshotMedia?.height || 0}
+                  alt="Diff heatmap"
+                  className="h-auto w-full"
+                />
+              </div>
+            ) : dimensionMismatch ? (
+              <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
+            ) : (
+              <PreviewFallback />
+            )}
           </div>
-        </div>
+        </CollapsibleContent>
+      </TabsContent>
+      <TabsContent value="side-by-side" className={`${!isOpen && 'm-0'}`}>
+        <CollapsibleContent>
+          <div className="flex w-full flex-col gap-2">
+            <SnapshotLabels snapshot={snapshot} />
+            <div className="grid w-full grid-cols-2 gap-4">
+              <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
+              <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
+            </div>
+          </div>
+        </CollapsibleContent>
       </TabsContent>
     </Tabs>
   )
