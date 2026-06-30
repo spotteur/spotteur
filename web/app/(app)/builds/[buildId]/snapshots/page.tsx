@@ -132,6 +132,7 @@ export default function BuildDetailSnapshotPage() {
         queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(params.buildId) })
 
         toast.success('Success updated selected items.')
+        setBulkItems([])
       }
     },
     onError: (error) => {
@@ -275,8 +276,8 @@ export default function BuildDetailSnapshotPage() {
         isResumePending={resume.isPending}
         progress={processedItems}
       />
-      <div className="flex h-[calc(100vh-148px)] flex-col space-y-3">
-        <div className="flex flex-row items-center justify-between">
+      <div className="flex h-screen flex-col space-y-3">
+        <div className="sticky top-0 z-4 flex flex-row items-center justify-between bg-white py-2 dark:bg-black">
           <SnapshotReviewFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -298,7 +299,7 @@ export default function BuildDetailSnapshotPage() {
             />
           </Field>
         </div>
-        <ResizablePanelGroup orientation="horizontal" className="flex-1 rounded-lg border">
+        <ResizablePanelGroup orientation="horizontal" className="flex-1 overflow-visible rounded-lg border">
           <ResizablePanel collapsible minSize="12%" defaultSize="20%" maxSize="35%" className="overflow-auto">
             <SnapshotReviewTree
               snapshotItems={snapshotItems}
@@ -309,7 +310,7 @@ export default function BuildDetailSnapshotPage() {
             />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel className="overflow-hidden">
+          <ResizablePanel>
             <SnapshotReviewContent
               snapshotItems={snapshotItems}
               selectedSnapshotId={selectedSnapshotId}
@@ -317,7 +318,6 @@ export default function BuildDetailSnapshotPage() {
               diffTolerancePercentage={diffTolerancePercentage}
               onChangeOpenedSnapshot={onChangeOpenedSnapshot}
               projectId={projectData?.id ?? ''}
-              buildId={params.buildId}
               bulkItems={bulkItems}
               setBulkItems={setBulkItems}
               onBulkActionChange={onBulkActionChange}
