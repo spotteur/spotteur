@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils'
 interface SnapshotReviewContentProps {
   snapshotItems: SnapshotDetailRes[]
   projectId: string
-  buildId: string
   diffTolerancePercentage: number
   onChangeOpenedSnapshot: (snapshotId: string, open: boolean) => void
   openedSnapshotIds?: string[]
@@ -28,7 +27,6 @@ interface SnapshotReviewContentProps {
 export function SnapshotReviewContent({
   snapshotItems,
   projectId,
-  buildId,
   diffTolerancePercentage,
   onChangeOpenedSnapshot,
   openedSnapshotIds = [],
@@ -81,7 +79,6 @@ export function SnapshotReviewContent({
               <SnapshotViewer
                 snapshot={snapshot}
                 isOpen={isOpen}
-                buildId={buildId}
                 diffTolerancePercentage={diffTolerancePercentage}
                 bulkItems={bulkItems}
                 setBulkItems={setBulkItems}
@@ -89,7 +86,7 @@ export function SnapshotReviewContent({
                   <SnapshotActionButtons
                     snapshot={snapshot}
                     projectId={projectId}
-                    buildId={buildId}
+                    buildId={snapshot.buildId}
                     snapshotId={snapshot.id}
                   />
                 }
@@ -100,7 +97,7 @@ export function SnapshotReviewContent({
       })}
       <div
         className={cn(
-          'text-muted-foreground w-full items-end justify-end bg-black! py-5 text-sm',
+          'text-muted-foreground z-10 w-full items-end justify-end bg-white py-5 text-sm dark:bg-black!',
           bulkItems.length > 0 ? 'fixed right-7 bottom-0 flex' : 'hidden',
         )}
       >

@@ -40,6 +40,7 @@ export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
   const rows = await db
     .select({
       id: snapshots.id,
+      buildId: snapshots.buildId,
       pagePath: snapshots.pagePath,
       browser: snapshots.browser,
       diffPercentage: snapshots.diffPercentage,

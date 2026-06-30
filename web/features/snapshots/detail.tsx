@@ -29,7 +29,6 @@ import { UpdateSnapshotNotesDialog } from './update-snapshot-notes-dialog'
 interface SnapshotViewerProps {
   snapshot: SnapshotDetailRes
   action?: ReactNode
-  buildId: string
   isOpen: boolean
   diffTolerancePercentage: number
   bulkItems: string[]
@@ -183,7 +182,6 @@ const SnapshotLabels = ({ snapshot }: { snapshot: SnapshotDetailRes }) => (
 export function SnapshotViewer({
   snapshot,
   action,
-  buildId,
   isOpen,
   diffTolerancePercentage,
   bulkItems,
@@ -207,14 +205,14 @@ export function SnapshotViewer({
 
   return (
     <Tabs defaultValue={defaultTab} className="space-y-2">
-      <div className="sticky top-0 z-2 m-0! flex flex-col gap-2 bg-black py-2 text-left">
+      <div className="sticky top-0 z-2 m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
         <div className="flex w-full justify-between gap-6">
           <div className="flex items-center gap-2">
             {getSnapshotIcon(snapshot, diffTolerancePercentage)}
             <span>{`Page path ${snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshot.browser]}`}</span>
           </div>
           <div className="flex items-center gap-2">
-            <UpdateSnapshotNotesDialog buildId={buildId} snapshotId={snapshot.id} notes={snapshot.notes}>
+            <UpdateSnapshotNotesDialog buildId={snapshot.buildId} snapshotId={snapshot.id} notes={snapshot.notes}>
               <Button type="button" variant="ghost" size="icon">
                 {snapshot.notes ? <MessageSquareDot /> : <MessageSquare />}
               </Button>
@@ -284,13 +282,13 @@ export function SnapshotViewer({
         </div>
       </div>
 
-      <TabsContent value="comparison" className={`${!isOpen && 'm-0'}`}>
-        {snapshot.baselineScreenshotMedia === null ? (
-          <PreviewFallback message="This snapshot doesn't have a baseline image to compare" />
-        ) : snapshot.screenshotMedia === null ? (
-          <PreviewFallback message="This snapshot doesn't have any image yet" />
-        ) : (
-          <CollapsibleContent>
+      <CollapsibleContent>
+        <TabsContent value="comparison" className={`${!isOpen && 'm-0'}`}>
+          {snapshot.baselineScreenshotMedia === null ? (
+            <PreviewFallback message="This snapshot doesn't have a baseline image to compare" />
+          ) : snapshot.screenshotMedia === null ? (
+            <PreviewFallback message="This snapshot doesn't have any image yet" />
+          ) : (
             <div className="flex w-full flex-col gap-2">
               <SnapshotLabels snapshot={snapshot} />
               <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
@@ -320,11 +318,9 @@ export function SnapshotViewer({
                 </Comparison>
               </div>
             </div>
-          </CollapsibleContent>
-        )}
-      </TabsContent>
-      <TabsContent value="heatmap" className={`${!isOpen && 'm-0'}`}>
-        <CollapsibleContent>
+          )}
+        </TabsContent>
+        <TabsContent value="heatmap" className={`${!isOpen && 'm-0'}`}>
           <div className="w-full">
             {snapshot.diffScreenshotMedia?.path ? (
               <div className="relative w-full">
@@ -343,10 +339,8 @@ export function SnapshotViewer({
               <PreviewFallback />
             )}
           </div>
-        </CollapsibleContent>
-      </TabsContent>
-      <TabsContent value="side-by-side" className={`${!isOpen && 'm-0'}`}>
-        <CollapsibleContent>
+        </TabsContent>
+        <TabsContent value="side-by-side" className={`${!isOpen && 'm-0'}`}>
           <div className="flex w-full flex-col gap-2">
             <SnapshotLabels snapshot={snapshot} />
             <div className="grid w-full grid-cols-2 gap-4">
@@ -354,8 +348,8 @@ export function SnapshotViewer({
               <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
             </div>
           </div>
-        </CollapsibleContent>
-      </TabsContent>
+        </TabsContent>
+      </CollapsibleContent>
     </Tabs>
   )
 }
