@@ -62,3 +62,13 @@ export const sha256Hex = (input: string) =>
 export function isSnapshotExactlyMatching(diffPercentage: number, tolerancePercentage?: number | null) {
   return diffPercentage <= (tolerancePercentage ?? 0)
 }
+
+export const isBaselineExpired = (date: Date | string): boolean => {
+  const targetDate = new Date(date)
+  const now = new Date()
+
+  const diff = now.getTime() - targetDate.getTime()
+  const oneDay = 7 * 24 * 60 * 60 * 1000
+
+  return diff >= oneDay
+}
