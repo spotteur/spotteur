@@ -215,9 +215,7 @@ const SnapshotLabelInfo = ({ build }: { build?: typeof builds.$inferSelect | nul
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-fit px-2 py-1.5 text-xs">
-        <span>
-          {build?.identifier} - {formatDateTime(build?.createdAt ?? '')}
-        </span>
+        {build?.identifier} - {formatDateTime(build?.createdAt ?? '')}
       </PopoverContent>
     </Popover>
   )

@@ -72,7 +72,7 @@ export async function listBuildsByProject({
 
   const countQuery = db.select({ total: count() }).from(builds).where(where)
 
-  const baselineQuery = await getBaselineBuild({ projectId })
+  const baselineQuery = await getBaselineBuild({ dbOrTx: db, projectId })
 
   const [rows, [{ total }], baseline] = await Promise.all([rowsQuery, countQuery, baselineQuery])
 
@@ -193,7 +193,7 @@ export async function getBuildDetail({ buildId }: { buildId: string }) {
 
   if (!project) return null
 
-  const baselineBuild = await getBaselineBuild({ projectId: project.id })
+  const baselineBuild = await getBaselineBuild({ dbOrTx: db, projectId: project.id })
 
   if (!baselineBuild) return null
 
@@ -357,25 +357,11 @@ export async function syncBuildStatusBasedOnSnapshotApprovals({
   await dbOrTx.update(builds).set({ status: build.status }).where(eq(builds.id, build.id))
 
   // Find baseline build for the snapshot's build
-  const [latestApprovedBuild] = await dbOrTx
-    .select()
-    .from(builds)
-    .where(
-      and(
-        eq(builds.projectId, build.projectId),
-        eq(builds.status, BuildStatus.PASSED),
-        // Only consider builds with the same base URL as the baseline build,
-        // to prevent special builds (with different base URLs) from becoming baseline builds.
-        eq(builds.baseUrl, projects.baseUrl),
-      ),
-    )
-    .leftJoin(projects, eq(builds.projectId, projects.id))
-    .orderBy(desc(builds.createdAt))
-    .limit(1)
+  const latestApprovedBuild = await getBaselineBuild({ dbOrTx: db, projectId: build.projectId })
   if (latestApprovedBuild) {
     await dbOrTx
       .update(projects)
-      .set({ baselineBuildId: latestApprovedBuild.builds.id })
+      .set({ baselineBuildId: latestApprovedBuild.id })
       .where(eq(projects.id, build.projectId))
   }
 
@@ -594,11 +580,11 @@ export async function calculateExpectedSnapshotCount({ project }: { project?: ty
   return totalProcessedPage
 }
 
-export async function getBaselineBuild({ projectId }: { projectId: string }) {
+export async function getBaselineBuild({ dbOrTx, projectId }: { dbOrTx: DB | DBTransaction; projectId: string }) {
   if (!projectId) {
     return null
   }
-  const [row] = await db
+  const [row] = await dbOrTx
     .select()
     .from(builds)
     .where(

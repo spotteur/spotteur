@@ -2,11 +2,11 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { InfoIcon, TriangleAlert } from 'lucide-react'
-import Link from 'next/link'
-import { type MouseEvent, type ReactNode, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -15,10 +15,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { DAYS_THRESHOLD_LABEL, DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { listBuildsByProjectQueryKey } from '@/constants/query-keys'
 import { type builds } from '@/db/schema'
-import { isBaselineExpired } from '@/lib/utils'
+import { isBaselineOutdated } from '@/lib/utils'
 
 import { triggerBuildManual } from './actions'
 import { TriggerBuildForm } from './form'
@@ -37,7 +37,7 @@ export function TriggerBuildDialog({
 }) {
   const queryClient = useQueryClient()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const baselineExpired = baselineBuild && isBaselineExpired(baselineBuild.createdAt)
+  const baselineExpired = baselineBuild && isBaselineOutdated(baselineBuild.createdAt)
   const triggerBuildMutation = useMutation({
     mutationFn: (values: { projectId: string; payload: TriggerBuildInput }) => triggerBuildManual(values),
     onSuccess: (res, variables) => {
@@ -56,9 +56,7 @@ export function TriggerBuildDialog({
     },
   })
 
-  const handleTriggerBaseline = (e: MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleTriggerBaseline = () => {
     setIsDialogOpen(false)
 
     const payload = { baseUrl }
@@ -84,11 +82,16 @@ export function TriggerBuildDialog({
 
               <AlertDescription className="text-amber-800/90 dark:text-amber-200/90">
                 <div>
-                  This baseline was last updated <span className="font-bold">7 days ago</span>. Consider approving a
-                  newer baseline to keep visual comparisons accurate.{' '}
-                  <Link href="#" onClick={(e) => handleTriggerBaseline(e)} className="font-bold underline">
+                  This baseline was last updated <span className="font-bold">{DAYS_THRESHOLD_LABEL} ago</span>. Consider
+                  approving a newer baseline to keep visual comparisons accurate.{' '}
+                  <Button
+                    variant="ghost"
+                    className="hover:transparent h-max w-fit cursor-pointer p-1 py-0 font-bold underline"
+                    type="button"
+                    onClick={handleTriggerBaseline}
+                  >
                     Trigger new baseline
-                  </Link>
+                  </Button>
                 </div>
               </AlertDescription>
             </Alert>
