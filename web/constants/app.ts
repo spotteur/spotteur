@@ -1,3 +1,5 @@
+import { formatDuration } from 'date-fns'
+import { intervalToDuration } from 'date-fns/intervalToDuration'
 import { type Route } from 'next'
 
 import { Browser } from '@/constants/enum'
@@ -60,3 +62,13 @@ export const DEFAULT_SNAPSHOTS_BROWSER = Browser.CHROME
 export const DEFAULT_SNAPSHOTS_SELECTOR = 'body'
 
 export const PAGE_SIZE_OPTIONS = [6, 12, 24, 48]
+
+export const DAYS_THRESHOLD = 7
+export const DAYS_THRESHOLD_IN_MS = DAYS_THRESHOLD * 24 * 60 * 60 * 1000
+
+export const DAYS_THRESHOLD_LABEL = formatDuration(
+  intervalToDuration({
+    start: 0,
+    end: DAYS_THRESHOLD * 24 * 60 * 60 * 1000,
+  }),
+)

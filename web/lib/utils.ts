@@ -2,9 +2,11 @@ import * as crypto from 'crypto'
 
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
-import { format } from 'date-fns'
+import { differenceInDays, format } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { type $ZodFlattenedError } from 'zod/v4/core'
+
+import { DAYS_THRESHOLD } from '@/constants/app'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -63,12 +65,13 @@ export function isSnapshotExactlyMatching(diffPercentage: number, tolerancePerce
   return diffPercentage <= (tolerancePercentage ?? 0)
 }
 
-export const isBaselineExpired = (date: Date | string): boolean => {
+export const isBaselineOutdated = (date: Date | string): boolean => {
   const targetDate = new Date(date)
   const now = new Date()
 
-  const diff = now.getTime() - targetDate.getTime()
-  const oneDay = 7 * 24 * 60 * 60 * 1000
+  const diffInDays = differenceInDays(now, targetDate)
 
-  return diff >= oneDay
+  const isWithinThreshold = diffInDays <= DAYS_THRESHOLD
+
+  return !isWithinThreshold
 }
