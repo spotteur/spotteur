@@ -30,9 +30,7 @@ export function CreatePagesDialog({ open, onOpenChange, onSubmit, isSubmitting, 
             pagePaths: '',
           }}
           onCancel={() => onOpenChange(false)}
-          onSubmit={(values) => {
-            onSubmit(values)
-          }}
+          onSubmit={onSubmit}
           isSubmitting={isSubmitting}
           errors={errors}
         />
