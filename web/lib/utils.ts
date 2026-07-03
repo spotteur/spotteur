@@ -6,7 +6,7 @@ import { differenceInDays, format } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { type $ZodFlattenedError } from 'zod/v4/core'
 
-import { DAYS_THRESHOLD } from '@/constants/app'
+import { BUILD_OUTDATED_THRESHOLD_IN_DAYS } from '@/constants/app'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -71,7 +71,7 @@ export const isBaselineOutdated = (date: Date | string): boolean => {
 
   const diffInDays = differenceInDays(now, targetDate)
 
-  const isWithinThreshold = diffInDays <= DAYS_THRESHOLD
+  const isWithinThreshold = diffInDays <= BUILD_OUTDATED_THRESHOLD_IN_DAYS
 
   return !isWithinThreshold
 }

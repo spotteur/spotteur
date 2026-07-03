@@ -63,12 +63,12 @@ export const DEFAULT_SNAPSHOTS_SELECTOR = 'body'
 
 export const PAGE_SIZE_OPTIONS = [6, 12, 24, 48]
 
-export const DAYS_THRESHOLD = 7
-export const DAYS_THRESHOLD_IN_MS = DAYS_THRESHOLD * 24 * 60 * 60 * 1000
+export const BUILD_OUTDATED_THRESHOLD_IN_DAYS = 7
+export const BUILD_OUTDATED_THRESHOLD_IN_MS = BUILD_OUTDATED_THRESHOLD_IN_DAYS * 24 * 60 * 60 * 1000
 
-export const DAYS_THRESHOLD_LABEL = formatDuration(
+export const BUILD_OUTDATED_THRESHOLD_LABEL = formatDuration(
   intervalToDuration({
     start: 0,
-    end: DAYS_THRESHOLD * 24 * 60 * 60 * 1000,
+    end: BUILD_OUTDATED_THRESHOLD_IN_DAYS * 24 * 60 * 60 * 1000,
   }),
 )
