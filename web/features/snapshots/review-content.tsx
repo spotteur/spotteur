@@ -69,7 +69,7 @@ export function SnapshotReviewContent({
   }
 
   return (
-    <ScrollArea className={cn('h-full', openedSnapshotIds.length && 'h-[98vh]!')}>
+    <ScrollArea className="h-full">
       {snapshotItems.map((snapshot) => {
         const isOpen = openedSnapshotIds.includes(snapshot.id)
 
