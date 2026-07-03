@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { DAYS_THRESHOLD_LABEL, DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
+import { BUILD_OUTDATED_THRESHOLD_LABEL, DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import { listBuildsByProjectQueryKey } from '@/constants/query-keys'
 import { type builds } from '@/db/schema'
 import { isBaselineOutdated } from '@/lib/utils'
@@ -82,10 +82,10 @@ export function TriggerBuildDialog({
 
               <AlertDescription className="text-amber-800/90 dark:text-amber-200/90">
                 <div>
-                  This baseline was last updated <span className="font-bold">{DAYS_THRESHOLD_LABEL} ago</span>. Consider
-                  approving a newer baseline to keep visual comparisons accurate.{' '}
+                  This baseline was last updated <span className="font-bold">{BUILD_OUTDATED_THRESHOLD_LABEL} ago</span>
+                  . Consider approving a newer baseline to keep visual comparisons accurate.{' '}
                   <Button
-                    variant="ghost"
+                    variant="link"
                     className="hover:transparent h-max w-fit cursor-pointer p-1 py-0 font-bold underline"
                     type="button"
                     onClick={handleTriggerBaseline}
