@@ -72,9 +72,11 @@ export async function listBuildsByProject({
 
   const countQuery = db.select({ total: count() }).from(builds).where(where)
 
-  const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
+  const baselineQuery = await getBaselineBuild({ projectId })
 
-  return { data: rows, total }
+  const [rows, [{ total }], baseline] = await Promise.all([rowsQuery, countQuery, baselineQuery])
+
+  return { data: rows, total, baseline }
 }
 
 export async function getNovuSubscribers() {
@@ -191,9 +193,14 @@ export async function getBuildDetail({ buildId }: { buildId: string }) {
 
   if (!project) return null
 
+  const baselineBuild = await getBaselineBuild({ projectId: project.id })
+
+  if (!baselineBuild) return null
+
   const result = {
     build,
     project,
+    baselineBuild,
   }
   return result
 }
@@ -585,4 +592,27 @@ export async function calculateExpectedSnapshotCount({ project }: { project?: ty
     totalProcessedPage += totalRules
   }
   return totalProcessedPage
+}
+
+export async function getBaselineBuild({ projectId }: { projectId: string }) {
+  if (!projectId) {
+    return null
+  }
+  const [row] = await db
+    .select()
+    .from(builds)
+    .where(
+      and(
+        eq(builds.projectId, projectId),
+        eq(builds.status, BuildStatus.PASSED),
+        // Only consider builds with the same base URL as the baseline build,
+        // to prevent special builds (with different base URLs) from becoming baseline builds.
+        eq(builds.baseUrl, projects.baseUrl),
+      ),
+    )
+    .leftJoin(projects, eq(builds.projectId, projects.id))
+    .orderBy(desc(builds.createdAt))
+    .limit(1)
+
+  return row.builds
 }

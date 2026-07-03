@@ -7,6 +7,7 @@ import { Collapsible } from '@/components/ui/collapsible'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
+import { type builds } from '@/db/schema/project'
 import { type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { SnapshotActionButtons, SnapshotViewer } from '@/features/snapshots/detail'
 import { cn } from '@/lib/utils'
@@ -22,6 +23,8 @@ interface SnapshotReviewContentProps {
   setBulkItems?: (updater: (prev: string[]) => string[]) => void
   onBulkActionChange?: (value: SnapshotApprovalStatus) => void
   isBulkUpdatePending?: boolean
+  build?: typeof builds.$inferSelect | null
+  baselineBuildData?: typeof builds.$inferSelect | null
 }
 
 export function SnapshotReviewContent({
@@ -35,6 +38,8 @@ export function SnapshotReviewContent({
   setBulkItems = () => {},
   onBulkActionChange = () => {},
   isBulkUpdatePending,
+  build,
+  baselineBuildData,
 }: SnapshotReviewContentProps) {
   const [bulkAction, setBulkAction] = useState<SnapshotApprovalStatus>(SnapshotApprovalStatus.APPROVED)
 
@@ -77,6 +82,8 @@ export function SnapshotReviewContent({
           <div key={snapshot.id} id={`snapshot-${snapshot.id}`} className="border-b px-4 last:border-b-0">
             <Collapsible open={isOpen} onOpenChange={(open) => onChangeOpenedSnapshot(snapshot.id, open)}>
               <SnapshotViewer
+                build={build}
+                baselineBuild={baselineBuildData}
                 snapshot={snapshot}
                 isOpen={isOpen}
                 diffTolerancePercentage={diffTolerancePercentage}
