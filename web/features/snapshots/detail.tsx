@@ -6,10 +6,13 @@ import Image from 'next/image'
 import { type ReactNode } from 'react'
 import { toast } from 'sonner'
 
+import { BrowserIcon } from '@/components/browser-icon'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Field } from '@/components/ui/field'
+import { Separator } from '@/components/ui/separator'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -207,9 +210,22 @@ export function SnapshotViewer({
     <Tabs defaultValue={defaultTab} className="space-y-2">
       <div className="sticky top-0 z-2 m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
         <div className="flex w-full justify-between gap-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 py-2">
             {getSnapshotIcon(snapshot, diffTolerancePercentage)}
-            <span>{`Page path ${snapshot.pagePath} on browser ${BROWSER_LABEL_MAP[snapshot.browser]}`}</span>
+            <span className="text-sm font-medium">{snapshot.pagePath}</span>
+            <Separator className="mx-px" orientation="vertical" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge>
+                  <BrowserIcon value={snapshot.browser} alt="" data-icon="inline-start" width={12} height={12} />
+                  {snapshot.viewportWidth}x{snapshot.viewportHeight}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Using browser {BROWSER_LABEL_MAP[snapshot.browser]} with viewport {snapshot.viewportWidth}x
+                {snapshot.viewportHeight}px
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="flex items-center gap-2">
             <UpdateSnapshotNotesDialog buildId={snapshot.buildId} snapshotId={snapshot.id} notes={snapshot.notes}>
@@ -321,24 +337,22 @@ export function SnapshotViewer({
           )}
         </TabsContent>
         <TabsContent value="heatmap" className={`${!isOpen && 'm-0'}`}>
-          <div className="w-full">
-            {snapshot.diffScreenshotMedia?.path ? (
-              <div className="relative w-full">
-                <Image
-                  unoptimized
-                  src={snapshot.diffScreenshotMedia?.path}
-                  width={snapshot.diffScreenshotMedia?.width || 0}
-                  height={snapshot.diffScreenshotMedia?.height || 0}
-                  alt="Diff heatmap"
-                  className="h-auto w-full"
-                />
-              </div>
-            ) : dimensionMismatch ? (
-              <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
-            ) : (
-              <PreviewFallback />
-            )}
-          </div>
+          {snapshot.diffScreenshotMedia?.path ? (
+            <div className="relative w-full">
+              <Image
+                unoptimized
+                src={snapshot.diffScreenshotMedia?.path}
+                width={snapshot.diffScreenshotMedia?.width || 0}
+                height={snapshot.diffScreenshotMedia?.height || 0}
+                alt="Diff heatmap"
+                className="h-auto w-full"
+              />
+            </div>
+          ) : dimensionMismatch ? (
+            <PreviewFallback message="Unable to display heatmap due to dimension mismatch" />
+          ) : (
+            <PreviewFallback />
+          )}
         </TabsContent>
         <TabsContent value="side-by-side" className={`${!isOpen && 'm-0'}`}>
           <div className="flex w-full flex-col gap-2">

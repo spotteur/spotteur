@@ -1,6 +1,6 @@
 'use server'
 
-import { and, count, asc, desc, eq, ilike, type SQL, lt, gt, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, lt, gt, inArray } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
@@ -19,21 +19,6 @@ import { sha256Hex } from '@/lib/utils'
 import { type retrySingleSnapshotWorkflow } from '@/temporal/workflows/snapshot'
 import { type SnapshotPayload } from '@/types/screenshot'
 
-type SortKey = 'id' | 'diffPercentage' | 'createdAt' | 'updatedAt' | ''
-
-const sortColumn = (key: SortKey) => {
-  switch (key) {
-    case 'updatedAt':
-      return snapshots.updatedAt
-    case 'createdAt':
-    case 'id':
-      return snapshots.id
-    case 'diffPercentage':
-    default:
-      return snapshots.diffPercentage
-  }
-}
-
 export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
   const baselineMedia = alias(media, 'baseline_media')
   const diffMedia = alias(media, 'diff_media')
@@ -43,6 +28,8 @@ export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
       buildId: snapshots.buildId,
       pagePath: snapshots.pagePath,
       browser: snapshots.browser,
+      viewportWidth: snapshots.viewportWidth,
+      viewportHeight: snapshots.viewportHeight,
       diffPercentage: snapshots.diffPercentage,
       approvalStatus: snapshots.approvalStatus,
       notes: snapshots.notes,
@@ -73,7 +60,7 @@ export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
     .leftJoin(baselineMedia, eq(snapshots.baselineScreenshotMediaId, baselineMedia.id))
     .leftJoin(diffMedia, eq(snapshots.diffScreenshotMediaId, diffMedia.id))
     .where(eq(snapshots.buildId, buildId))
-    .orderBy(asc(snapshots.pagePath), asc(snapshots.browser))
+    .orderBy(asc(snapshots.pagePath), asc(snapshots.browser), asc(snapshots.viewportWidth))
 
   const modifiedRows = rows.map(async (row) => {
     const [screenshotUrl, baselineUrl, diffUrl] = await Promise.all([
@@ -95,86 +82,6 @@ export async function listSnapshotsByBuildV2({ buildId }: { buildId: string }) {
   })
 
   return { data: await Promise.all(modifiedRows) }
-}
-
-export async function listSnapshotsByBuild({
-  buildId,
-  page = 1,
-  pageSize = 10,
-  sortBy = '',
-  sortDir = 'desc',
-  search = '',
-  approvalStatus = '',
-}: {
-  buildId: string
-  page?: number
-  pageSize?: number
-  sortBy?: SortKey
-  sortDir?: 'asc' | 'desc'
-  search?: string
-  approvalStatus?: string
-}) {
-  const offset = (page - 1) * pageSize
-  const column = sortColumn(sortBy)
-  const orders: SQL[] = []
-  const order = sortDir === 'asc' ? asc(column) : desc(column)
-  orders.push(order)
-  orders.push(desc(snapshots.id))
-
-  const filters = [eq(snapshots.buildId, buildId)] as SQL[]
-
-  const trimmedSearch = search?.trim()
-  if (trimmedSearch) {
-    filters.push(ilike(snapshots.pagePath, `%${trimmedSearch}%`))
-  }
-
-  const trimmedApprovalStatus = approvalStatus?.trim() as SnapshotApprovalStatus
-  if (trimmedApprovalStatus) {
-    filters.push(eq(snapshots.approvalStatus, trimmedApprovalStatus))
-  }
-
-  const where = filters.length > 0 ? and(...filters) : undefined
-
-  const baseRowsQuery = db
-    .select({
-      id: snapshots.id,
-      pagePath: snapshots.pagePath,
-      browser: snapshots.browser,
-      viewportWidth: snapshots.viewportWidth,
-      viewportHeight: snapshots.viewportHeight,
-      diffPercentage: snapshots.diffPercentage,
-      approvalStatus: snapshots.approvalStatus,
-      notes: snapshots.notes,
-      screenshotMedia: {
-        id: media.id,
-        path: media.path,
-        width: media.width,
-        height: media.height,
-        mimeType: media.mimeType,
-      },
-      createdAt: snapshots.createdAt,
-    })
-    .from(snapshots)
-    .leftJoin(media, eq(snapshots.screenshotMediaId, media.id))
-    .orderBy(...orders)
-    .limit(pageSize)
-    .offset(offset)
-  const baseCountQuery = db.select({ total: count() }).from(snapshots)
-
-  const rowsQuery = where ? baseRowsQuery.where(where) : baseRowsQuery
-  const countQuery = where ? baseCountQuery.where(where) : baseCountQuery
-
-  const [rows, [{ total }]] = await Promise.all([rowsQuery, countQuery])
-
-  const modifiedRows = rows.map(async (row) => {
-    if (row.screenshotMedia) {
-      const path = await getPresignUrl({ key: row.screenshotMedia.path })
-      return { ...row, screenshotMedia: { ...row.screenshotMedia, path } }
-    }
-    return row
-  })
-
-  return { data: await Promise.all(modifiedRows), total }
 }
 
 export async function getSnapshotDetail({ snapshotId }: { snapshotId: string }) {
@@ -522,13 +429,6 @@ export async function populateSingleSnapshotPayload({
   return snapshotPayload
 }
 
-export type SnapshotsListRes = Awaited<ReturnType<typeof listSnapshotsByBuild>>
-export type SnapshotListItemRes = SnapshotsListRes['data'][number]
-
 export type SnapshotsListV2Res = Awaited<ReturnType<typeof listSnapshotsByBuildV2>>
-export type SnapshotListV2ItemRes = SnapshotsListV2Res['data'][number]
-
-export type GetSnapshotDetailRes = Awaited<ReturnType<typeof getSnapshotDetail>>
-export type SnapshotDetailRes = NonNullable<GetSnapshotDetailRes>['snapshot'] | SnapshotListV2ItemRes
+export type SnapshotDetailRes = SnapshotsListV2Res['data'][number]
 export type MediaDetailRes = NonNullable<SnapshotDetailRes['screenshotMedia']>
-export type SnapshotActionRes = { prev: string; next: string }

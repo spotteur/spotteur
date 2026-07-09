@@ -151,13 +151,21 @@ export default function BuildDetailSnapshotPage() {
 
   const [openedSnapshotIds, setOpenedSnapshotIds] = useState<string[]>([])
 
-  // On first load:
-  // Set selected path to the first snapshot items
   useEffect(() => {
-    if (!selectedPath && snapshotItems.length > 0) {
+    if (snapshotItems.length === 0) {
+      return
+    }
+
+    // On first load, set selected path to the first snapshot items
+    if (!selectedPath) {
       setSelectedPath(snapshotItems[0].pagePath)
     }
-  }, [selectedPath, snapshotItems, setSelectedPath])
+
+    // On filter change, if the selected path not in the filtered snapshot items, set selected path to the first snapshot items
+    if (!snapshotItems.some((s) => s.pagePath === selectedPath)) {
+      setSelectedPath(snapshotItems[0].pagePath)
+    }
+  }, [snapshotItems, selectedPath, setSelectedPath])
 
   useEffect(() => {
     if (!selectedSnapshotId) {
@@ -167,14 +175,6 @@ export default function BuildDetailSnapshotPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpenedSnapshotIds((prev) => (prev.includes(selectedSnapshotId) ? prev : [...prev, selectedSnapshotId]))
   }, [selectedSnapshotId])
-
-  // On filter changed:
-  // Set selected path to the first snapshot items
-  useEffect(() => {
-    if (snapshotItems.length > 0) {
-      setSelectedPath(snapshotItems[0].pagePath)
-    }
-  }, [snapshotItems, status, browsers, hideExactlyMatch, hideNewPage, setSelectedPath])
 
   const onChangeOpenedSnapshot = (snapshotId: string, open: boolean) => {
     setOpenedSnapshotIds((prev) => {

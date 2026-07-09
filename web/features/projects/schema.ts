@@ -47,7 +47,7 @@ export const ProjectBaseSchema = z.object({
 
 export const ProjectCreateSchema = z.object({
   ...ProjectBaseSchema.shape,
-  pagePaths: PagePathsSchema.default([]),
+  pagePaths: PagePathsSchema,
 })
 
 export const ProjectUpdateSchema = z.object({
