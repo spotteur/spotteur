@@ -77,7 +77,7 @@ export default function BuildDetailLogsPage() {
 
   return (
     <div className="space-y-4">
-      <BuildSummaryCard build={buildData} />
+      <BuildSummaryCard buildId={params.buildId} />
 
       <Card>
         <CardContent>

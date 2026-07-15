@@ -12,11 +12,10 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field } from '@/components/ui/field'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { Skeleton } from '@/components/ui/skeleton'
-import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE, snapshotsMenu } from '@/constants/app'
-import { detailBuildQueryKey, listBuildsByProjectQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
+import { snapshotsMenu } from '@/constants/app'
+import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
-import { getBuildDetail, resumeBuild } from '@/features/builds/actions'
+import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
 import { bulkUpdateSnapshotApprovalStatus, listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { SnapshotReviewContent } from '@/features/snapshots/review-content'
@@ -42,8 +41,7 @@ export default function BuildDetailSnapshotPage() {
     queryKey: detailBuildQueryKey(params.buildId),
     queryFn: () => getBuildDetail({ buildId: params.buildId }),
     refetchInterval: ({ state }) => {
-      const build = state.data?.build
-      const buildStatus = build?.status
+      const buildStatus = state.data?.build?.status
       if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
         return 10_000
       }
@@ -94,32 +92,6 @@ export default function BuildDetailSnapshotPage() {
       )
     })
   }, [snapshotsData, searchQuery, browsers, hideExactlyMatch, hideNewPage, status, diffTolerancePercentage])
-
-  const processedItems = useMemo(() => {
-    const processedPages = snapshotsData?.data.length ?? 0
-    const totalPages = buildData?.expectedSnapshotCount ?? 0
-    const progress = totalPages === 0 ? 0 : (processedPages / totalPages) * 100
-
-    return progress
-  }, [snapshotsData, buildData])
-  const resume = useMutation({
-    mutationFn: () => resumeBuild({ projectId: projectData?.id ?? '', buildId: params.buildId }),
-    onSuccess: (res) => {
-      if (res.ok) {
-        toast.success('Build resumed', { description: 'The build has been requested to resume.' })
-        queryClient.invalidateQueries({ queryKey: listBuildsByProjectQueryKey(projectData?.id ?? '') })
-        queryClient.invalidateQueries({ queryKey: detailBuildQueryKey(params.buildId) })
-        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(params.buildId) })
-        return
-      }
-
-      toast.error('Failed to resume build', { description: res.error })
-    },
-    onError: (error) => {
-      console.error(error)
-      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
-    },
-  })
 
   const { mutate: updateBulkStatus, isPending: isBulkUpdatePending } = useMutation({
     mutationFn: async (ids: string[]) =>
@@ -258,24 +230,9 @@ export default function BuildDetailSnapshotPage() {
     notFound()
   }
 
-  if (isLoadingSnapshots) {
-    return (
-      <div className="flex flex-col space-y-3">
-        <Skeleton className="flex h-68 gap-3 p-2 shadow-none" />
-        <Skeleton className="flex h-13.5 flex-row items-center gap-3 p-2 shadow-none" />
-        <Skeleton className="min-h-screen w-full" />
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col space-y-3">
-      <BuildSummaryCard
-        build={buildData}
-        onResume={() => resume.mutate()}
-        isResumePending={resume.isPending}
-        progress={processedItems}
-      />
+      <BuildSummaryCard buildId={params.buildId} />
       <div className="flex h-screen flex-col space-y-3">
         <div className="sticky top-0 z-4 flex flex-row items-center justify-between bg-white py-2 dark:bg-black">
           <SnapshotReviewFilters
