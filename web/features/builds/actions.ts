@@ -485,28 +485,12 @@ export async function triggerBuildApi({ payload }: { payload: unknown }) {
 }
 
 export async function buildLogsInsert({ payload }: { payload: unknown }) {
-  try {
-    const { success, data } = buildLogsSchema.safeParse(payload)
-
-    if (!success) {
-      throw new Error('Invalid build logs payload')
-    }
-
-    const level = data.level || undefined
-    data.message = String(data.message)
-    data.level = level
-
-    if (data.buildId) {
-      const logs = await db.insert(buildLogs).values(data).returning({ logs: buildLogs.id })
-
-      return { ok: true, data: logs } as const
-    }
-
-    return { ok: true } as const
-  } catch (error) {
-    logger.error(error)
-    return { ok: false, error: 'Database insert failed for log' } as const
+  const { success, data } = buildLogsSchema.safeParse(payload)
+  if (!success) {
+    return
   }
+
+  await db.insert(buildLogs).values(data)
 }
 
 export async function getBuildLogs({
