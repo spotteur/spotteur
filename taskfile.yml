@@ -24,7 +24,7 @@ tasks:
       - '{{.DOCKER_COMPOSE_SCRIPT}} up --detach{{if eq .APP_ENV "development" }} --build{{ end }} --remove-orphans'
   down:
     cmds:
-      - "{{.DOCKER_COMPOSE_SCRIPT}} down {{.CLI_ARGS}}"
+      - "{{.DOCKER_COMPOSE_SCRIPT}} down --remove-orphans {{.CLI_ARGS}}"
   stop:
     cmds:
       - "{{.DOCKER_COMPOSE_SCRIPT}} stop"
