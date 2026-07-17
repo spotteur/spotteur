@@ -34,10 +34,6 @@ export const projects = pgTable('projects', {
     .$type<[number, number][]>()
     .notNull()
     .default(sql`'[]'::jsonb`),
-  pagePaths: text('page_paths')
-    .array()
-    .notNull()
-    .default(sql`'{}'::text[]`),
   baselineBuildId: uuid('baseline_build_id'),
   hookAfterPageLoad: text('hook_after_page_load'),
   hookBeforeScreenshot: text('hook_before_screenshot'),
