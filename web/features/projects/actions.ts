@@ -84,7 +84,7 @@ export async function createProject(input: unknown) {
     await tx
       .insert(pageRules)
       .values(
-        project.pagePaths.map((pagePath) => ({
+        parsed.data.pagePaths.map((pagePath) => ({
           pagePath,
           projectId: project.id,
           snapshotBrowsers: project.snapshotBrowsers,
