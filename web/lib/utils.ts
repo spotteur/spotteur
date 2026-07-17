@@ -36,7 +36,7 @@ export function humanReadableEpoch(ts: number = Date.now()): string {
 
 export function humanReadableDecimal(num: number, decimalPlaces: number = 2): string {
   const numStr = parseFloat(num.toFixed(decimalPlaces)).toString()
-  if (num > 0 && numStr !== '0') {
+  if (num >= 0) {
     return numStr
   }
 
