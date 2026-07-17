@@ -438,13 +438,7 @@ export function ProjectForm({
               <Field data-invalid={isInvalid}>
                 <div className="flex justify-between">
                   <FieldLabel htmlFor="project-pagePaths">Page paths</FieldLabel>
-                  <Button
-                    type="button"
-                    size="xs"
-                    onClick={() => {
-                      setImportDialogOpen(true)
-                    }}
-                  >
+                  <Button type="button" size="xs" onClick={() => setImportDialogOpen(true)}>
                     <Import />
                     Import from sitemap
                   </Button>

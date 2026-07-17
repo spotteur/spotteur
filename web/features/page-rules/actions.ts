@@ -1,6 +1,6 @@
 'use server'
 
-import { and, asc, desc, eq, notInArray, sql } from 'drizzle-orm'
+import { and, asc, eq, notInArray, sql } from 'drizzle-orm'
 import { parse as parseYaml } from 'yaml'
 import YAML from 'yaml'
 import { z } from 'zod'
@@ -56,17 +56,6 @@ export async function createPageRule({ projectId, payload }: { projectId: string
           })),
         )
         .onConflictDoNothing()
-
-      const pageRuleRows = await tx
-        .select({ pagePath: pageRules.pagePath })
-        .from(pageRules)
-        .where(eq(pageRules.projectId, projectId))
-        .orderBy(desc(pageRules.createdAt))
-
-      await tx
-        .update(projects)
-        .set({ pagePaths: pageRuleRows.map((p) => p.pagePath) })
-        .where(eq(projects.id, projectId))
     })
 
     return { ok: true } as const
@@ -114,17 +103,6 @@ export async function manageRule({ projectId, payload }: { projectId: string; pa
 export async function deletePageRule({ projectId, id }: { projectId: string; id: string }) {
   await db.transaction(async (tx) => {
     await tx.delete(pageRules).where(and(eq(pageRules.id, id), eq(pageRules.projectId, projectId)))
-
-    const pageRuleRows = await tx
-      .select({ pagePath: pageRules.pagePath })
-      .from(pageRules)
-      .where(eq(pageRules.projectId, projectId))
-      .orderBy(desc(pageRules.createdAt))
-
-    await tx
-      .update(projects)
-      .set({ pagePaths: pageRuleRows.map((p) => p.pagePath) })
-      .where(eq(projects.id, projectId))
   })
   return { ok: true }
 }
