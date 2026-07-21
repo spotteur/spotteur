@@ -1,5 +1,5 @@
-import { Body, Container, Head, Html, Section, Tailwind, Text, Button, Hr } from '@react-email/components'
 import React from 'react'
+import { Body, Container, Head, Html, Section, Tailwind, Text, Button, Hr } from 'react-email'
 
 import { cn } from '@/lib/utils'
 
