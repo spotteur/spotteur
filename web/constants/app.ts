@@ -69,6 +69,6 @@ export const BUILD_OUTDATED_THRESHOLD_IN_MS = BUILD_OUTDATED_THRESHOLD_IN_DAYS *
 export const BUILD_OUTDATED_THRESHOLD_LABEL = formatDuration(
   intervalToDuration({
     start: 0,
-    end: BUILD_OUTDATED_THRESHOLD_IN_DAYS * 24 * 60 * 60 * 1000,
+    end: BUILD_OUTDATED_THRESHOLD_IN_MS,
   }),
 )
