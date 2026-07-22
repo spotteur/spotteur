@@ -15,7 +15,11 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { BROWSER_OPTIONS } from '@/constants/enum'
-import { SNAPSHOT_APPROVAL_STATUS_OPTIONS } from '@/constants/status-map'
+import {
+  SNAPSHOT_APPROVAL_STATUS_OPTIONS,
+  SNAPSHOT_APPROVAL_STATUS_MAP,
+  type SnapshotApprovalStatus,
+} from '@/constants/status-map'
 
 interface SnapshotReviewFiltersProps {
   searchQuery: string
@@ -93,8 +97,10 @@ export function SnapshotReviewFilters({
       </DropdownMenu>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-58 justify-start">
-            {status ? `Filtered by status: ${status}` : 'Filter by status...'}
+          <Button variant="outline" className="w-54 justify-start">
+            {status
+              ? `Filtered by status ${SNAPSHOT_APPROVAL_STATUS_MAP[status as SnapshotApprovalStatus]}`
+              : 'Filter by status...'}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -126,7 +132,7 @@ export function SnapshotReviewFilters({
         />
         <FieldLabel htmlFor="hideExactlyMatch">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <span>Hide exactly matching snapshots</span>
             </TooltipTrigger>
             <TooltipContent>{`Diff tolerance percentage set to ${diffTolerancePercentage}%`}</TooltipContent>

@@ -127,7 +127,7 @@ export class ScreenshotCapturer {
         throw new Error('Failed to capture screenshot')
       }
 
-      logger.info(`${this.logPrefix} Screenshot captured, size: ${buffer.length / 1024} kB`)
+      logger.info(`${this.logPrefix} Screenshot captured, size: ${buffer.length / 1024} kB`, { payload: this.payload })
       const image = sharp(buffer)
       const info = await image.metadata()
       if (info.width !== this.payload.viewportWidth) {

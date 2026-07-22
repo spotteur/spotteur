@@ -145,6 +145,13 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
 
     const expectedSnapshotCount = await calculateExpectedSnapshotCount({ project })
 
+    const pageRuleRows = await db
+      .select({
+        pagePath: pageRules.pagePath,
+      })
+      .from(pageRules)
+      .where(eq(pageRules.projectId, project.id))
+
     const buildIdentifier = identifier || `manual-${humanReadableEpoch()}`
 
     const [build] = await tx
@@ -152,7 +159,7 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
       .values({
         projectId: project.id,
         baseUrl: baseUrl || project.baseUrl,
-        pagePaths: project.pagePaths,
+        pagePaths: pageRuleRows.map((p) => p.pagePath),
         diffTolerancePercentage: project.diffTolerancePercentage,
         status: BuildStatus.PENDING,
         identifier: buildIdentifier,
@@ -237,10 +244,6 @@ export async function populateSnapshotsPayload({
   build: typeof builds.$inferSelect
   project: typeof projects.$inferSelect
 }) {
-  if (!project.pagePaths.length) {
-    throw new Error(`This project doesn't have any page paths configured`)
-  }
-
   if (!project.snapshotBrowsers.length) {
     throw new Error(`This project doesn't have any snapshot browsers configured`)
   }
@@ -250,6 +253,10 @@ export async function populateSnapshotsPayload({
   }
 
   const pageRuleRows = await db.select().from(pageRules).where(eq(pageRules.projectId, project.id))
+  if (!pageRuleRows.length) {
+    throw new Error(`This project doesn't have any pages configured`)
+  }
+
   const pageRulesMap = new Map<string, typeof pageRules.$inferSelect>()
   for (const pr of pageRuleRows) {
     pageRulesMap.set(pr.pagePath, pr)
@@ -258,7 +265,7 @@ export async function populateSnapshotsPayload({
   const existingSnapshotRows = await db.select().from(snapshots).where(eq(snapshots.buildId, build.id))
 
   const snapshotsArray: SnapshotPayload[] = []
-  for (const pagePath of project.pagePaths) {
+  for (const { pagePath } of pageRuleRows) {
     if (!URL.canParse(pagePath, project.baseUrl)) {
       throw new Error(`Invalid URL given for path: ${pagePath} with base URL ${project.baseUrl}`)
     }
@@ -471,28 +478,12 @@ export async function triggerBuildApi({ payload }: { payload: unknown }) {
 }
 
 export async function buildLogsInsert({ payload }: { payload: unknown }) {
-  try {
-    const { success, data } = buildLogsSchema.safeParse(payload)
-
-    if (!success) {
-      throw new Error('Invalid build logs payload')
-    }
-
-    const level = data.level || undefined
-    data.message = String(data.message)
-    data.level = level
-
-    if (data.buildId) {
-      const logs = await db.insert(buildLogs).values(data).returning({ logs: buildLogs.id })
-
-      return { ok: true, data: logs } as const
-    }
-
-    return { ok: true } as const
-  } catch (error) {
-    logger.error(error)
-    return { ok: false, error: 'Database insert failed for log' } as const
+  const { success, data } = buildLogsSchema.safeParse(payload)
+  if (!success) {
+    return
   }
+
+  await db.insert(buildLogs).values(data)
 }
 
 export async function getBuildLogs({
@@ -543,10 +534,6 @@ export async function getBuildLogs({
 }
 
 export async function calculateExpectedSnapshotCount({ project }: { project?: typeof projects.$inferSelect }) {
-  if (!project?.pagePaths.length) {
-    throw new Error(`This project doesn't have any page paths configured`)
-  }
-
   if (!project?.snapshotBrowsers.length) {
     throw new Error(`This project doesn't have any snapshot browsers configured`)
   }
@@ -556,13 +543,17 @@ export async function calculateExpectedSnapshotCount({ project }: { project?: ty
   }
 
   const pageRuleRows = await db.select().from(pageRules).where(eq(pageRules.projectId, project.id))
+  if (!pageRuleRows.length) {
+    throw new Error(`This project doesn't have any pages configured`)
+  }
+
   const pageRulesMap = new Map<string, typeof pageRules.$inferSelect>()
   for (const pr of pageRuleRows) {
     pageRulesMap.set(pr.pagePath, pr)
   }
   let totalProcessedPage = 0
 
-  for (const pagePath of project.pagePaths) {
+  for (const { pagePath } of pageRuleRows) {
     if (!URL.canParse(pagePath, project.baseUrl)) {
       throw new Error(`Invalid URL given for path: ${pagePath} with base URL ${project.baseUrl}`)
     }

@@ -89,7 +89,6 @@ export default function EditProjectPage() {
                 diffTolerancePercentage: data.diffTolerancePercentage,
                 snapshotBrowsers: data.snapshotBrowsers as ProjectFormInput['snapshotBrowsers'],
                 viewports: data.viewports,
-                pagePaths: (data.pagePaths ?? []).join('\n'),
                 token: data.token ?? '',
                 hookAfterPageLoad: data.hookAfterPageLoad ?? undefined,
                 hookBeforeScreenshot: data.hookBeforeScreenshot ?? undefined,
