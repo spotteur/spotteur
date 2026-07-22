@@ -169,6 +169,13 @@
       "when": 1778140800000,
       "tag": "0023_sturdy_spirit",
       "breakpoints": false
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784095538111,
+      "tag": "0024_milky_forge",
+      "breakpoints": false
     }
   ]
 }

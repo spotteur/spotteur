@@ -20,10 +20,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ViewportDimensionInput } from '@/components/viewport-dimension-input'
 import { type Browser } from '@/constants/enum'
-import { ProjectCreateSchema, ProjectUpdateSchema } from '@/features/projects/schema'
+import { ProjectFormSchema } from '@/features/projects/schema'
 import { setFormErrors } from '@/lib/utils'
 
-export type ProjectFormInput = z.input<typeof ProjectCreateSchema | typeof ProjectUpdateSchema>
+export type ProjectFormInput = z.input<typeof ProjectFormSchema>
 
 interface ProjectFormProps {
   defaultValues: ProjectFormInput
@@ -45,7 +45,7 @@ export function ProjectForm({
   const form = useForm({
     defaultValues,
     validators: {
-      onSubmit: isCreate ? ProjectCreateSchema : ProjectUpdateSchema,
+      onSubmit: ProjectFormSchema,
     },
     onSubmitInvalid: () => {
       const InvalidInput = document.querySelector('[aria-invalid="true"]') as HTMLInputElement
@@ -56,8 +56,6 @@ export function ProjectForm({
     },
   })
 
-  type PagePathsFieldApi = ReturnType<typeof form.getFieldInfo<'pagePaths'>>['instance']
-  const pagePathsFieldRef = useRef<PagePathsFieldApi | null>(null)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
 
   const [copied, setCopied] = useState(false)
@@ -440,14 +438,7 @@ export function ProjectForm({
               <Field data-invalid={isInvalid}>
                 <div className="flex justify-between">
                   <FieldLabel htmlFor="project-pagePaths">Page paths</FieldLabel>
-                  <Button
-                    type="button"
-                    size="xs"
-                    onClick={() => {
-                      pagePathsFieldRef.current = field
-                      setImportDialogOpen(true)
-                    }}
-                  >
+                  <Button type="button" size="xs" onClick={() => setImportDialogOpen(true)}>
                     <Import />
                     Import from sitemap
                   </Button>
@@ -523,15 +514,18 @@ export function ProjectForm({
         </Button>
       </div>
 
-      <ImportFromSitemapDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-        onImport={(paths) => {
-          if (pagePathsFieldRef.current) {
-            const currentValue = pagePathsFieldRef.current?.state.value
-            const newValue = currentValue ? `${currentValue}\n${paths}` : paths
-            pagePathsFieldRef.current.handleChange(newValue)
-          }
+      <form.Subscribe
+        selector={(state) => state.values.pagePaths}
+        children={(pagePaths) => {
+          return (
+            <ImportFromSitemapDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              onImport={(paths) => {
+                form.setFieldValue('pagePaths', pagePaths ? `${pagePaths}\n${paths}` : paths)
+              }}
+            />
+          )
         }}
       />
     </form>

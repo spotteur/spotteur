@@ -1,6 +1,6 @@
 services:
   rustfs:
-    image: "rustfs/rustfs:latest"
+    image: "rustfs/rustfs:1.0.0-beta.7"
     security_opt:
       - "no-new-privileges:true"
     ports:
@@ -8,7 +8,7 @@ services:
       - "${RUSTFS_CONSOLE_PORT:-18003}:9001"
     env_file: [".env"]
     environment:
-      RUSTFS_VOLUMES: "/data/rustfs"
+      RUSTFS_VOLUMES: "/data"
       RUSTFS_ADDRESS: "0.0.0.0:9000"
       RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
       RUSTFS_CONSOLE_ENABLE: true
@@ -18,11 +18,10 @@ services:
       RUSTFS_ACCESS_KEY: "${RUSTFS_INITIAL_ACCESS_KEY:-}"
       RUSTFS_SECRET_KEY: "${RUSTFS_INITIAL_SECRET_KEY:-}"
       RUSTFS_OBS_LOGGER_LEVEL: "info"
-      RUSTFS_TLS_PATH: "/opt/tls"
       RUSTFS_OBJECT_CACHE_ENABLE: true
       RUSTFS_OBJECT_CACHE_TTL_SECS: 300
     volumes:
-      - "rustfs_data:/data/rustfs"
+      - "rustfs_data:/data"
       - "rustfs_logs:/app/logs"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9000/health && curl -f http://localhost:9001/rustfs/console/health"]

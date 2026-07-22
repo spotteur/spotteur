@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, type CSSProperties } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -35,40 +35,18 @@ export function ExpandableText({ text, maxLines = 2, className }: ExpandableText
           ref={textRef}
           className={cn(
             'text-foreground whitespace-pre-wrap transition-all duration-200',
-            !isExpanded && 'line-clamp-2',
+            !isExpanded && 'line-clamp-(--expandable-text-max-lines)',
           )}
-          style={
-            !isExpanded
-              ? {
-                  display: '-webkit-box',
-                  WebkitLineClamp: maxLines,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }
-              : undefined
-          }
+          style={{ '--expandable-text-max-lines': maxLines } as CSSProperties}
         >
           {text}
         </div>
       </CollapsibleContent>
       {expandable && (
         <CollapsibleTrigger asChild>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground relative mt-1 h-auto p-0 text-xs"
-          >
-            {isExpanded ? (
-              <>
-                <ChevronUp />
-                Show less
-              </>
-            ) : (
-              <>
-                <ChevronDown />
-                Show more
-              </>
-            )}
+          <Button variant="link" size="xs" className="text-muted-foreground hover:text-foreground">
+            {isExpanded ? <ChevronUp /> : <ChevronDown />}
+            {isExpanded ? 'Show less' : 'Show more'}
           </Button>
         </CollapsibleTrigger>
       )}

@@ -58,7 +58,7 @@ export function getColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href={`/projects/${id}/builds`}>
+                  <Link href={`/projects/${id}/pages`}>
                     <Cog />
                     Pages
                   </Link>
