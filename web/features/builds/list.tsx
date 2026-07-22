@@ -71,7 +71,11 @@ export function BuildListCard({ projectId, projectBaseUrl }: { projectId?: strin
         </div>
 
         {projectId && projectBaseUrl ? (
-          <TriggerBuildDialog projectId={projectId} baseUrl={projectBaseUrl}>
+          <TriggerBuildDialog
+            projectId={projectId}
+            baseUrl={projectBaseUrl}
+            baselineBuild={data?.baseline || undefined}
+          >
             <Button size="sm">
               <Play /> Trigger Build
             </Button>
