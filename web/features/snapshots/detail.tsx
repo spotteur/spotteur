@@ -15,7 +15,6 @@ import Image from 'next/image'
 import { type ReactNode } from 'react'
 import { toast } from 'sonner'
 
-
 import { BrowserIcon } from '@/components/browser-icon'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
