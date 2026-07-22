@@ -2,9 +2,11 @@ import * as crypto from 'crypto'
 
 import { type AnyFormApi } from '@tanstack/react-form'
 import { clsx, type ClassValue } from 'clsx'
-import { format } from 'date-fns'
+import { differenceInDays, format } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 import { type $ZodFlattenedError } from 'zod/v4/core'
+
+import { BUILD_OUTDATED_THRESHOLD_IN_DAYS } from '@/constants/app'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -61,4 +63,15 @@ export const sha256Hex = (input: string) =>
 
 export function isSnapshotExactlyMatching(diffPercentage: number, tolerancePercentage?: number | null) {
   return diffPercentage <= (tolerancePercentage ?? 0)
+}
+
+export const isBaselineOutdated = (date: Date | string): boolean => {
+  const targetDate = new Date(date)
+  const now = new Date()
+
+  const diffInDays = differenceInDays(now, targetDate)
+
+  const isWithinThreshold = diffInDays <= BUILD_OUTDATED_THRESHOLD_IN_DAYS
+
+  return !isWithinThreshold
 }

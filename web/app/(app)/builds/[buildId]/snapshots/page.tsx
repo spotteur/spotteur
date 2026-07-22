@@ -55,6 +55,7 @@ export default function BuildDetailSnapshotPage() {
   })
 
   const buildData = data?.build
+  const baselineBuildData = data?.baselineBuild
   const diffTolerancePercentage = buildData?.diffTolerancePercentage ?? 0
   const projectData = data?.project
 
@@ -279,6 +280,8 @@ export default function BuildDetailSnapshotPage() {
               setBulkItems={setBulkItems}
               onBulkActionChange={onBulkActionChange}
               isBulkUpdatePending={isBulkUpdatePending}
+              build={buildData}
+              baselineBuildData={baselineBuildData}
             />
           </ResizablePanel>
         </ResizablePanelGroup>

@@ -1,7 +1,16 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, RotateCcw, RefreshCw, MessageSquareDot, MessageSquare, ChevronDown } from 'lucide-react'
+import {
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  RefreshCw,
+  MessageSquareDot,
+  MessageSquare,
+  ChevronDown,
+  InfoIcon,
+} from 'lucide-react'
 import Image from 'next/image'
 import { type ReactNode } from 'react'
 import { toast } from 'sonner'
@@ -12,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Field } from '@/components/ui/field'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/shadcn-io/comparison'
 import { Spinner } from '@/components/ui/spinner'
@@ -21,15 +31,18 @@ import { DEFAULT_ERROR_DESCRIPTION, DEFAULT_ERROR_MESSAGE } from '@/constants/ap
 import { BROWSER_LABEL_MAP, SNAPSHOT_VIEWER_TYPE_LABEL_MAP, SnapshotViewerType } from '@/constants/enum'
 import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { SnapshotApprovalStatus } from '@/constants/status-map'
+import { type builds } from '@/db/schema/project'
 import { retrySingleSnapshot, type MediaDetailRes, type SnapshotDetailRes } from '@/features/snapshots/actions'
 import { updateSnapshotApprovalStatus } from '@/features/snapshots/actions'
-import { cn, isSnapshotExactlyMatching } from '@/lib/utils'
+import { cn, formatDateTime, isSnapshotExactlyMatching } from '@/lib/utils'
 
 import { SnapshotApprovalStatusBadge, SnapshotDiffBadge } from './badge'
 import { getSnapshotIcon } from './review-tree'
 import { UpdateSnapshotNotesDialog } from './update-snapshot-notes-dialog'
 
 interface SnapshotViewerProps {
+  build?: typeof builds.$inferSelect | null
+  baselineBuild?: typeof builds.$inferSelect | null
   snapshot: SnapshotDetailRes
   action?: ReactNode
   isOpen: boolean
@@ -175,14 +188,45 @@ const SnapshotLabel = ({ children, media }: { children: ReactNode; media?: Media
   return <span>{`${children} (${media?.width || 0}x${media?.height || 0})`}</span>
 }
 
-const SnapshotLabels = ({ snapshot }: { snapshot: SnapshotDetailRes }) => (
+const SnapshotLabels = ({
+  snapshot,
+  build,
+  baselineBuild,
+}: {
+  snapshot: SnapshotDetailRes
+  build?: typeof builds.$inferSelect | null
+  baselineBuild?: typeof builds.$inferSelect | null
+}) => (
   <div className="text-muted-foreground flex justify-between text-xs">
-    <SnapshotLabel media={snapshot.baselineScreenshotMedia}>Baseline</SnapshotLabel>
-    <SnapshotLabel media={snapshot.screenshotMedia}>Current</SnapshotLabel>
+    <div className="flex items-center gap-0.5">
+      <SnapshotLabel media={snapshot.baselineScreenshotMedia}>Baseline</SnapshotLabel>
+      {baselineBuild && <SnapshotLabelInfo build={baselineBuild} />}
+    </div>
+    <div className="flex items-center gap-0.5">
+      <SnapshotLabel media={snapshot.screenshotMedia}>Current</SnapshotLabel>
+      <SnapshotLabelInfo build={build} />
+    </div>
   </div>
 )
 
+const SnapshotLabelInfo = ({ build }: { build?: typeof builds.$inferSelect | null }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <InfoIcon />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-fit px-2 py-1.5 text-xs">
+        {build?.identifier} - {formatDateTime(build?.createdAt ?? '')}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function SnapshotViewer({
+  build,
+  baselineBuild,
   snapshot,
   action,
   isOpen,
@@ -208,7 +252,7 @@ export function SnapshotViewer({
 
   return (
     <Tabs defaultValue={defaultTab} className="space-y-2">
-      <div className="sticky top-0 z-2 m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
+      <div className="sticky top-0 z-100! m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
         <div className="flex w-full justify-between gap-6">
           <div className="flex items-center gap-2 py-2">
             {getSnapshotIcon(snapshot, diffTolerancePercentage)}
@@ -306,7 +350,7 @@ export function SnapshotViewer({
             <PreviewFallback message="This snapshot doesn't have any image yet" />
           ) : (
             <div className="flex w-full flex-col gap-2">
-              <SnapshotLabels snapshot={snapshot} />
+              <SnapshotLabels snapshot={snapshot} build={build} baselineBuild={baselineBuild} />
               <div className="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAK0lEQVQ4y2P8//8/A25w7949PLJMDBSAUc0jQzML/jSkpKQ0GmCjminRDADJNQjBr5nbigAAAABJRU5ErkJggg==')] bg-repeat py-0">
                 <Comparison style={{ aspectRatio }} mode="hover">
                   {/* Please note that the positions are reversed, the right position corresponds to the left side. */}
@@ -356,7 +400,7 @@ export function SnapshotViewer({
         </TabsContent>
         <TabsContent value="side-by-side" className={`${!isOpen && 'm-0'}`}>
           <div className="flex w-full flex-col gap-2">
-            <SnapshotLabels snapshot={snapshot} />
+            <SnapshotLabels snapshot={snapshot} build={build} />
             <div className="grid w-full grid-cols-2 gap-4">
               <SnapshotImage label="Baseline" media={snapshot.baselineScreenshotMedia} />
               <SnapshotImage label="Current" media={snapshot.screenshotMedia} />
