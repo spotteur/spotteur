@@ -20,7 +20,7 @@ rm -rf /var/lib/apt/lists/*
 RUN sh -c "$(curl -fsSL https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --audit=false && npm audit signatures
 
 
 FROM deps AS development
