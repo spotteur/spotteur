@@ -82,8 +82,9 @@ export function TriggerBuildDialog({
 
               <AlertDescription className="text-amber-800/90 dark:text-amber-200/90">
                 <div>
-                  This baseline was last updated <span className="font-bold">{BUILD_OUTDATED_THRESHOLD_LABEL} ago</span>
-                  . Consider approving a newer baseline to keep visual comparisons accurate.{' '}
+                  This baseline may be outdated &#40;last updated more than{' '}
+                  <span className="font-bold">{BUILD_OUTDATED_THRESHOLD_LABEL} ago</span> &#41;. Approve a newer
+                  baseline if appropriate.
                   <Button
                     variant="link"
                     className="hover:transparent h-max w-fit cursor-pointer p-1 py-0 font-bold underline"
