@@ -8,7 +8,7 @@ vars:
       if [ "{{.APP_ENV}}" = "development" ]; then
         echo "docker compose -f compose.yml -f compose.devcontainer.yml -f compose.rustfs.yml -f compose.selenium.yml"
       else
-        echo "docker compose -f compose.yml -f compose.prod.yml {{ if eq .FILESYSTEM_DISK "rustfs" }} -f compose.rustfs.yml{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} -f compose.selenium.yml{{ end }}"
+        echo "docker compose -f compose.yml {{ if eq .FILESYSTEM_DISK "rustfs" }} -f compose.rustfs.yml{{ end }}{{if eq .USE_EXTERNAL_SELENIUM "false"}} -f compose.selenium.yml{{ end }}"
       fi
   IMAGE_TAG:
     sh: echo "{{.IMAGE_TAG | default "latest"}}"

@@ -1,20 +1,39 @@
 name: Deploy
 
 on:
-  workflow_dispatch: {}
-  push:
-    branches:
-      - develop
-      - main
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Target environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      target_version:
+        description: "Target version"
+        required: true
+        type: string
+  workflow_run:
+    workflows:
+      - Build
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy
-        uses: appleboy/ssh-action@v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          UNIQUE_ID: ${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          TARGET_ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_environment || github.ref }}
+          TARGET_VERSION: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_version || github.ref_name }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          script: /opt/spotteur-scripts/deploy.sh ${{ github.ref }} ${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
+          script: /opt/spotteur-scripts/deploy_v2.sh ${{ env.UNIQUE_ID }} ${{ env.TARGET_ENVIRONMENT }} ${{ env.TARGET_VERSION }}
