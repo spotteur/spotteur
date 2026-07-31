@@ -1,10 +1,11 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import type * as Activities from '@/temporal/activities/build'
+import type * as Activities from '@/temporal/activities'
 import { type ScreenshotWorkflowResult, type ScreenshotWorkflowParams } from '@/types/screenshot'
 
 const { getExistingSnapshot, takeScreenshot, processScreenshot } = proxyActivities<typeof Activities>({
   startToCloseTimeout: '30 minutes',
+  heartbeatTimeout: '30s',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 10,

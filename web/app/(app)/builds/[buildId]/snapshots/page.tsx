@@ -12,7 +12,7 @@ import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } f
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field } from '@/components/ui/field'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
-import { snapshotsMenu } from '@/constants/app'
+import { buildsMenu } from '@/constants/app'
 import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { BuildStatus, SnapshotApprovalStatus } from '@/constants/status-map'
 import { getBuildDetail } from '@/features/builds/actions'
@@ -221,10 +221,7 @@ export default function BuildDetailSnapshotPage() {
   )
   useHeaderBreadcrumbs(breadcrumbs, isLoadingBuild)
 
-  const navigations = useMemo<NavigationType[]>(
-    () => snapshotsMenu(projectData?.id ?? '', params.buildId),
-    [projectData?.id, params.buildId],
-  )
+  const navigations = useMemo<NavigationType[]>(() => buildsMenu(params.buildId), [params.buildId])
   useHeaderNavigations(navigations)
 
   if (!isLoading && (!projectData || !buildData)) {
