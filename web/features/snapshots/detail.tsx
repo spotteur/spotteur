@@ -252,7 +252,7 @@ export function SnapshotViewer({
 
   return (
     <Tabs defaultValue={defaultTab} className="space-y-2">
-      <div className="sticky top-0 z-100! m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
+      <div className="sticky top-0 z-10! m-0! flex flex-col gap-2 bg-white py-2 text-left dark:bg-black">
         <div className="flex w-full justify-between gap-6">
           <div className="flex items-center gap-2 py-2">
             {getSnapshotIcon(snapshot, diffTolerancePercentage)}

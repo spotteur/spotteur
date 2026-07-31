@@ -193,16 +193,12 @@ export async function triggerBuild({ projectId, payload }: { projectId: string; 
 
 export async function getBuildDetail({ buildId }: { buildId: string }) {
   const [build] = await db.select().from(builds).where(eq(builds.id, buildId)).limit(1)
-
   if (!build) return null
 
   const [project] = await db.select().from(projects).where(eq(projects.id, build.projectId)).limit(1)
-
   if (!project) return null
 
   const baselineBuild = await getBaselineBuild({ dbOrTx: db, projectId: project.id })
-
-  if (!baselineBuild) return null
 
   const result = {
     build,
@@ -210,6 +206,31 @@ export async function getBuildDetail({ buildId }: { buildId: string }) {
     baselineBuild,
   }
   return result
+}
+
+export async function cancelBuild({ projectId, buildId }: { projectId: string; buildId: string }) {
+  try {
+    const [build] = await db
+      .select()
+      .from(builds)
+      .where(and(eq(builds.id, buildId), eq(builds.projectId, projectId)))
+      .limit(1)
+    if (!build) {
+      return { ok: false, error: 'Build not found' } as const
+    }
+
+    if (build.status !== BuildStatus.IN_PROGRESS) {
+      return { ok: false, error: 'Build is not in progress' } as const
+    }
+
+    await temporalClient.workflow.getHandle(`build-${buildId}`).cancel()
+    await db.update(builds).set({ status: BuildStatus.CANCELLED }).where(eq(builds.id, buildId))
+
+    return { ok: true } as const
+  } catch (error) {
+    logger.error(error)
+    return { ok: false, error: 'Failed to cancel build' } as const
+  }
 }
 
 export async function resumeBuild({ projectId, buildId }: { projectId: string; buildId: string }) {
@@ -575,7 +596,7 @@ export async function getBaselineBuild({ dbOrTx, projectId }: { dbOrTx: DB | DBT
   if (!projectId) {
     return null
   }
-  const [row] = await dbOrTx
+  const rows = await dbOrTx
     .select()
     .from(builds)
     .where(
@@ -591,5 +612,5 @@ export async function getBaselineBuild({ dbOrTx, projectId }: { dbOrTx: DB | DBT
     .orderBy(desc(builds.createdAt))
     .limit(1)
 
-  return row.builds
+  return rows.length > 0 ? rows[0].builds : null
 }

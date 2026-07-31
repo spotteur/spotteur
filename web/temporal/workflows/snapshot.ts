@@ -1,14 +1,14 @@
-import { executeChild, proxyActivities } from '@temporalio/workflow'
+import { executeChild, isCancellation, proxyActivities } from '@temporalio/workflow'
 
-import type * as BuildActivities from '@/temporal/activities/build'
-import type * as ProjectActivities from '@/temporal/activities/project'
-import type * as SnapshotActivities from '@/temporal/activities/snapshot'
+import type * as Activities from '@/temporal/activities'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
 
-import { screenshotWorkflow } from './screenshot' // Importing using aliases can cause issues with Temporal, so we use a relative path here
+// Importing using aliases can cause issues with Temporal, so we use a relative path here
+import { screenshotWorkflow } from './screenshot'
+import { BuildStatus } from '../../constants/status-map'
 
-const { getSnapshotsPayload } = proxyActivities<typeof ProjectActivities>({
-  startToCloseTimeout: '10 minutes',
+const { notifyBuildReadyForReview } = proxyActivities<typeof Activities>({
+  startToCloseTimeout: '1 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,
@@ -16,19 +16,10 @@ const { getSnapshotsPayload } = proxyActivities<typeof ProjectActivities>({
   },
 })
 
-const { markBuildAsStarted, finalizeBuildSnapshots, notifyBuildReadyForReview } = proxyActivities<
-  typeof BuildActivities
+const { markBuildAsStarted, finalizeBuildSnapshots, getSingleSnapshotPayload, getSnapshotsPayload } = proxyActivities<
+  typeof Activities
 >({
-  startToCloseTimeout: '10 minutes',
-  retry: {
-    initialInterval: '500 ms',
-    maximumAttempts: 3,
-    backoffCoefficient: 1.5,
-  },
-})
-
-const { getSingleSnapshotPayload } = proxyActivities<typeof SnapshotActivities>({
-  startToCloseTimeout: '10 minutes',
+  startToCloseTimeout: '30 seconds',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 3,
@@ -60,13 +51,17 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
       }),
     )
 
-    await finalizeBuildSnapshots({ buildId, isSuccess: true })
+    await finalizeBuildSnapshots({ buildId, status: BuildStatus.WAITING_REVIEW })
 
     await notifyBuildReadyForReview({ projectId, buildId })
 
     return `Successfully generated snapshots (${snapshotPayloads.length} pages)`
   } catch (error) {
-    await finalizeBuildSnapshots({ buildId, isSuccess: false })
+    if (isCancellation(error)) {
+      throw error
+    }
+
+    await finalizeBuildSnapshots({ buildId, status: BuildStatus.ERROR })
     throw error
   }
 }
@@ -92,7 +87,11 @@ export async function retrySingleSnapshotWorkflow({
       },
     })
   } catch (error) {
-    await finalizeBuildSnapshots({ buildId, isSuccess: false })
+    if (isCancellation(error)) {
+      throw error
+    }
+
+    await finalizeBuildSnapshots({ buildId, status: BuildStatus.ERROR })
     throw error
   }
 }
