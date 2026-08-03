@@ -3,8 +3,17 @@ import { proxyActivities } from '@temporalio/workflow'
 import type * as Activities from '@/temporal/activities/build'
 import { type ScreenshotWorkflowResult, type ScreenshotWorkflowParams } from '@/types/screenshot'
 
-const { getExistingSnapshot, takeScreenshot, processScreenshot } = proxyActivities<typeof Activities>({
-  startToCloseTimeout: '30 minutes',
+const { getExistingSnapshot, processScreenshot } = proxyActivities<typeof Activities>({
+  startToCloseTimeout: '30 seconds',
+  retry: {
+    initialInterval: '500 ms',
+    maximumAttempts: 10,
+    backoffCoefficient: 1.5,
+  },
+})
+
+const { takeScreenshot } = proxyActivities<typeof Activities>({
+  startToCloseTimeout: '5 minutes',
   retry: {
     initialInterval: '500 ms',
     maximumAttempts: 10,
