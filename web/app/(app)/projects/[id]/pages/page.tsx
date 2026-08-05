@@ -251,10 +251,10 @@ export default function ManagePages() {
 
   // Reset the form with new values when a different page is selected
   useEffect(() => {
-    if (selectedPageRule && resetFormRef.current) {
+    if (selectedPageRule && resetFormRef.current && !isFormDirty) {
       resetFormRef.current(selectedPageRule)
     }
-  }, [selectedPageRule])
+  }, [selectedPageRule, isFormDirty])
 
   if (!isLoading && !project) {
     notFound()
@@ -347,6 +347,7 @@ export default function ManagePages() {
           setSelectedPath(pendingSelectedPath)
           setPendingSelectedPath('')
           setOpenUnsavedChangesDialog(false)
+          setIsFormDirty(false)
         }}
         onCancel={() => {
           setPendingSelectedPath('')
