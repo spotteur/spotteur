@@ -20,9 +20,11 @@ export function BulkEditPagesDialog({
   const [code, setCode] = useState(codeYaml)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCode(codeYaml)
-  }, [codeYaml])
+    if (codeYaml && open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCode(codeYaml)
+    }
+  }, [codeYaml, open])
 
   return (
     <Dialog open={open}>
