@@ -1,21 +1,28 @@
 import * as fs from 'node:fs'
 
-import { ApplicationFailure } from '@temporalio/common'
+import { Context } from '@temporalio/activity'
+import { ApplicationFailure, CancelledFailure } from '@temporalio/common'
 import { and, eq } from 'drizzle-orm'
 import { type Route } from 'next'
 
-import { APP_URL } from '@/constants/env'
+import { APP_URL, BROWSER_ENGINE_TYPE } from '@/constants/env'
 import { NOVU_WORKFLOW_BUILD_READY_FOR_REVIEW } from '@/constants/novu'
 import { BuildStatus } from '@/constants/status-map'
 import db from '@/db/drizzle'
 import { builds, snapshots } from '@/db/schema'
 import { getNovuSubscribers, syncBuildStatusBasedOnSnapshotApprovals } from '@/features/builds/actions'
-import { UnsupportedBrowserEngineError, UnsupportedBrowserTypeError } from '@/lib/browser-engine'
+import {
+  BrowserEngineFactory,
+  BrowserEngineType,
+  UnsupportedBrowserEngineError,
+  UnsupportedBrowserTypeError,
+} from '@/lib/browser-engine'
 import { logger } from '@/lib/logger'
 import novu from '@/lib/novu'
 import { ScreenshotCapturer } from '@/lib/screenshot/capturer'
 import { ScreenshotProcessor } from '@/lib/screenshot/processor'
 import { isSnapshotExactlyMatching } from '@/lib/utils'
+import { type IBrowserEngine } from '@/types/browser-engine'
 import {
   type ProcessScreenshotResult,
   type ProcessScreenshotParams,
@@ -64,9 +71,34 @@ export async function getExistingSnapshot({
 }
 
 export async function takeScreenshot(params: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
+  let browserEngine: IBrowserEngine | undefined
   try {
-    return await new ScreenshotCapturer(params).capture()
+    logger.info(`Launching browser engine`, { payload: params.payload })
+    browserEngine = await BrowserEngineFactory.create(BROWSER_ENGINE_TYPE || BrowserEngineType.SELENIUM, params.payload)
+
+    const capturer = new ScreenshotCapturer({
+      ...params,
+      browserEngine,
+      heartbeat: async (details) => {
+        const message = ((details || {}) as { message: string | undefined })?.message
+        if (message) {
+          logger.info(message, { payload: params.payload })
+        }
+
+        const ctx = Context.current()
+        ctx.heartbeat(details)
+        if (ctx.cancellationSignal.aborted) {
+          throw new CancelledFailure('Activity cancellation requested')
+        }
+      },
+    })
+
+    return await capturer.capture()
   } catch (error) {
+    if (error instanceof ApplicationFailure || error instanceof CancelledFailure) {
+      throw error
+    }
+
     if (error instanceof UnsupportedBrowserEngineError) {
       logger.error(`Unsupported browser engine: ${error.message}`, { payload: params.payload })
       throw ApplicationFailure.nonRetryable(error.message, error.name)
@@ -95,6 +127,9 @@ export async function takeScreenshot(params: CaptureScreenshotParams): Promise<C
       error instanceof Error ? error.name : 'UnknownError',
       [{ error }],
     )
+  } finally {
+    logger.info(`Closing browser engine`, { payload: params.payload })
+    browserEngine?.quit().catch(() => {})
   }
 }
 
@@ -124,7 +159,7 @@ export async function processScreenshot(params: ProcessScreenshotParams): Promis
   }
 }
 
-export async function finalizeBuildSnapshots({ buildId, isSuccess }: { buildId: string; isSuccess?: boolean }) {
+export async function finalizeBuildSnapshots({ buildId, status }: { buildId: string; status: BuildStatus }) {
   try {
     const [build] = await db.select().from(builds).where(eq(builds.id, buildId)).limit(1)
     if (!build) {
@@ -132,7 +167,7 @@ export async function finalizeBuildSnapshots({ buildId, isSuccess }: { buildId: 
     }
 
     await db.transaction(async (tx) => {
-      build.status = isSuccess ? BuildStatus.WAITING_REVIEW : BuildStatus.ERROR
+      build.status = status
 
       await tx.update(builds).set({ status: build.status }).where(eq(builds.id, build.id)).returning()
 

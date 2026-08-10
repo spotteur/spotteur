@@ -34,7 +34,7 @@ export const projectsMenu = (projectId: string): NavigationType[] => {
   ]
 }
 
-export const snapshotsMenu = (projectId: string, buildId: string): NavigationType[] => {
+export const buildsMenu = (buildId: string): NavigationType[] => {
   return [
     {
       label: 'Snapshots',

@@ -4,6 +4,8 @@ import { type snapshots } from '@/db/schema'
 import { type SpotteurGlobalVariablesSchema } from '@/features/page-rules/schema'
 import { type CookieSettingSchema } from '@/features/projects/schema'
 
+import { type IBrowserEngine } from './browser-engine'
+
 export type SnapshotPayload = Pick<
   typeof snapshots.$inferSelect,
   'id' | 'buildId' | 'pagePath' | 'browser' | 'viewportWidth' | 'viewportHeight'
@@ -41,6 +43,8 @@ export interface GenerateSnapshotsWorkflowParams {
 export interface CaptureScreenshotParams {
   payload: SnapshotPayload
   logPrefix: string
+  browserEngine?: IBrowserEngine
+  heartbeat?: (details?: unknown) => Promise<void>
 }
 
 export interface CaptureScreenshotResult {

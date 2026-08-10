@@ -1,6 +1,6 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import type * as Activities from '@/temporal/activities/build'
+import type * as Activities from '@/temporal/activities'
 import { type ScreenshotWorkflowResult, type ScreenshotWorkflowParams } from '@/types/screenshot'
 
 const { getExistingSnapshot, processScreenshot } = proxyActivities<typeof Activities>({

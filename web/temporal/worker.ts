@@ -3,9 +3,7 @@ import { NativeConnection, Worker } from '@temporalio/worker'
 import { TEMPORAL_ADDRESS } from '@/constants/env'
 import { TEMPORAL_QUEUE_NAME } from '@/constants/temporal'
 import { logger } from '@/lib/logger'
-import * as buildActivities from '@/temporal/activities/build'
-import * as projectActivities from '@/temporal/activities/project'
-import * as snapshotActivities from '@/temporal/activities/snapshot'
+import * as activities from '@/temporal/activities'
 
 async function run() {
   const worker = await Worker.create({
@@ -13,11 +11,7 @@ async function run() {
       address: TEMPORAL_ADDRESS,
     }),
     workflowsPath: require.resolve('./workflows/index'),
-    activities: {
-      ...buildActivities,
-      ...projectActivities,
-      ...snapshotActivities,
-    },
+    activities,
     taskQueue: TEMPORAL_QUEUE_NAME,
   })
 
