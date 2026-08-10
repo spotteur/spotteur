@@ -3,6 +3,7 @@ import { type BadgeVariant } from '@/components/ui/badge'
 export enum BuildStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',
+  CANCELLED = 'cancelled',
   ERROR = 'error',
   WAITING_REVIEW = 'waiting_review',
   PASSED = 'passed',
@@ -12,6 +13,7 @@ export enum BuildStatus {
 export const BUILD_STATUS_MAP: Record<BuildStatus, string> = {
   [BuildStatus.PENDING]: 'Pending',
   [BuildStatus.IN_PROGRESS]: 'In Progress',
+  [BuildStatus.CANCELLED]: 'Cancelled',
   [BuildStatus.ERROR]: 'System Error',
   [BuildStatus.WAITING_REVIEW]: 'Waiting Review',
   [BuildStatus.PASSED]: 'Test Passed',
@@ -21,6 +23,7 @@ export const BUILD_STATUS_MAP: Record<BuildStatus, string> = {
 export const BUILD_STATUS_COLOR_MAP: Record<BuildStatus, BadgeVariant> = {
   [BuildStatus.PENDING]: 'outline',
   [BuildStatus.IN_PROGRESS]: 'secondary',
+  [BuildStatus.CANCELLED]: 'warning',
   [BuildStatus.ERROR]: 'destructive',
   [BuildStatus.WAITING_REVIEW]: 'default',
   [BuildStatus.PASSED]: 'success',

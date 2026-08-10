@@ -1,32 +1,44 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { RotateCcw, Pencil, Plus } from 'lucide-react'
-import { useMemo } from 'react'
+import { RotateCcw, Pencil, Plus, XIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ExpandableText } from '@/components/expandable-text'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DEFAULT_ERROR_MESSAGE, DEFAULT_ERROR_DESCRIPTION } from '@/constants/app'
 import { detailBuildQueryKey, listBuildsByProjectQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
 import { BuildStatus } from '@/constants/status-map'
+import { cancelBuild, getBuildDetail, resumeBuild } from '@/features/builds/actions'
 import { BuildStatusBadge } from '@/features/builds/badge'
 import { UpdateBuildNotesDialog } from '@/features/builds/edit-build-notes-dialog'
+import { listSnapshotsByBuildV2 } from '@/features/snapshots/actions'
 import { formatDateTime, humanReadableDecimal } from '@/lib/utils'
-
-import { getBuildDetail, resumeBuild } from './actions'
-import { listSnapshotsByBuildV2 } from '../snapshots/actions'
 
 export function BuildSummaryCard({ buildId }: { buildId: string }) {
   const queryClient = useQueryClient()
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
 
   const { data } = useQuery({
     queryKey: detailBuildQueryKey(buildId),
     queryFn: () => getBuildDetail({ buildId }),
     refetchInterval: ({ state }) => {
       const buildStatus = state.data?.build?.status
-      if (buildStatus === BuildStatus.PENDING || buildStatus === BuildStatus.IN_PROGRESS) {
+      if (
+        buildStatus === BuildStatus.PENDING ||
+        buildStatus === BuildStatus.IN_PROGRESS ||
+        buildStatus === BuildStatus.WAITING_REVIEW
+      ) {
         return 10_000
       }
 
@@ -80,6 +92,26 @@ export function BuildSummaryCard({ buildId }: { buildId: string }) {
     },
   })
 
+  const { mutate: onCancel, isPending: isCancelPending } = useMutation({
+    mutationFn: () => cancelBuild({ projectId: project?.id ?? '', buildId }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success('Build cancelled', { description: 'The build has been cancelled.' })
+        queryClient.invalidateQueries({ queryKey: listBuildsByProjectQueryKey(project?.id ?? '') })
+        queryClient.invalidateQueries({ queryKey: detailBuildQueryKey(buildId) })
+        queryClient.invalidateQueries({ queryKey: listSnapshotsByBuildQueryKey(buildId) })
+        setShowCancelDialog(false)
+        return
+      }
+
+      toast.error('Failed to cancel build', { description: res.error })
+    },
+    onError: (error) => {
+      console.error(error)
+      toast.error(DEFAULT_ERROR_MESSAGE, { description: DEFAULT_ERROR_DESCRIPTION })
+    },
+  })
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row">
       <Card className="w-full sm:w-3/5">
@@ -88,6 +120,12 @@ export function BuildSummaryCard({ buildId }: { buildId: string }) {
             <>
               <CardTitle className="text-xl">{build.identifier}</CardTitle>
               <div className="flex flex-wrap items-center gap-3">
+                {build.status === BuildStatus.IN_PROGRESS ? (
+                  <Button size="sm" variant="destructive" onClick={() => setShowCancelDialog(true)}>
+                    <XIcon className="size-4" />
+                    Cancel build
+                  </Button>
+                ) : null}
                 {build.status === BuildStatus.ERROR ? (
                   <Button size="sm" onClick={() => onResume()} disabled={isResumePending}>
                     <RotateCcw className="size-4" />
@@ -154,6 +192,25 @@ export function BuildSummaryCard({ buildId }: { buildId: string }) {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel build?</DialogTitle>
+            <DialogDescription>
+              This will stop all pending screenshots for this build. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+              Keep going
+            </Button>
+            <Button variant="destructive" onClick={() => onCancel()} disabled={isCancelPending}>
+              {isCancelPending ? 'Cancelling...' : 'Yes, cancel build'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

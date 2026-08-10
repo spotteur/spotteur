@@ -9,7 +9,7 @@ import { useMemo } from 'react'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Card, CardContent } from '@/components/ui/card'
-import { snapshotsMenu } from '@/constants/app'
+import { buildsMenu } from '@/constants/app'
 import { detailBuildQueryKey } from '@/constants/query-keys'
 import { getBuildDetail } from '@/features/builds/actions'
 import { BuildSummaryCard } from '@/features/builds/summary'
@@ -62,13 +62,9 @@ export default function BuildDetailLogsPage() {
       ) : null,
     [projectData, buildData, params],
   )
-
   useHeaderBreadcrumbs(breadcrumbs, isLoading)
 
-  const navigations = useMemo<NavigationType[]>(
-    () => snapshotsMenu(projectData?.id ?? '', params.buildId),
-    [projectData?.id, params.buildId],
-  )
+  const navigations = useMemo<NavigationType[]>(() => buildsMenu(params.buildId), [params.buildId])
   useHeaderNavigations(navigations)
 
   if (!isLoading && !buildData) {
