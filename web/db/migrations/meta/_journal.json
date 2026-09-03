@@ -176,6 +176,13 @@
       "when": 1784095538111,
       "tag": "0024_milky_forge",
       "breakpoints": false
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788399540453,
+      "tag": "0025_light_vertigo",
+      "breakpoints": false
     }
   ]
 }
