@@ -49,8 +49,8 @@ export function SnapshotReviewFilters({
   diffTolerancePercentage,
 }: SnapshotReviewFiltersProps) {
   return (
-    <div className="flex flex-row items-center gap-3 rounded-lg shadow-none">
-      <InputGroup className="w-sm">
+    <div className="flex flex-row flex-wrap items-center gap-3 rounded-lg shadow-none">
+      <InputGroup className="md:w-sm">
         <InputGroupInput
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -70,7 +70,7 @@ export function SnapshotReviewFilters({
       </InputGroup>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-48 justify-start">
+          <Button variant="outline" className="w-full justify-start md:w-48">
             {browsers.length > 0 ? `Filtered by ${browsers.length} browser(s)` : 'Filter by browser...'}
           </Button>
         </DropdownMenuTrigger>
@@ -97,7 +97,7 @@ export function SnapshotReviewFilters({
       </DropdownMenu>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-54 justify-start">
+          <Button variant="outline" className="w-full justify-start md:w-54">
             {status
               ? `Filtered by status ${SNAPSHOT_APPROVAL_STATUS_MAP[status as SnapshotApprovalStatus]}`
               : 'Filter by status...'}

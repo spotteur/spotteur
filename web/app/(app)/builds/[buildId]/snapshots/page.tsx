@@ -232,7 +232,7 @@ export default function BuildDetailSnapshotPage() {
     <div className="flex flex-col space-y-3">
       <BuildSummaryCard buildId={params.buildId} />
       <div className="flex h-screen flex-col space-y-3">
-        <div className="sticky top-0 z-4 flex flex-row items-center justify-between bg-white py-2 dark:bg-black">
+        <div className="sticky top-0 z-4 flex flex-col items-center justify-between bg-white py-2 sm:flex-row dark:bg-black">
           <SnapshotReviewFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -246,7 +246,7 @@ export default function BuildDetailSnapshotPage() {
             setHideNewPage={setHideNewPage}
             diffTolerancePercentage={diffTolerancePercentage}
           />
-          <Field orientation="horizontal" className="w-xs justify-end px-4">
+          <Field orientation="horizontal" className="flex-1 justify-end px-4 lg:w-xs">
             <Checkbox
               id="bulkUpdate"
               checked={bulkItems.length === filteredSnapshotItems.length}
