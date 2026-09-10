@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { useHeaderBreadcrumbs, useHeaderNavigations } from '@/components/layout/header-context'
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Field } from '@/components/ui/field'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { buildsMenu } from '@/constants/app'
 import { detailBuildQueryKey, listSnapshotsByBuildQueryKey } from '@/constants/query-keys'
@@ -246,12 +246,15 @@ export default function BuildDetailSnapshotPage() {
             setHideNewPage={setHideNewPage}
             diffTolerancePercentage={diffTolerancePercentage}
           />
-          <Field orientation="horizontal" className="flex-1 justify-end px-4 lg:w-xs">
+          <Field orientation="horizontal" className="flex-1 justify-end pt-4 sm:px-4 sm:pt-0 lg:w-xs">
             <Checkbox
               id="bulkUpdate"
               checked={bulkItems.length === filteredSnapshotItems.length}
               onCheckedChange={onBulkSelectChange}
             />
+            <FieldLabel className="flex-none! pr-2 sm:hidden" htmlFor="bulkUpdate">
+              Select all
+            </FieldLabel>
           </Field>
         </div>
         <ResizablePanelGroup orientation="horizontal" className="flex-1 overflow-visible rounded-lg border">

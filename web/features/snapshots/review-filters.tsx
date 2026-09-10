@@ -49,7 +49,7 @@ export function SnapshotReviewFilters({
   diffTolerancePercentage,
 }: SnapshotReviewFiltersProps) {
   return (
-    <div className="flex flex-row flex-wrap items-center gap-3 rounded-lg shadow-none">
+    <div className="flex w-full flex-row flex-wrap items-center gap-3 rounded-lg shadow-none">
       <InputGroup className="md:w-sm">
         <InputGroupInput
           value={searchQuery}
