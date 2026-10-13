@@ -1,5 +1,3 @@
-import crypto from 'node:crypto'
-
 import { ApplicationFailure } from '@temporalio/common'
 import * as uuid from 'uuid'
 
@@ -7,11 +5,12 @@ import { ACCESSIBILITY_SCAN_APP_KEY, ACCESSIBILITY_SCAN_APP_URL, APP_URL } from 
 import db from '@/db/drizzle'
 import { event } from '@/db/schema'
 import { logger } from '@/lib/logger'
+import { randomBytesHex } from '@/lib/utils'
 
 export async function generateTriggerOptions() {
   const requestId = uuid.v4()
   const callbackUrl = new URL('/callback', APP_URL).toString()
-  const callbackSecret = crypto.randomBytes(16).toString('hex')
+  const callbackSecret = randomBytesHex(16)
 
   return { requestId, callbackUrl, callbackSecret }
 }

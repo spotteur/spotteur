@@ -75,3 +75,10 @@ export const isBaselineOutdated = (date: Date | string): boolean => {
 
   return !isWithinThreshold
 }
+
+/**
+ *
+ * @param bytes Number of random bytes
+ * @returns Hex string (length = 2*bytes)
+ */
+export const randomBytesHex = (bytes: number) => crypto.randomBytes(bytes).toString('hex')
