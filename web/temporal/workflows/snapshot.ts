@@ -1,12 +1,12 @@
 import { executeChild, isCancellation, proxyActivities } from '@temporalio/workflow'
 
-import { ACCESSIBILITY_SCAN_APP_URL, ACCESSIBILITY_SCAN_APP_KEY } from '@/constants/env'
 import type * as Activities from '@/temporal/activities'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
 
 // Importing using aliases can cause issues with Temporal, so we use a relative path here
 import { accessibilityScanWorkflow } from './accessibility-scan'
 import { screenshotWorkflow } from './screenshot'
+import { ACCESSIBILITY_SCAN_APP_URL, ACCESSIBILITY_SCAN_APP_KEY } from '../../constants/env'
 import { BuildStatus } from '../../constants/status-map'
 
 const { notifyBuildReadyForReview } = proxyActivities<typeof Activities>({
