@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import jwt from 'jsonwebtoken'
+import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
@@ -22,6 +22,12 @@ export async function POST(request: NextRequest) {
     await db.update(eventSchema).set({ payload: verifiedPayload }).where(eq(eventSchema.publicId, requestId))
     return NextResponse.json({ ok: true, message: 'Callback processed' })
   } catch (error: unknown) {
+    if (error instanceof TokenExpiredError) {
+      return NextResponse.json({ ok: false, message: 'TOKEN_EXPIRED' }, { status: 400 })
+    }
+    if (error instanceof JsonWebTokenError) {
+      return NextResponse.json({ ok: false, message: 'INVALID_TOKEN' }, { status: 400 })
+    }
     return NextResponse.json(
       { ok: false, message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE },
       { status: 500 },
