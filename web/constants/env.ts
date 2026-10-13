@@ -5,6 +5,9 @@ dotenv.config({ quiet: true })
 export const APP_ENV = process.env.APP_ENV || 'production'
 export const APP_URL = process.env.APP_URL || ''
 
+export const ACCESSIBILITY_SCAN_APP_URL = process.env.ACCESSIBILITY_SCAN_APP_URL || 'http://host.docker.internal:18100'
+export const ACCESSIBILITY_SCAN_APP_KEY = process.env.ACCESSIBILITY_SCAN_APP_KEY || ''
+
 export const DB_HOST = process.env.DB_HOST || ''
 export const DB_PORT = Number(process.env.DB_PORT || '0')
 export const DB_USER = process.env.DB_USER || ''
