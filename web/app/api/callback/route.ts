@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
     const verifiedPayload = jwt.verify(payload, event.secret)
     await db.update(eventSchema).set({ payload: verifiedPayload }).where(eq(eventSchema.publicId, requestId))
-    return NextResponse.json({ message: 'Work in progress' })
+    return NextResponse.json({ ok: true, message: 'Callback processed' })
   } catch (error: unknown) {
     return NextResponse.json(
       { ok: false, message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE },
