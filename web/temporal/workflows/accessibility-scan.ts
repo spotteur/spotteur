@@ -17,7 +17,7 @@ interface AccessibilityScanWorkflowParams {
   pageUrl: string
 }
 
-export async function accessibilityScan({ pageUrl }: AccessibilityScanWorkflowParams): Promise<void> {
+export async function accessibilityScanWorkflow({ pageUrl }: AccessibilityScanWorkflowParams): Promise<void> {
   const { requestId, callbackUrl, callbackSecret } = await generateTriggerOptions()
   const scanId = await triggerAccessibilityScan({ pageUrl, requestId, options: { callbackUrl, callbackSecret } })
   await writeAccessibilityScanEventShadowData({ scanId, requestId, callbackSecret })
