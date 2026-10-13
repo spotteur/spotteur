@@ -1,9 +1,11 @@
 import { executeChild, isCancellation, proxyActivities } from '@temporalio/workflow'
 
+import { ACCESSIBILITY_SCAN_APP_URL, ACCESSIBILITY_SCAN_APP_KEY } from '@/constants/env'
 import type * as Activities from '@/temporal/activities'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
 
 // Importing using aliases can cause issues with Temporal, so we use a relative path here
+import { accessibilityScanWorkflow } from './accessibility-scan'
 import { screenshotWorkflow } from './screenshot'
 import { BuildStatus } from '../../constants/status-map'
 
@@ -50,6 +52,22 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
         })
       }),
     )
+
+    if (ACCESSIBILITY_SCAN_APP_URL && ACCESSIBILITY_SCAN_APP_KEY) {
+      const accessibilityScanChildWorkflows = snapshotPayloads.map((payload) => {
+        const { pageUrl } = payload
+        return executeChild(accessibilityScanWorkflow, {
+          args: [{ pageUrl }],
+          workflowId: `accessibility-scan-${buildId}-${pageUrl}`,
+          retry: {
+            initialInterval: '500 ms',
+            maximumAttempts: 3,
+            backoffCoefficient: 1.5,
+          },
+        })
+      })
+      await Promise.all(accessibilityScanChildWorkflows)
+    }
 
     await finalizeBuildSnapshots({ buildId, status: BuildStatus.WAITING_REVIEW })
 
