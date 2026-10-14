@@ -1,9 +1,9 @@
 import { proxyActivities } from '@temporalio/workflow'
 
-import type * as AccessibilityScanActivities from '@/temporal/activities/accessibility-scan'
+import type * as Activities from '@/temporal/activities'
 
 const { generateTriggerOptions, triggerAccessibilityScan, writeAccessibilityScanEventShadowData } = proxyActivities<
-  typeof AccessibilityScanActivities
+  typeof Activities
 >({
   startToCloseTimeout: '10 seconds',
   retry: {
