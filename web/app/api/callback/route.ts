@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import db from '@/db/drizzle'
 import { webhookEvents } from '@/db/schema'
+import { logger } from '@/lib/logger'
 
 /**
  * Extension callback receiver
@@ -14,6 +15,7 @@ import { webhookEvents } from '@/db/schema'
 export async function POST(request: NextRequest) {
   try {
     const { requestId, payload } = await request.json()
+    logger.info(`Received callback for request id ${requestId}`)
     const [event] = await db.select().from(webhookEvents).where(eq(webhookEvents.publicId, requestId))
     if (!event) {
       throw new Error(`Event with request ID does not exist: ${requestId}`)
