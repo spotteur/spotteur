@@ -29,6 +29,15 @@ const { markBuildAsStarted, finalizeBuildSnapshots, getSingleSnapshotPayload, ge
   },
 })
 
+const { checkAccessibilityScanCredentials } = proxyActivities<typeof Activities>({
+  startToCloseTimeout: '30 seconds',
+  retry: {
+    initialInterval: '500 ms',
+    maximumAttempts: 3,
+    backoffCoefficient: 1.5,
+  },
+})
+
 /**
  * Workflow proxy for multi screenshot
  * @param args Workflow args
@@ -53,7 +62,8 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
       }),
     )
 
-    if (ACCESSIBILITY_SCAN_APP_URL && ACCESSIBILITY_SCAN_APP_KEY) {
+    const runAccessibilityScan = await checkAccessibilityScanCredentials()
+    if (runAccessibilityScan) {
       const accessibilityScanChildWorkflows = snapshotPayloads.map((payload) => {
         const { pageUrl } = payload
         return executeChild(accessibilityScanWorkflow, {

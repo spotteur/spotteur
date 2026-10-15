@@ -7,6 +7,14 @@ import { event } from '@/db/schema'
 import { logger } from '@/lib/logger'
 import { randomBytesHex } from '@/lib/utils'
 
+export async function checkAccessibilityScanCredentials(
+  endpoint: string = ACCESSIBILITY_SCAN_APP_URL,
+  key: string = ACCESSIBILITY_SCAN_APP_KEY,
+) {
+  const res = await fetch(endpoint, { headers: { 'x-api-key': key } })
+  return res.ok
+}
+
 export async function generateTriggerOptions() {
   const requestId = uuid.v4()
   const callbackUrl = new URL('/callback', APP_URL).toString()
