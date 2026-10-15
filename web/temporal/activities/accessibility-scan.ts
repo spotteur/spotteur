@@ -17,7 +17,7 @@ export async function checkAccessibilityScanCredentials(
 
 export async function generateTriggerOptions() {
   const requestId = uuid.v4()
-  const callbackUrl = new URL('/callback', APP_URL).toString()
+  const callbackUrl = new URL('/api/callback', APP_URL).toString()
   const callbackSecret = randomBytesHex(16)
 
   return { requestId, callbackUrl, callbackSecret }
