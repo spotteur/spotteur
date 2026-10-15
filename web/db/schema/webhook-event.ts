@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm'
 import { pgTable, uuid, timestamp, varchar, jsonb, index } from 'drizzle-orm/pg-core'
 
-export const event = pgTable(
-  'events',
+export const webhookEvents = pgTable(
+  'webhook_events',
   {
     id: uuid('id')
       .primaryKey()

@@ -3,7 +3,7 @@ import * as uuid from 'uuid'
 
 import { ACCESSIBILITY_SCAN_APP_KEY, ACCESSIBILITY_SCAN_APP_URL, APP_URL } from '@/constants/env'
 import db from '@/db/drizzle'
-import { event } from '@/db/schema'
+import { webhookEvents } from '@/db/schema'
 import { logger } from '@/lib/logger'
 import { randomBytesHex } from '@/lib/utils'
 
@@ -71,5 +71,7 @@ export async function writeAccessibilityScanEventShadowData({
   requestId,
   callbackSecret,
 }: AccessibilityEventShadowDataInput) {
-  await db.insert(event).values({ id: scanId, publicId: requestId, type: 'accessibility_scan', secret: callbackSecret })
+  await db
+    .insert(webhookEvents)
+    .values({ id: scanId, publicId: requestId, type: 'accessibility_scan', secret: callbackSecret })
 }

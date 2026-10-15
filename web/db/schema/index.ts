@@ -1,4 +1,4 @@
 export * from './auth'
 export * from './project'
 export * from './media'
-export * from './events'
+export * from './webhook-event'
