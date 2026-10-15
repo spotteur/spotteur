@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { DEFAULT_ERROR_MESSAGE } from '@/constants/app'
 import db from '@/db/drizzle'
-import { event as eventSchema } from '@/db/schema'
+import { webhookEvents } from '@/db/schema'
 
 /**
  * Extension callback receiver
@@ -14,12 +14,12 @@ import { event as eventSchema } from '@/db/schema'
 export async function POST(request: NextRequest) {
   try {
     const { requestId, payload } = await request.json()
-    const [event] = await db.select().from(eventSchema).where(eq(eventSchema.publicId, requestId))
+    const [event] = await db.select().from(webhookEvents).where(eq(webhookEvents.publicId, requestId))
     if (!event) {
       throw new Error(`Event with request ID does not exist: ${requestId}`)
     }
     const verifiedPayload = jwt.verify(payload, event.secret)
-    await db.update(eventSchema).set({ payload: verifiedPayload }).where(eq(eventSchema.publicId, requestId))
+    await db.update(webhookEvents).set({ payload: verifiedPayload }).where(eq(webhookEvents.publicId, requestId))
     return NextResponse.json({ ok: true, message: 'Callback processed' })
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
