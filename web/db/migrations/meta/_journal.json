@@ -176,20 +176,6 @@
       "when": 1784095538111,
       "tag": "0024_milky_forge",
       "breakpoints": false
-    },
-    {
-      "idx": 25,
-      "version": "7",
-      "when": 1791881803984,
-      "tag": "0025_chunky_wallop",
-      "breakpoints": false
-    },
-    {
-      "idx": 26,
-      "version": "7",
-      "when": 1792059453849,
-      "tag": "0026_cynical_pete_wisdom",
-      "breakpoints": false
     }
   ]
 }
