@@ -10,7 +10,6 @@ services:
       - "${WEBAPP_NOVU_PORT:-18006}:3002"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    env_file: [".env"]
     volumes:
       - ./:/workspaces/spotteur:cached
       - "webapp-worker_storage:${TEMPORAL_DEFAULT_STORAGE_DIR:-/storage}"
