@@ -4,6 +4,7 @@ import type * as Activities from '@/temporal/activities'
 import type { GenerateSnapshotsWorkflowParams } from '@/types/screenshot'
 
 // Importing using aliases can cause issues with Temporal, so we use a relative path here
+import { accessibilityScanWorkflow } from './accessibility-scan'
 import { screenshotWorkflow } from './screenshot'
 import { BuildStatus } from '../../constants/status-map'
 
@@ -19,6 +20,15 @@ const { notifyBuildReadyForReview } = proxyActivities<typeof Activities>({
 const { markBuildAsStarted, finalizeBuildSnapshots, getSingleSnapshotPayload, getSnapshotsPayload } = proxyActivities<
   typeof Activities
 >({
+  startToCloseTimeout: '30 seconds',
+  retry: {
+    initialInterval: '500 ms',
+    maximumAttempts: 3,
+    backoffCoefficient: 1.5,
+  },
+})
+
+const { checkAccessibilityScanCredentials } = proxyActivities<typeof Activities>({
   startToCloseTimeout: '30 seconds',
   retry: {
     initialInterval: '500 ms',
@@ -50,6 +60,23 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
         })
       }),
     )
+
+    const runAccessibilityScan = await checkAccessibilityScanCredentials()
+    if (runAccessibilityScan) {
+      const accessibilityScanChildWorkflows = snapshotPayloads.map((payload) => {
+        const { pageUrl } = payload
+        return executeChild(accessibilityScanWorkflow, {
+          args: [{ pageUrl, buildId }],
+          workflowId: `accessibility-scan-${buildId}-${pageUrl}`,
+          retry: {
+            initialInterval: '500 ms',
+            maximumAttempts: 3,
+            backoffCoefficient: 1.5,
+          },
+        })
+      })
+      await Promise.all(accessibilityScanChildWorkflows)
+    }
 
     await finalizeBuildSnapshots({ buildId, status: BuildStatus.WAITING_REVIEW })
 

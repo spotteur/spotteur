@@ -8,7 +8,8 @@ services:
       - "${WEBAPP_PORT:-18000}:3000"
       - "${WEBAPP_EMAIL_PORT:-18005}:3001"
       - "${WEBAPP_NOVU_PORT:-18006}:3002"
-    env_file: [".env"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./:/workspaces/spotteur:cached
       - "webapp-worker_storage:${TEMPORAL_DEFAULT_STORAGE_DIR:-/storage}"
