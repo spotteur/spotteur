@@ -16,16 +16,16 @@ export async function checkAccessibilityScanCredentials(
 }
 
 export async function generateTriggerOptions() {
-  const requestId = uuid.v4()
+  const traceId = uuid.v4()
   const callbackUrl = new URL('/api/callback', APP_URL).toString()
   const callbackSecret = randomBytesHex(16)
 
-  return { requestId, callbackUrl, callbackSecret }
+  return { traceId, callbackUrl, callbackSecret }
 }
 
 interface AccessibilityScanTriggerParams {
   pageUrl: string
-  requestId: string
+  traceId: string
   options: {
     callbackUrl: string
     callbackSecret: string
@@ -34,17 +34,17 @@ interface AccessibilityScanTriggerParams {
 
 export async function triggerAccessibilityScan({
   pageUrl,
-  requestId,
+  traceId,
   options: { callbackUrl, callbackSecret },
 }: AccessibilityScanTriggerParams): Promise<string> {
   const res = await fetch(ACCESSIBILITY_SCAN_APP_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': ACCESSIBILITY_SCAN_APP_KEY },
-    body: JSON.stringify({ pageUrl, requestId, options: { callbackUrl, callbackSecret } }),
+    body: JSON.stringify({ pageUrl, traceId, options: { callbackUrl, callbackSecret } }),
   })
   if (!res.ok) {
     const failureMsg =
-      `[${requestId}] Failed to trigger accessibility scan, ` +
+      `[${traceId}] Failed to trigger accessibility scan, ` +
       `service responded with ${res.status} (Body: ${await res.text()})`
     const isTransient = res.status === 429 || res.status === 408
     const isNonRetryable = res.status >= 400 && res.status < 500 && !isTransient
@@ -62,16 +62,18 @@ export async function triggerAccessibilityScan({
 
 interface AccessibilityEventShadowDataInput {
   scanId: string
-  requestId: string
+  traceId: string
+  buildId: string
   callbackSecret: string
 }
 
 export async function writeAccessibilityScanEventShadowData({
   scanId,
-  requestId,
+  traceId,
+  buildId,
   callbackSecret,
 }: AccessibilityEventShadowDataInput) {
   await db
     .insert(webhookEvents)
-    .values({ id: scanId, publicId: requestId, type: 'accessibility_scan', secret: callbackSecret })
+    .values({ eid: scanId, buildId, traceId, type: 'accessibility_scan', secret: callbackSecret })
 }

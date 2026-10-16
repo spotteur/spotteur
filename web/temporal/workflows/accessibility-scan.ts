@@ -14,11 +14,12 @@ const { generateTriggerOptions, triggerAccessibilityScan, writeAccessibilityScan
 })
 
 interface AccessibilityScanWorkflowParams {
+  buildId: string
   pageUrl: string
 }
 
-export async function accessibilityScanWorkflow({ pageUrl }: AccessibilityScanWorkflowParams): Promise<void> {
-  const { requestId, callbackUrl, callbackSecret } = await generateTriggerOptions()
-  const scanId = await triggerAccessibilityScan({ pageUrl, requestId, options: { callbackUrl, callbackSecret } })
-  await writeAccessibilityScanEventShadowData({ scanId, requestId, callbackSecret })
+export async function accessibilityScanWorkflow({ pageUrl, buildId }: AccessibilityScanWorkflowParams): Promise<void> {
+  const { traceId, callbackUrl, callbackSecret } = await generateTriggerOptions()
+  const scanId = await triggerAccessibilityScan({ pageUrl, traceId, options: { callbackUrl, callbackSecret } })
+  await writeAccessibilityScanEventShadowData({ scanId, traceId, buildId, callbackSecret })
 }

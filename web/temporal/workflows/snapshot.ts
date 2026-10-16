@@ -66,7 +66,7 @@ export async function buildSnapshotsWorkflow({ projectId, buildId }: GenerateSna
       const accessibilityScanChildWorkflows = snapshotPayloads.map((payload) => {
         const { pageUrl } = payload
         return executeChild(accessibilityScanWorkflow, {
-          args: [{ pageUrl }],
+          args: [{ pageUrl, buildId }],
           workflowId: `accessibility-scan-${buildId}-${pageUrl}`,
           retry: {
             initialInterval: '500 ms',

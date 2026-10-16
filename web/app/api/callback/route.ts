@@ -15,13 +15,13 @@ import { logger } from '@/lib/logger'
 export async function POST(request: NextRequest) {
   try {
     const { requestId, payload } = await request.json()
-    logger.info(`Received callback for request id ${requestId}`)
-    const [event] = await db.select().from(webhookEvents).where(eq(webhookEvents.publicId, requestId))
+    logger.info(`Received callback for external id ${requestId}`)
+    const [event] = await db.select().from(webhookEvents).where(eq(webhookEvents.eid, requestId))
     if (!event) {
       throw new Error(`Event with request ID does not exist: ${requestId}`)
     }
     const verifiedPayload = jwt.verify(payload, event.secret)
-    await db.update(webhookEvents).set({ payload: verifiedPayload }).where(eq(webhookEvents.publicId, requestId))
+    await db.update(webhookEvents).set({ payload: verifiedPayload }).where(eq(webhookEvents.eid, requestId))
     return NextResponse.json({ ok: true, message: 'Callback processed' })
   } catch (error: unknown) {
     if (error instanceof TokenExpiredError) {
